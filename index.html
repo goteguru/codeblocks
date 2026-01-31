@@ -1,23 +1,361 @@
-<html>
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="JavaScript tanfolyam – tananyag és gyakorló feladatlapok" />
+  <title>JavaScript tanfolyam – Tananyagok</title>
+
+  <style>
+    :root{
+      /* Light */
+      --bg: #ffffff;
+      --surface: #f7f7fb;
+      --text: #1b1f24;
+      --muted: #4b5563;
+      --border: rgba(0,0,0,.10);
+      --shadow: 0 10px 30px rgba(0,0,0,.08);
+      --link: #2563eb;
+      --link-hover: #1d4ed8;
+      --badge-bg: rgba(37, 99, 235, .10);
+      --badge-text: #1d4ed8;
+      --focus: rgba(37, 99, 235, .35);
+      --radius: 16px;
+      --max: 960px;
+    }
+
+    @media (prefers-color-scheme: dark){
+      :root{
+        /* Dark (darcula-ish, de saját) */
+        --bg: #0f111a;
+        --surface: #151a26;
+        --text: #e7e9ee;
+        --muted: #a7b0c0;
+        --border: rgba(255,255,255,.10);
+        --shadow: 0 14px 38px rgba(0,0,0,.45);
+        --link: #7aa2ff;
+        --link-hover: #9bb8ff;
+        --badge-bg: rgba(122, 162, 255, .14);
+        --badge-text: #9bb8ff;
+        --focus: rgba(122, 162, 255, .35);
+      }
+    }
+
+    *{ box-sizing: border-box; }
+    html, body{ height: 100%; }
+    body{
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.6;
+      color: var(--text);
+      background: radial-gradient(1200px 700px at 20% -10%, rgba(37,99,235,.12), transparent 60%),
+                  radial-gradient(1000px 600px at 100% 0%, rgba(16,185,129,.10), transparent 55%),
+                  var(--bg);
+    }
+
+    a{
+      color: var(--link);
+      text-decoration: none;
+      text-underline-offset: 3px;
+    }
+    a:hover{ color: var(--link-hover); text-decoration: underline; }
+
+    .wrap{
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 28px 18px 56px;
+    }
+
+    header{
+      margin: 10px 0 18px;
+      padding: 22px 22px 18px;
+      background: color-mix(in oklab, var(--surface) 92%, transparent);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+
+    h1{
+      margin: 0 0 6px;
+      font-size: clamp(1.6rem, 2.2vw + 1rem, 2.2rem);
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle{
+      margin: 0;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    main{
+      margin-top: 16px;
+    }
+
+    .grid{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    @media (min-width: 880px){
+      .grid{
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card{
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card h2{
+      margin: 0;
+      padding: 14px 16px 10px;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .list{
+      list-style: none;
+      margin: 0;
+      padding: 6px 8px 10px;
+    }
+
+    .item{
+      margin: 0;
+      padding: 6px 6px;
+    }
+
+    .linkrow{
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 10px 10px;
+      border-radius: 12px;
+    }
+
+    .linkrow:hover{
+      background: color-mix(in oklab, var(--bg) 72%, transparent);
+    }
+
+    .badge{
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      font-size: .82rem;
+      font-weight: 600;
+      letter-spacing: .01em;
+      white-space: nowrap;
+    }
+
+    .title{
+      font-weight: 650;
+    }
+
+    .desc{
+      color: var(--muted);
+      font-size: .93rem;
+    }
+
+    .linkrow:focus,
+    .linkrow:focus-visible{
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    footer{
+      margin-top: 18px;
+      padding: 14px 4px 0;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    code{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: .95em;
+      padding: 0 .35em;
+      border-radius: 8px;
+      background: color-mix(in oklab, var(--surface) 80%, var(--bg));
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
 
 <body>
-	<h1>JavaScript tanfolyam</h1>
-	<ul>
+  <div class="wrap">
+    <header>
+      <h1>JavaScript tanfolyam</h1>
+      <p class="subtitle">
+        Tananyag és gyakorló feladatlapok. A feladatok oldalak gyakorlásra valók; a tananyag oldalak a magyarázatot és mintákat tartalmazzák.
+      </p>
+    </header>
 
-		<li><a href="es_1.html"> 1. lecke – JavaScript alapmodell: értékek, típusok, objektumok, függvények</a></li>
-		<li><a href="es_1f.html">Feladatok</a></li>
-		<li><a href="es_2.html"> 2. lecke – Operátorok, típuskonverzió és vezérlési szerkezetek</a></li>
-		<li><a href="es_2f.html">Feladatok</a></li>
-		<li><a href="es_3.html"> 3. lecke – Függvények mélyebben</a></li>
-		<li><a href="es_3f.html">Feladatok</a></li>
-		<li><a href="es_4.html"> 4. lecke – Fontos Object típusok</a></li>
-		<li><a href="es_4f.html">Feladatok</a></li>
-		<li><a href="es_5.html"> 5. lecke – Hibakezelés, modulok, prototype</a></li>
-		<li><a href="es_5f.html">Feladatok</a></li>
-		<li><a href="es_6.html"> 6. lecke – Aszinkron JavaScript és eventek</a></li>
-		<li><a href="es_6f.html">Feladatok</a></li>
-		<li><a href="es_7.html"> 7. lecke – Aszinkron JavaScript és eventek</a></li>
-		<li><a href="es_7f.html">Feladatok</a></li>
-	</ul>
+    <main class="grid" aria-label="Tananyagok és feladatok">
+      <section class="card" aria-label="Tananyagok">
+        <h2>Tananyagok</h2>
+        <ul class="list">
+          <li class="item">
+            <a class="linkrow" href="es_1.html">
+              <span class="badge">1. lecke</span>
+              <span>
+                <span class="title">JavaScript alapmodell: értékek, típusok, objektumok, függvények</span><br />
+                <span class="desc">Alap fogalmak, típusok, objektumok, függvényhívás.</span>
+              </span>
+            </a>
+          </li>
+
+          <li class="item">
+            <a class="linkrow" href="es_2.html">
+              <span class="badge">2. lecke</span>
+              <span>
+                <span class="title">Operátorok, típuskonverzió és vezérlési szerkezetek</span><br />
+                <span class="desc">Kifejezések, összehasonlítás, truthy/falsy, <code>if</code>, <code>for</code>, <code>while</code>.</span>
+              </span>
+            </a>
+          </li>
+
+          <li class="item">
+            <a class="linkrow" href="es_3.html">
+              <span class="badge">3. lecke</span>
+              <span>
+                <span class="title">Függvények mélyebben</span><br />
+                <span class="desc">Paraméterek, return, függvényfajták, callback szemlélet.</span>
+              </span>
+            </a>
+          </li>
+
+          <li class="item">
+            <a class="linkrow" href="es_4.html">
+              <span class="badge">4. lecke</span>
+              <span>
+                <span class="title">Fontos Object típusok</span><br />
+                <span class="desc">Tömbök, objektumok, hasznos beépített típusok.</span>
+              </span>
+            </a>
+          </li>
+
+          <li class="item">
+            <a class="linkrow" href="es_5.html">
+              <span class="badge">5. lecke</span>
+              <span>
+                <span class="title">Hibakezelés, modulok, prototype</span><br />
+                <span class="desc">try/catch/finally, import/export, prototype lánc.</span>
+              </span>
+            </a>
+          </li>
+
+          <li class="item">
+            <a class="linkrow" href="es_6.html">
+              <span class="badge">6. lecke</span>
+              <span>
+                <span class="title">Aszinkron JavaScript és eventek</span><br />
+                <span class="desc">Promise, async/await, eseménykezelés, event loop alapok.</span>
+              </span>
+            </a>
+          </li>
+
+          <li class="item">
+            <a class="linkrow" href="es_7.html">
+              <span class="badge">7. lecke</span>
+              <span>
+                <span class="title">JavaScript mint rendszer: végrehajtási modell, closure, aszinkron minták</span><br />
+                <span class="desc">Call stack, task/microtask, állapotkezelési szemlélet, másolás/mutáció.</span>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <section class="card" aria-label="Gyakorló feladatok">
+        <h2>Gyakorló feladatok</h2>
+        <ul class="list">
+          <li class="item">
+            <a class="linkrow" href="es_1f.html">
+              <span class="badge">Feladatok</span>
+              <span>
+                <span class="title">1. lecke – gyakorlás</span><br />
+                <span class="desc">Értékek, típusok, objektumok, függvények.</span>
+              </span>
+            </a>
+          </li>
+
+          <li class="item">
+            <a class="linkrow" href="es_2f.html">
+              <span class="badge">Feladatok</span>
+              <span>
+                <span class="title">2. lecke – gyakorlás</span><br />
+                <span class="desc">Operátorok, konverzió, elágazás és ciklusok.</span>
+              </span>
+            </a>
+          </li>
+
+          <li class="item">
+            <a class="linkrow" href="es_3f.html">
+              <span class="badge">Feladatok</span>
+              <span>
+                <span class="title">3. lecke – gyakorlás</span><br />
+                <span class="desc">Függvények, scope, callback-ek.</span>
+              </span>
+            </a>
+          </li>
+
+          <li class="item">
+            <a class="linkrow" href="es_4f.html">
+              <span class="badge">Feladatok</span>
+              <span>
+                <span class="title">4. lecke – gyakorlás</span><br />
+                <span class="desc">Array/Object műveletek, beépített típusok.</span>
+              </span>
+            </a>
+          </li>
+
+          <li class="item">
+            <a class="linkrow" href="es_5f.html">
+              <span class="badge">Feladatok</span>
+              <span>
+                <span class="title">5. lecke – gyakorlás</span><br />
+                <span class="desc">Hibakezelés, modulok, prototype.</span>
+              </span>
+            </a>
+          </li>
+
+          <li class="item">
+            <a class="linkrow" href="es_6f.html">
+              <span class="badge">Feladatok</span>
+              <span>
+                <span class="title">6. lecke – gyakorlás</span><br />
+                <span class="desc">Aszinkron vezérlés és eventek.</span>
+              </span>
+            </a>
+          </li>
+
+          <li class="item">
+            <a class="linkrow" href="es_7f.html">
+              <span class="badge">Feladatok</span>
+              <span>
+                <span class="title">7. lecke – gyakorlás</span><br />
+                <span class="desc">Végrehajtási modell, closure, aszinkron minták.</span>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      Tipp: ha a böngészőben a rendszer téma sötétre van állítva, ez az oldal automatikusan dark mode-ban jelenik meg.
+    </footer>
+  </div>
 </body>
 </html>
