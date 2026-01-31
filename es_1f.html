@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+  <title>1. lecke – Gyakorló feladatok (JavaScript alapmodell)</title>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>1. lecke – Gyakorló feladatok</h1>
+      <p>
+      Próbáld meg megoldani az alábbi feladatokat! Ha elakadtál kérheted egy LLM (nagy nyelvi modell, vagy "AI") 
+	segítségét, de ha csak lehet próbáld meg egyedül. 
+      </p>
+      <p>
+        A kódban a <strong>...</strong> jelöli, mit kell pótolnod vagy módosítanod.
+	Ahol kész kód van azokat hagyd meg nyugodtan. Ha nem (teljesen) világos pontosan
+	mit csinálnak az nem baj, később még lesz róla szó. A lényeg itt az, hogy
+	tudod a pontozott részekhez mit (és hogyan) kell írni.
+      </p>
+    </header>
+
+    <section>
+      <h2>1) Típusok felismerése és kiegészítés </h2>
+      <p>
+        Egészítsd ki a hiányzó értékeket úgy, hogy a változók a megadott típusú értékeket kapják.
+      </p>
+
+      <textarea data-lang="js">
+// 1) Töltsd ki a hiányzó értékeket a megfelelő típusokkal
+
+let a = 42		// number (ez már kész is)
+let b = ...		// string (például Lajosmizse)
+let c = ...		// boolean 
+let d = ...		// bigint 
+
+let e = ...               // undefined (ne string legyen!)
+let f = ...               // null
+
+// kiírjuk a típusokat, hogy lásd jól csináltad-e:
+console.log(typeof a, a)
+console.log(typeof b, b)
+console.log(typeof c, c)
+console.log(typeof d, d)
+console.log(typeof e, e)
+// null-ra a typeof azt mondaná, hogy object (javascript furaság).
+// ezért ezt kivételesen máshogy nézzük meg:
+console.log(f === null ? "tényleg null" : "nem null")
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <ul>
+          <li><code>undefined</code> úgy jön létre, ha egy változónak nincs értéke, vagy explicit <code>undefined</code>-ot adsz.</li>
+          <li><code>null</code> egy konkrét "szándékosan üres" érték.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section>
+      <h2>2) Statement vagy expression? (módosítós)</h2>
+      <p>
+        A program hibás, mert egy kifejezést (expression) rossz helyen "utasításként" (statementként) akarunk használni.
+	Az eredménye így (bár létrejön) elveszik. Írd át úgy, hogy a kód lefusson de ki is az eredményt!
+      </p>
+
+      <textarea data-lang="js">
+
+//alapadatok
+let x = 10
+let y = 5
+
+// Ez egy kifejezés, de így nem csinál semmit hasznosat.
+// Írd át úgy, hogy az eredmény el legyen tárolva egy változóban!
+x + y
+
+// Aztán írd ki:
+console.log("Összeg:", ...)
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Ha az expression értékét szeretnéd később használni, rendeld hozzá egy változóhoz!
+	  Erre az egyenlőségjelet használjuk: változó = kifejezés
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>3) Objektum property-k </h2>
+      <p>
+        A feladat: egy <code>book</code> objektumban hiányoznak fontos property-k.
+        Egészítsd ki úgy, hogy a kiírás működjön és értelmes legyen.
+      </p>
+
+      <textarea data-lang="js">
+// 3) Egészítsd ki a book objektumot a hiányzó property-kkel
+
+let book = {
+  title: "A kis herceg",
+  // author (string)
+  // pages (number)
+  // isAvailable (boolean)
+}
+
+console.log("Cím:", book.title)
+console.log("Szerző:", book.author)
+console.log("Oldalszám:", book.pages)
+console.log("Kölcsönözhető:", book.isAvailable)
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Property-ket vesszővel választunk el, és a kulcs után kettőspont jön: <code>kulcs: érték</code>.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>4) Metódus hozzáadása </h2>
+      <p>
+        A feladat: adj a <code>person</code> objektumhoz egy <code>greet</code> metódust (függvény property-t),
+        ami kiírja a konzolra: <code>&lt;név&gt; ma évszám &lt;év&gt; éves!</code>, azaz a mintaként megadott
+	esetben "Anna ma 30 éves!".
+      </p>
+
+      <textarea data-lang="js">
+
+let person = {
+  name: "Anna",
+  age: 30,
+  // greet metódus
+}
+
+person.greet()
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          A metódus megadhatsz pl így: <code>greet: function () { ... }</code>
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>5) Függvényhívás és argumentumok </h2>
+      <p>
+        A feladat: a <code>console.log</code> egy függvény, ami argumentumokat kap.
+        A program írjon ki egy mondatot a név és kor alapján.
+        Javítsd / egészítsd ki a ...TODO... részt úgy, hogy értelmes kimenet kapj.
+      </p>
+
+      <textarea data-lang="js">
+// Ezt kéne látnunk:
+// "Zoli 28 éves."
+
+let name = "Zoli"
+let age = 28
+
+console.log(...TODO...)
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          A <code>console.log</code> több argumentumot is kaphat, és szóközzel elválasztva írja ki őket. Tehát elég ha felsorolod őket vesszővel.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>6) Saját függvény definiálása és használata </h2>
+      <p>
+        A feladat: definiálj egy <code>describeValue</code> nevű függvényt, amely egy értéket kap,
+        és kiírja a konzolra az érték típusát és magát az értéket is.
+      </p>
+
+      <textarea data-lang="js">
+// 6) Definiáld a függvényt: describeValue(value)
+// Kimenet példa: "Típus: string, érték: Hello"
+
+function describeValue(value) {
+...TODO: írd meg a belsejét...
+}
+describeValue(123)
+describeValue("Hello")
+describeValue(true)
+describeValue(null)
+describeValue(undefined)
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Használd a <code>typeof</code> operátort: <code>typeof value</code>. De fentebbről is puskázhatsz.
+        </p>
+      </details>
+    </section>
+
+  </main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</body>
+</html>

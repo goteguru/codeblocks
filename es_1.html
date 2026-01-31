@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+  <title>1. lecke – JavaScript alapmodell</title>
+</head>
+<body>
+  <main>
+    <h1>1. lecke – JavaScript alapmodell</h1>
+    <h2>Értékek, típusok, objektumok és függvények</h2>
+
+    <h3>Bevezetés</h3>
+    <p>
+      Ebben az első leckében megismerkedünk a JavaScript gondolkodásmódjának alapjaival.
+      Nem az a cél, hogy mindent azonnal részletesen megértsünk, hanem az, hogy képet kapjunk arról,
+      miből épül fel egy JavaScript program, és hogyan "gondolkodik" a nyelv.
+    </p>
+    <p>
+      Bár elsőre misztikusnak tűnhet, igazából a JavaScript nem varázslat: 
+      utasítások sorozata, amelyek értékekkel dolgoznak.
+      Ezeket az értékeket típusokba sorolja, az értékeket gyakran objektumokban tárolja,
+      és nagyon sok mindent függvényekkel old meg. Ezeket a fogalmakat fogjuk átnézni.
+    </p>
+
+    <h2>Egyáltalán miről is szól az a programozás?</h2>
+    <p>
+      A programozás tulajdonképpen utasítások megfogalmazása egy számítógép számára.
+      Ezek az utasítások pontosak, egyértelműek, és mindig ugyanúgy hajtódnak végre.
+    </p>
+    <p>Egy program tipikusan:</p>
+    <ul>
+      <li>adatokat kap (például felhasználói bevitel),</li>
+      <li>feldolgozza azokat,</li>
+      <li>majd eredményt ad vissza (például megjelenít valamit).</li>
+    </ul>
+    <p>
+      A JavaScript (illetve bővebb értelemben az EcmaScript szabvány) eredetileg weboldalak "életre keltésére" készült, ma már viszont szervereken,
+      mobilalkalmazásokban és sok más környezetben is használják.
+    </p>
+
+    <h2>Mi az a EcmaScript?</h2>
+    <p>
+      Az EcmaScript egy hivatalos szabvány neve (ECMA-262), amelyet több különféle 
+      implementáció (JavaScript, JScript, ActionScript) egységességét hivatott biztosítani.
+    </p>
+
+    <p>
+    Az EcmaScript nyelvek nagyon hasonlóak, ha az egyiket ismerjük, elég jól eligazodunk bármelyikben. 
+    Ebben a kurzusban elsősorban a JavaScript nyelven keresztül fogjuk megismerni a nyelvet,
+    hiszen a böngészők elsődleges programozási nyelve, bele van építve minden nagyobb böngészőbe,
+    tehát az ég világon semmit sem kell telepíteni hozzá máris rendelkezésre áll!
+    </p>
+
+    <p>
+    A JavaScript egy dinamikus, gyengén típusos, magas szintű programozási nyelv.
+    Első ránézésre a főbb jellegzetességei: 
+    </p>
+    <ul>
+      <li>futás közben derül ki, melyik adat típusa mi,</li>
+      <li>a nyelv rugalmas,</li>
+      <li>sok dolgot (kisebb hibákat) "elnéz" a programozónak,</li>
+      <li>ugyanakkor összetett rendszerek építhetők vele.</li>
+    </ul>
+
+    <h2>Hogyan használd ezeket a tananyagokat?</h2>
+    <p>
+    A tananyagban talász majd futtatható kódblokkokat, ahol kipróbálhatod a nyelvet. 
+    Ha rákattintasz át is szerkesztheted a tartalmukat. Ha pedig a jobb felső sarokban található lejátszás gombra böksz
+    (vagy megnyomod a ctrl+enter kombinációt) akkor le is futtatja őket (a böngészőben) és a kódblokk után megjeleníti az eredményt!
+    </p>
+
+    <p>
+    Például használhatnád számológépnek (próbáld ki):</p>
+    <textarea data-lang="js"> 2 + 26 / 7 ** 3 </textarea>
+    <p>A <code>**</code> operátor a hatványozás jele JavaScriptben, tehát a <code>6 ** 3</code> kódot úgy olvassuk, hogy "hét a harmadikon".</p>
+    <p>
+    Ezeket a kódblokkokat csak a könnyű olvashatóság miatt tettük ide a szövegbe, valójában <em>bármikor</em>
+    tudnád használni a JavaScriptet ha egy böngésző van elötted! Egyszerűen csak nyomd meg az <kbd>F12</kbd>-t 
+    (vagy a <kbd>Fn</kbd>+<kbd>F12</kbd>-t ha a laptopodon a médiagombok az elsődlegesek), 
+    vagy a <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>i</kbd> kombinációt.
+    Kapsz egy javascript "konzolt". Ha ide beírod a fenti képletet (vagy bármit amit a tananyagban később találsz)
+    a böngésző végrehajtja! Próbáld ki!</p>
+    <p class="info">Ha már nem szeretnéd látni a konzolt, ugyanazzal a gyorsbillentyűvel tudod kikapcsolni, ahogy bekapcsoltad.</p>
+
+    <h2>Statement és expression</h2>
+
+    <h3>Expression (kifejezés)</h3>
+    <p>Az expression (kifejezés) mindig egy értéket eredményez. Ez például egy kifejezés (aminek az értéke 5):</p>
+
+    <textarea data-lang="js">2 + 3</textarea>
+
+    <p>Ugyanilyen expression például ez a szöveg (az értéke saját maga):</p>
+    <textarea data-lang="js"> "Hello" </textarea>
+
+    <p>Figyeld meg, hogy a szöveg idézőjelek között szerepel ez később fontos lesz.</p>
+
+    <p>Persze függvényeket is használhatsz:</p>
+    <textarea data-lang="js">Math.sin(Math.PI / 4)</textarea>
+    <p>Itt a függvény a színusz. (A matek jellegű dolgokat a JavaScript a Math objektum alatt tárolja, ezért van a sin és a pi elé is odaírva)</p>
+    
+    <p>Olyan függvény is létezik amit csak azért hívunk meg, hogy valamit csináljon. Például írjon ki valamit. Ezeket a kódblokkokat úgy írtuk meg, hogy az utolsó kifejezés értékét mindenképpen kiírja, de előfordulhat, hogy te többet is ki szeretnél írni nem csak az utolsót. A <code>console.log</code> függvény pontosan ezt teszi: az összes paraméterét kiírja.</p>
+    <textarea data-lang="js">
+console.log("Szia")
+console.log("Hogy vagy?")
+"ezt nem írja ki"
+"utolsó"
+    </textarea>
+
+    <p>Ettől még ez is kifejezésnek (expression) számít, még úgy is, hogy "csak" valami történik és nincs értelmes dolog amit visszaadjon.</p>
+
+    <h3>Statement (utasítás)</h3>
+    <p>A statement utasítást ad, de nem feltétlenül ad vissza értéket.</p>
+    <p>A utasításokat pontosvesszővel kell elválasztani egymástól, ami a gyakorlatban
+    általában úgy néz ki hogy a sor végére teszik ki a pontosvesszőt.</p>
+
+    <textarea data-lang="js">
+let x = 5;
+    </textarea>
+
+    <p>Ez egy utasítás: itt létrehozunk egy változót, amihez az 5-ös értéket rendeljük. Ettől kezdve 5 helyett írhatjuk azt is, hogy x.</p>
+
+    <p class="important">
+      Minden statement tartalmazhat kifjezéseket, de nem minden kifejezés statement.
+    </p>
+    <p>Ha külön sorba írjuk az utasításokat, akkor (a legtöbb esetben) a JavaScript magától kitalálja, hogy ott egy pontosvesszőnek kéne állni,
+    tehát szuper kényelmes módon le lehet őket spórolni és írhatjuk pontosvessző nélkül is:</p>
+    <textarea data-lang="js">
+let x = 5
+let y = 15
+    </textarea>
+
+    <h2>Hibák</h2>
+    <p>Ha a Javascript kódod hibás, akkor a futás eredménye egy hiba lesz. Ezekben a kódblokkokban
+    a kódblokk alatt pirossal fogod őket látni, ahogy a konzolban is. Általában a hibaüzenet segít megtalálni, hogy mi a gond,
+    persze sajnos csak angolul beszél. </p>
+    <textarea data-lang="js"> 2 + </textarea>
+    <p>Itt például elfelejtettük a összeadás jel második paraméterét, így emiatt reklamál:
+    "<code>Error: expected expression, got end of script</code>" Ami nagyjából annyit tesz, 
+    hogy ő a összeadás jel jobb oldalán egy kifejezést (expression) szeretett volna látni (pl.: (9*3+4))
+    A program (script) viszont véget ért, aminek szerinte nincs értelme.</p>
+    <p>A JavaScript egyébként meglehetősen elnéző (sokak szerint túl elnéző) a hibákkal kapcsolatban. 
+    A legtöbb nyelv például kiakad (és hibát dob) ha nullával osztunk, vagy egy számhoz
+    hozzá akarunk adni egy szöveget. A JavaScript nem tesz ilyet, megpróbálja kitalálni mit
+    akartunk és ha nagyjából jó a kód, az neki már elég:
+    <textarea data-lang="js">
+console.log(1/0) 
+console.log(23 / "2")
+    </textarea>
+    <p>Ha lefuttatod, látod, hogy nem dobál hibát, simán megpróbálta kitalálni, hogy mit akartál.
+    Az 1/0 szerinte végtelen, nem hiba. A <code>23&nbsp;/&nbsp;"2"</code> kifejezésnek nemigen van értelme mert az egyik egy szám a másik egy szöveg
+    de hát biztos számként akartuk írni a 2-t, csak elfelejtettük számmá alakítani, így átalakítja nekünk.
+    (Azért ebben ne bízz, mert egyáltalán nem biztos, hogy sikerül neki. Inkább mindig úgy írd, ahogy egyértelmű!)</p>
+
+    <h2>Megjegyzések</h2>
+    <p>
+      A megjegyzések, más néven kommentek olyan részek a kódban, amelyeket a JavaScript nem hajt végre.
+      Az olvasónak szólnak, nem a gépnek, a gép (vagyis az interpreter ami értelmezi a kódot) figyelmen kívül hagyja őket.
+      Az olvasónak -- azaz nekünk -- viszont nagyon hasznosak lehetnek, felhívhatják a figyelmet valamire amire nem gondoltunk,
+      vagy egyszerűen csak segít megérteni a programot.
+    </p>
+
+    <h3>Egysoros komment</h3>
+    <textarea data-lang="js">
+// Ez egy megjegyzés, nem csinál semmit
+2000 + 456 // sokszor a sor végén találod.
+    </textarea>
+
+    <h3>Többsoros komment</h3>
+    <textarea data-lang="js">
+/*
+Ez több soros
+megjegyzés
+*/
+    </textarea>
+
+    <p>A kommentelés az érthető kód alapja. Használd bátran.</p>
+
+    <h2>Értékek és típusok</h2>
+    <p>
+      A JavaScript világában minden érték. Egy szám, egy szöveg, egy igaz/hamis állítás - mind mind érték.
+      A JavaScript minden értékhez rendel egy típust, amely megmondja, hogy az adott értékkel mit lehet csinálni.
+    </p>
+
+    <h2>Primitive típusok</h2>
+    <p>A <em>primitive típusok</em> egyszerű, tovább nem bontható értékek. Javascriptben az alábbi primitive típusokkal fogsz találkozni:</p> 
+
+    <h3>number</h3>
+    <p>Minden számként írt szám number!</p>
+    <textarea data-lang="js">
+10
+3.14
+2.1E3 // lehet normál alakban is írni.
+-5
+.7 // nem kell kiírni a 0-t, úgy is működik.
+    </textarea>
+    <p>
+      A JavaScriptben nincs külön egész és tört szám, minden <code>Number</code>. A tizedest pedig mindig ponttal írjuk. Ez a típus kb 15 értékes jegyre pontos (tizes számrendszerben nézve), tehát ennél nagyobb precizitást ne várjunk tőle!
+    </p>
+    <textarea data-lang="js">
+      .3333333333333333333333333333333 - .3
+    </textarea>
+    <p>Bár 10-es számrendszerben írja ki, a számokat bináris (kettes) számrendszerben tárolja, így ami nekünk véges törtnek tűnik, az nem biztos, hogy számára is az! Például a 0.1 bináris számrendszerben nem írható le véges számjeggyel. Mivel a tárolás csak 15 értékes jegyre pontos, az ilyen értékekkel való számítás pontatlan lehet!
+    </p>
+    <textarea data-lang="js">
+      .1 + .2
+    </textarea>
+
+    <p class="info">
+    Implementációját tekintve a Number egy lebegőpontos szám,
+    egészen konkrétan duplapontos, 64 bites, IEEE-754 formátumú lebegőpontos szám. (Ugye milyen szépen hangzik? :)) 
+    Ennek a formátumnak a szokásos számokon kívül lehetnek különleges értékei is,
+    például a <code>NaN</code> (not a number), vagy az <code>Infinity</code> (végtelen) amivel éppen azt kívánjuk jelezni, 
+    hogy az eredmény nem igazán számítható, vagy nem "normális" szám.
+    </p>
+    <textarea data-lang="js">Math.log(-1)</textarea
+    <p>Ez azt a vicces helyzetet eredményezi, hogy a fenti kifejezés eredménye egy Number (szám) aminek az értéke szó szerint azt jelenti, hogy nem szám. :) </p>
+
+    <h3>string (szöveg)</h3>
+    <textarea data-lang="js">
+"Hello"
+'Szia'
+`JavaScript`
+    </textarea>
+    <p>A string (vagyis szöveg) mindig idézőjelek között van. Mint láthatod, háromféle idézőjelet is használhatunk.
+    A dupla és szimpla idézőjel között nincs különbség, de néha jól jön, ha a szövegben a másik már szerepel.</p>
+    <textarea data-lang="js">"ebben a szövegben van 'idézet'!"</textarea
+    <p>
+     Ha mindkettő szerepel, vagy egyszerűen csak nem szeretnénk két félét használni, akkor "escapelhetjük" 
+     az idézőjelet (vagy bármilyen speciális karaktert) a visszafele per-jel (backslash) segítségével.
+     Tehát írhatnánk így is:
+    </p>
+    <textarea data-lang="js">"ebben a szövegben van \"idézőjel\""</textarea
+    <p>
+    A backslash segít nekünk bevinni olyan értéket amit különleges kód jelöl, 
+    például ha tudjuk a kódpontot beírhatunk egy unicode karaktert <code>\u{1F3DD}</code>
+    formában vagy soremelés karaktert a <code>\n</code> segítségével.:
+    </p>
+
+    <textarea data-lang="js">"Spec karakter: \u{03A9} \u{1F3DD} soremelés:\nmásik sor\nharmadik sor."</textarea
+    <p>Ha érdekel, a teljes "escape kód listát" <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Character_escape">itt találod.</a></p>
+
+    <p>A visszafele idézőjel (backtick) egy kicsit különlegesebb, ugyanis ez a változókat 
+    <code>${változónév}</code> alakban be tudja helyettesíteni a szövegbe!</p>
+
+    <textarea data-lang="js">
+      let name = "Bob" // name változó értéke "Bob"
+      console.log("Hello ${name}!")
+      console.log(`Hello ${name}!`)
+    </textarea>
+    <p>Ezt template-nek nevezik és szuper hasznos, ha egy hosszabb szövegbe változó dolgokat szeretnél beszurkálni. 
+    (Például sok szabvány levelet szeretnél kiküldeni, ahol a név és a cím mindig más és más).</p>
+
+    <h3>boolean</h3>
+    <p>Megadhatunk igaz/hamis, azaz logikai értéket is:</p>
+    <textarea data-lang="js">
+true
+false
+    </textarea>
+    <p>Ezeket az értékeket elsősorban döntésekhez használjuk. Ilyen logikai érték például minden reláció eredménye.</p>
+    <textarea data-lang="js">3>5</textarea>
+
+    <textarea data-lang="js">"negyvenkettő" == 42</textarea>
+    <p>Mint látod, az "egyenlőség vizsgálat" jele a dupla egyenlő. Sima egyenlő nem lehet, mert azt már az értékadásnál használjuk.
+    Az eredmény "hamis" hiszen az egyik egy szó, a másik egy szám, tehát nyilván nem egyenlőek (már a program szempontjából).</p>
+
+    <h3>bigint</h3>
+    <p>Kicsit későbbi jövevény a nyelvben a <code>BigInt</code> (nagyon nagy egész számok). Korábban láttuk,
+    hogy minden szám (Number) ugyanolyan formátumban (lebegőpontos alakban) tárolódik, tehát a nyelvben
+    nem voltak valódi egész számok. Csakhogy sokszor nincs szükségünk tört részre és a plusz tárhely, valamint 
+    a kicsit lassabb műveletvégzés nem indokolt. Ilyenkor a <code>BigInt</code> használata hatékonyabb.
+    Ezek valódi egész (nem lebegőpontos) számok és a végére írt n betűvel jelüljük őket. </p>
+    <textarea data-lang="js">
+12345678901234567890n
+    </textarea>
+    <p>A végén az <strong>n</strong> jelzi, hogy bigint.</p>
+
+    <h2>Speciális primitive típusok</h2>
+    <p>Ezek nem "hagyományos" értékek, inkább állapotokat jelölnek.</p>
+
+    <h3>undefined</h3>
+    <p>Azt jelenti: "van ugyan valami, de még nincs értéke".</p>
+    <textarea data-lang="js">
+let x;
+    </textarea>
+    <p>Itt <code>x</code> értéke <code>undefined</code> mivel azt mondtuk, 
+    hogy x létezik (let) csak éppen nem mondtuk meg, hogy mennyi az értéke.
+    No a JavaScript szerint ilyenkor is van értéke, mégpedig az <code>undefined</code>.</p>
+
+    <h3>null</h3>
+    <p>Néha konkrétan azt szeretnék jelezni, hogy valami üres, ismeretlen. Erre való a null, vagyis tudatosan üres érték:</p>
+    <textarea data-lang="js">
+let price = null;
+    </textarea>
+    <p>Ez azt jelenti, hogy az ár (price) még ismeretlen. Így akkor meg tudjuk különböztetni azt,
+    ha valami nulla (tehát mondjuk ingyenes) és azt, ha valami üres (tehát mondjuk még nem tudjuk mi az ára).</p>
+
+    <h3>symbol</h3>
+    <p>
+      A <code>symbol</code> egy speciális, egyedi azonosító típus.
+      Ezt nem nagyon fogjuk használni csak speciális esetekben, 
+      elég annyit tudni, hogy garantáltan egyedi azonosító.
+    </p>
+
+    <h2>Object és function</h2>
+    <p>JavaScriptben <strong>minden, ami nem primitive, az Object.</strong></p>
+
+    <h3>Mi az az Object?</h3>
+    <p>Egy object lényegében kulcs-érték párok (az úgynevezett "property"-k) gyűjteménye.</p>
+
+    <textarea data-lang="js">
+let person = {
+  name: "Anna",
+  age: 30
+}
+    </textarea>
+
+    <p>Ebben:</p>
+    <ul>
+      <li><strong>name</strong> és <strong>age</strong> property-k,</li>
+      <li><strong>"Anna"</strong> és <strong>30</strong> értékek.</li>
+    </ul>
+    <p>Egy property értéke bármilyen típus lehet, akár függvény (ezt neveztük metódusnak, lásd alább) vagy akár egy másik object is. Így építhetsz hierarchikus (több szintű) objecteket.</p>
+
+    <textarea data-lang="js">
+let company = {
+  name: "ABC Company",
+  location: { city: "Budapest", country: "Hungary" }
+}
+company
+    </textarea>
+
+    <p>Maguk a függvények is objektumok, így azok is lehetnek egy másik objektumban értékek. 
+    Így aztán az objektumok igencsak összetett szerkezetek lehetnek. A legtöbb struktúra ilyen objektumként
+    van megvalósítva az EcmaScriptben. Itt a böngészőben ilyen objektumként érjük el a böngészőt,
+    az ablakot, a honlap szerkezetét, más programokban az adatokat vagy a funkciókat.</p>
+
+    <p>Az összetett adatstruktúrák is ilyen objektumok. Például a JavaScripben létezik
+    egy tömb objektum, amiben több értéket tárolhatunk.</p>
+
+    <p>Mivel a tömb egy nagyon gyakran használt struktúra, külön jelölés is van rá
+    (a szögletes zárójel), de ettől még ő is egy objektum.</p>
+    <textarea data-lang="js">
+let saját_tömb = [1, 2, 3, 4, 5];
+
+console.log(saját_tömb);
+console.log(typeof(saját_tömb));
+    </textarea>
+    <p>Ha nem kell nekünk az összes elem, az egyes tömb egyes elemeit az indexük segítségével
+    érhetjük el (még mindig a szögletes zárójel segítségével):</p>
+    <textarea data-lang="js">
+let saját_tömb = [1, 2, 3, 4, 5];
+
+console.log(saját_tömb[0]); // első elem (0-val kezdődik a számozás)
+console.log(saját_tömb[4]); // utolsó elem
+console.log(saját_tömb[500]); // nincs hiba, csak undefined
+    </textarea>
+    <p>Mint látod, a JavaScript itt is szuper megértő. Ha olyan elemre hivatkozol
+    ami nincs is (itt az 501.) akkor simán csak <code>undefined</code> értéket ad 
+    vissza és nem száll el egy hatalmas hibával mint más nyelvek.</p>
+
+    <h2>Függvények</h2>
+    <p>A függvény egy újrahasználható művelet. Lehet neki paramétere és mindig van értéke (visszatérési értéke).</p>
+
+    <h3>Függvény meghívása</h3>
+    <p>Egy függvényt így hívunk meg:</p>
+
+    <textarea data-lang="js">
+console.log("Hello");
+    </textarea>
+
+    <p>Itt:</p>
+    <ul>
+      <li><strong>console.log</strong> a függvény neve,</li>
+      <li><strong>"Hello"</strong> a paraméter vagy más néven argumentum.</li>
+    </ul>
+
+    <p> A <strong>console.log</strong> egy beépített függvény, amely kiír valamit a konzolra.
+      Ez lesz az egyik legfontosabb eszközünk a tanulás során. </p>
+    <p>Sőt, mi most már azt is tudjuk, hogy igazából a console.log egy metódus! A <code>console</code> nevű 
+    objektum <code>log</code> nevű property-je egy függvény. Ezért hívják így, hogy console.log (ponttal). 
+    A console egyébként egy elég unalmas objektum, mert csak metódusok vannak benne. Meg is nézheted:</p>
+
+    <textarea data-lang="js"> console </textarea>
+    <p >Próbálj ki egy másikat! Írd át a fenti kódblokkot úgy, hogy hívja meg a "warn" metódust (a log helyett) és úgy írjon ki valamit!</p> 
+
+    <p class="info"> Ezekben a kódblokkokban 
+      felüldefiniáltuk a console.log (és warn) függvényt úgy, hogy a konzol helyett mindig a kódblokk
+      alá írjon. Egyébként normál esetben a konzol az, amit az F12 vagy ctrl+shift+i gombbal megnyitottál a lecke elején,
+      tehát ott jelennek meg az üzenetek. Ha megnyitsz egy tetszőleges modern honlapot és megnézed a konzolt, minden valószínűség 
+    szerint rengeteg üzenetet fogsz ott találni.</p>
+
+
+    <h3>Argumentum fogalma</h3>
+    <p>Az argumentum az az érték, amit átadunk a függvénynek.</p>
+
+    <textarea data-lang="js">
+console.log(42);
+console.log("Tanulok");
+    </textarea>
+
+    <p>Ugyanaz a függvény, különböző argumentumokkal. Argumentumból lehet több is, a JavaScript itt is szuper rugalmas,
+    átadhatsz sokkal több paramétert is egy függvénynek mint amit ő vár, ettől sem dob hátast (a legtöbb programnyelv ilyenkor azonnal harakirit követ el és hibával leáll).</p>
+
+    <textarea data-lang="js">
+console.log(42,23,45);
+Math.sin(1,2,3,4)
+    </textarea>
+    <p>A console.log esetében van értelme a több paraméternek, hiszen nyilván többet szeretnél kiírni,
+    de szinuszt számolni csak egy számból lehet. Mindazonáltal az interpretert ez nem zavarta, 
+    simán kiszámolja az első számra, a többit meg figyelmen kívül hagyta.</p>
+    
+    <h3>Függvény mint property (metódus)</h3>
+
+    <p>
+      Ha egy object egyik property-je egy függvény (lásd alább), akkor azt metódusnak nevezzük.
+    </p>
+
+    <textarea data-lang="js">
+let person = {
+  name: "Anna",
+  greet: function () {
+    console.log("Szia!");
+  }
+};
+    </textarea>
+    <p>Itt a greet egy függvény, azaz metódus. Azért van neki saját neve, mert az objektumhoz rendelt függvény "látja"
+    az objektum adatait és nem muszáj neki paraméterként megkapnia (erről majd később).</p>
+
+    <h2>Összefoglalás</h2>
+    <ul>
+      <li>a JavaScript program értékekkel dolgozik,</li>
+      <li>az értékeknek típusuk van,</li>
+      <li>vannak primitive és speciális primitive típusok,</li>
+      <li>minden összetett adat Object,</li>
+      <li>a függvények központi szerepet játszanak,</li>
+      <li>és ha egy objektum értékeként szerepelnek, metódusnak hívjuk őket.</li>
+    </ul>
+    <p>
+      Ez az alap, amire a következő leckékben minden további tudás épülni fog.
+    </p>
+  </main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</body>
+</html>

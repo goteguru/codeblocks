@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok – 4. lecke</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+<body>
+  <header>
+    <h1>4. lecke – Fontosabb Object típusok</h1>
+    <p>
+      Ebben a leckében a JavaScript leggyakrabban használt összetett (nem-primitive) értékeivel foglalkozunk.
+      A JavaScriptben minden nem-primitive érték <code>Object</code> típusú, de ezek az objektumok nagyon eltérően viselkedhetnek:
+      mást tud egy <code>Array</code>, mást egy sima (alap) <code>Object</code>, és külön eszközt ad a nyelv például
+      időpontok (<code>Date</code>), egyedi elemek (<code>Set</code>) vagy kulcs-érték párok (<code>Map</code>) kezelésére.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Array (tömb)</h2>
+      <p>
+        Az <code>Array</code> egy rendezett lista: elemeket tárol egymás után, és minden elemnek van egy sorszáma,
+        amit <strong>indexnek</strong> hívunk. Az indexelés <code>0</code>-tól indul, tehát az első elem indexe <code>0</code>.
+      </p>
+
+      <article>
+        <h3>1.1. Indexelés és <code>length</code></h3>
+        <p>
+          A tömb elemei szögletes zárójelekkel érhetők el. A <code>length</code> a tömb "hosszát" adja meg
+          (pontosabban az utolsó index + 1 értékét).
+        </p>
+
+        <textarea data-lang="js">
+const nums = [10, 20, 30]
+
+console.log(nums[0])      // 10
+console.log(nums[1])      // 20
+console.log(nums.length)  // 3
+
+nums[1] = 99
+console.log(nums)         // [10, 99, 30]
+        </textarea>
+
+        <p>
+          Fontos: ha egy nem létező indexre hivatkozol, a kapott érték <code>undefined</code>.
+        </p>
+
+        <textarea data-lang="js">
+const nums = [10, 20, 30]
+no_such_thing = nums[10]
+console.log(typeof(no_such_thing)); // undefined
+        </textarea>
+        <p>
+	Ha viszont értéket adsz egy korábban nem létező indexű elemnek (akárcsak minden objektum esetében) az egyszerűen létrejön!
+	Ez a viselkedés logikus, ha úgy vesszük, hogy a tömb indexei valamiféle "property"-k, de azért kicsit fura is: mi történik például
+	ha előre ugrunk, kihagyunk egy csomó indexet és annak adunk értéket? Mi lesz az átugrott elemekkel? Nézzük meg:
+        </p>
+        <textarea data-lang="js">
+const nums = [1,2,3]
+nums[8] = 777 // ilyen elem eddig nem volt...
+
+// mi történt a 4,5,6,7,8 indexü elemekkel?
+console.log(nums)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>1.2. Mutabilitás</h3>
+        <p>
+          A tömb módosítható (<strong>mutable</strong>): vagyis a létrehozása után módosítható elemek adhatók hozzá, elvehetők vagy cserélhetők. (A módosíthatóság nem az elemeire vonatkozik, hanem magára a szerkezetére.) A módosíthatóság kényelmes, de figyelni kell arra, hogy ha több változó ugyanarra a tömbre mutat, akkor a módosítás mindenhol látszik!
+        </p>
+
+        <textarea data-lang="js">
+const a = [1, 2, 3]
+const b = a           // b ugyanarra a tömbre hivatkozik
+
+b.push(4)
+
+console.log(a)        // [1, 2, 3, 4]
+console.log(b)        // [1, 2, 3, 4]
+        </textarea>
+
+        <p>
+          Ha "külön példányt" szeretnél, másolni kell (erről a <code>slice</code> részben lesz egy egyszerű minta).
+        </p>
+      </article>
+
+      <article>
+        <h3>1.3. Elemmódosítás: <code>push</code>, <code>pop</code>, <code>shift</code>, <code>unshift</code></h3>
+        <p>
+          Ezek a metódusok a tömb elejét vagy végét kezelik. A vég műveletei általában olcsóbbak (gyorsabbak),
+          mert az elején történő módosításnál sok elem indexe "elcsúszik".
+        </p>
+
+        <ul>
+          <li><code>push(x)</code> – elem hozzáadása a végére</li>
+          <li><code>pop()</code> – utolsó elem eltávolítása (és visszaadása)</li>
+          <li><code>unshift(x)</code> – elem hozzáadása az elejére</li>
+          <li><code>shift()</code> – első elem eltávolítása (és visszaadása)</li>
+        </ul>
+
+        <textarea data-lang="js">
+const q = ["Béla", "Kata"];
+
+q.push("Mester")
+console.log(q)         // ["Béla", "Kata", "Mester"]
+
+const last = q.pop()
+console.log(last)      // "Mester"
+console.log(q)         // ["Béla", "Kata"]
+
+q.unshift("Első")
+console.log(q)         // ["Első", "Béla", "Kata"]
+
+const first = q.shift()
+console.log(first)     // "Első"
+console.log(q)         // ["Béla", "Kata"]
+        </textarea>
+      </article>
+
+      <article>
+        <h3>1.4. Részletek kivágása és módosítása: <code>slice</code> és <code>splice</code></h3>
+        <p>
+          A <code>slice</code> <strong>nem módosítja</strong> az eredeti tömböt: egy új tömböt ad vissza egy kivágott résszel.
+          A <code>splice</code> ezzel szemben <strong>módosítja</strong> az eredeti tömböt: törölhet és/vagy beszúrhat elemeket.
+        </p>
+
+        <textarea data-lang="js">
+const a = [10, 20, 30, 40, 50]
+
+const part = a.slice(1, 4) // 1..3 indexek (a 4 már nem tartozik bele)
+console.log(part)          // [20, 30, 40]
+console.log(a)             // [10, 20, 30, 40, 50]  (változatlan)
+
+const b = [10, 20, 30, 40, 50]
+const removed = b.splice(2, 2) // 2-es indextől 2 elemet töröl
+console.log(removed)           // [30, 40]
+console.log(b)                 // [10, 20, 50]
+
+const c = [10, 20, 30, 40]
+c.splice(2, 0, 999, 888)       // törlés: 0, beszúrás: 999, 888 a 2-es indexnél
+console.log(c)                 // [10, 20, 999, 888, 30, 40]
+        </textarea>
+
+        <p>
+          Gyakorlati szabály: ha "adatot csak olvasol/összeraksz", inkább a nem-módosító megoldásokat részesítsd előnyben (pl. <code>slice</code>).
+          Ha viszont kifejezetten szerkeszteni akarsz "helyben", akkor <code>splice</code>.
+        </p>
+      </article>
+
+      <article>
+        <h3>1.5. Bejárás: <code>for</code> és <code>for...of</code></h3>
+        <p>
+          Tömbök esetén tipikusan kétféle bejárásra van szükségünk:
+          vagy az elemek értékei érdekelnek, vagy az indexek is (például ha az index alapján számolsz).
+        </p>
+
+        <textarea data-lang="js">
+const prices = [1200, 900, 1500]
+
+// Értékek bejárása
+for (const p of prices) {
+  console.log("Ár:", p)
+}
+
+// Indexes bejárás (modern)
+for (i in prices) {
+  console.log("Index:", i, "Érték:", prices[i])
+}
+
+// Indexes bejárás (klasszikus)
+for (let i = 0; i &lt; prices.length; i++) {
+  console.log("Klasszikus index:", i, "Érték:", prices[i])
+}
+
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Object általánosan</h2>
+      <p>
+        A sima <code>Object</code> kulcs-érték párok gyűjteménye. A kulcsot <strong>property</strong>-nek (tulajdonságnak) hívjuk,
+        és tipikusan szöveg jellegű névvel hivatkozunk rá. A property értéke bármi lehet: szám, szöveg, másik objektum,
+        tömb, sőt függvény is (ekkor metódusról beszélünk).
+      </p>
+      <p>Az objektum létrehozásakor a property nevét nem kötelező idézőjellel írni, de nem is tilos. Ha valami fura karakter
+      van benne (például szóköz vagy kivonással keverhető kötőjel) akkor viszont kötelező az idézőjel.</p>
+
+      <article>
+        <h3>2.1. Property elérés: pont és szögletes zárójel</h3>
+        <p>
+          Két alapvető elérési lehetőség létezik:
+          a <code>obj.name</code> (pontozásos) forma, és a <code>obj["name"]</code> (szögletes zárójeles) forma.
+          A második akkor kell, ha a kulcs változóban van, vagy nem "szabályos" azonosító.
+        </p>
+
+        <textarea data-lang="js">
+const user = {
+  name: "Mester",
+  age: 32
+}
+
+console.log(user.name)       // "Mester"
+console.log(user["age"])     // 32
+
+const key = "name"
+console.log(user[key])       // "Mester"
+
+const weird = {
+  "favorite-color": "blue"
+}
+console.log(weird["favorite-color"]) // "blue"
+
+// a fentit nyilván nem írhatnánk így:
+// weird.favorite-color
+// mert az interpreter félreértené.
+        </textarea>
+      </article>
+
+      <article>
+        <h3>2.2. Dinamikus bővítés és módosítás</h3>
+        <p>
+          Egy objektumhoz a futás során bármikor hozzáadhatsz új property-t, illetve módosíthatod a meglévőket.
+          Ez a JavaScript rugalmasságának egyik oka, de nagyobb projektekben emiatt fontos a konvenciók és szabályok betartása.
+        </p>
+
+        <textarea data-lang="js">
+const settings = {}
+settings.theme = "dark"
+settings.fontSize = 16
+
+console.log(settings) // { theme: "dark", fontSize: 16 }
+
+settings.fontSize = 18
+console.log(settings.fontSize) // 18
+        </textarea>
+
+        <p>
+          Törléshez a <code>delete</code> operátort használjuk.
+        </p>
+
+        <textarea data-lang="js">
+const obj = { a: 1, b: 2, c: 3 }
+delete obj.b
+
+console.log(obj) // { a: 1, c: 3 }
+        </textarea>
+      </article>
+
+      <article>
+        <h3>2.3. Egymásba ágyazás</h3>
+        <p>
+          A valódi adatok ritkán "laposak". Gyakori minta, hogy egy objektum további objektumokat vagy tömböket tartalmaz.
+          Ilyenkor a hozzáférés "láncolva" történik.
+        </p>
+
+        <textarea data-lang="js">
+const order = {
+  id: "A-1001",
+  customer: {
+    name: "Kata",
+    address: { city: "Budapest", zip: "1011" }
+  },
+  items: [
+    { name: "Könyv", price: 3990 },
+    { name: "Kávé", price: 1490 }
+  ]
+}
+
+console.log(order.customer.name)               // "Kata"
+console.log(order.customer.address.city)       // "Budapest"
+console.log(order.items[0].name)               // "Könyv"
+console.log(order.items[1].price)              // 1490
+        </textarea>
+
+        <p>
+          Az ilyen struktúrák tipikusan API válaszokban, konfigurációkban és alkalmazásállapotban (state) jelennek meg.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.4. Kulcsok felsorolása: <code>Object.keys</code>, <code>Object.values</code>, <code>Object.entries</code></h3>
+        <p>
+          Ha egy objektum property-it "adatként" szeretnéd kezelni (például listázni vagy bejárni),
+          ezek a beépített függvények a leggyakoribb eszközök.
+        </p>
+
+        <textarea data-lang="js">
+const user = { name: "Mester", age: 32, active: true }
+
+console.log(Object.keys(user))    // ["name", "age", "active"]
+console.log(Object.values(user))  // ["Mester", 32, true]
+console.log(Object.entries(user)) // [["name","Mester"], ["age",32], ["active",true]]
+
+for (const [k, v] of Object.entries(user)) {
+  console.log(k, "=", v)
+}
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Date</h2>
+      <p>
+        A <code>Date</code> objektum dátumok és időpontok kezelésére szolgál. Leggyakrabban időbélyegek, naplózás,
+        határidők, időzítések és "mikor történt" típusú adatok esetén kerül elő.
+      </p>
+
+      <article>
+        <h3>3.1. Létrehozás és alap metódusok</h3>
+        <p>
+          A <code>new Date()</code> az aktuális időpontot adja. Szövegből vagy paraméterekből is létrehozható,
+          de a szöveges dátumoknál figyelni kell a formátumokra.
+        </p>
+
+        <textarea data-lang="js">
+const now = new Date()
+console.log(now)
+
+console.log(now.getFullYear()) // év
+console.log(now.getMonth())    // 0..11 (0 = január)
+console.log(now.getDate())     // 1..31
+console.log(now.getHours())    // 0..23
+
+console.log(now.toISOString()) // gépbarát, szabványos formátum (UTC)
+        </textarea>
+
+        <p>
+          Gyakori igény a két időpont közti különbség kiszámítása. Ehhez sokszor elég, hogy a Date "számmá" alakítható
+          (milliszekundum az 1970-01-01 UTC óta).
+        </p>
+
+        <textarea data-lang="js">
+const start = new Date()
+const end = new Date(start.getTime() + 90 * 1000) // +90 másodperc
+
+const diffMs = end - start
+console.log(diffMs)            // 90000
+console.log(diffMs / 1000)     // 90
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Set</h2>
+      <p>
+        A <code>Set</code> azaz halmaz, egy olyan gyűjtemény, amelyben az elemek <strong>egyediek</strong>: ugyanazt az értéket nem tudod
+        többször "hozzáadni", csak egyszer fog szerepelni. Tipikus felhasználás: duplikátumok szűrése,
+        "már láttuk-e ezt" jellegű logika.
+      </p>
+
+      <article>
+        <h3>4.1. Alap műveletek</h3>
+        <ul>
+          <li><code>add(x)</code> – elem hozzáadása</li>
+          <li><code>has(x)</code> – benne van-e</li>
+          <li><code>delete(x)</code> – eltávolítás</li>
+          <li><code>size</code> – elemszám</li>
+        </ul>
+
+        <textarea data-lang="js">
+const s = new Set()
+
+s.add("alma")
+s.add("alma") // duplikátum: nem lesz belőle két elem
+s.add("körte")
+
+console.log(s.size)      // 2
+console.log(s.has("alma"))// true
+
+s.delete("alma")
+console.log(s.has("alma"))// false
+        </textarea>
+
+        <p>
+          Tömbből egyszerűen lehet Set-et készíteni, majd visszaalakítani tömbbé. Ez egy gyors "duplikátum-mentesítés".
+        </p>
+
+        <textarea data-lang="js">
+const data = [1, 1, 2, 3, 3, 3, 4]
+const unique = [...new Set(data)]
+
+console.log(unique) // [1, 2, 3, 4]
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Map</h2>
+      <p>
+        A <code>Map</code> kulcs-érték párokat tárol, hasonlóan az objektumhoz, de rugalmasabb a kulcsok tekintetében:
+        a kulcs nem csak szöveg lehet, hanem például szám, objektum vagy akár függvény is.
+        Akkor érdemes Map-et használni, ha a kulcsok nem "szép property-nevek", vagy ha kifejezetten szótárként (dictionary)
+        szeretnéd kezelni az adatot.
+      </p>
+
+      <article>
+        <h3>5.1. Alap műveletek</h3>
+        <ul>
+          <li><code>set(key, value)</code> – beállítás</li>
+          <li><code>get(key)</code> – lekérés</li>
+          <li><code>has(key)</code> – létezik-e</li>
+          <li><code>delete(key)</code> – törlés</li>
+          <li><code>size</code> – elemszám</li>
+        </ul>
+
+        <textarea data-lang="js">
+const m = new Map()
+
+m.set("theme", "dark")
+m.set("fontSize", 16)
+
+console.log(m.get("theme")) // "dark"
+console.log(m.has("lang"))  // false
+console.log(m.size)         // 2
+
+m.delete("fontSize")
+console.log(m.size)         // 1
+        </textarea>
+
+        <p>
+          Map egyik klasszikus előnye: lehet objektum a kulcs. Ez objektumos cache-k és összerendelések esetén hasznos.
+        </p>
+
+        <textarea data-lang="js">
+const user1 = { id: 1, name: "Kata" }
+const user2 = { id: 2, name: "Béla" }
+
+const roles = new Map()
+roles.set(user1, "admin")
+roles.set(user2, "viewer")
+
+console.log(roles.get(user1)) // "admin"
+console.log(roles.get(user2)) // "viewer"
+        </textarea>
+      </article>
+
+      <article>
+        <h3>5.2. Bejárás</h3>
+        <p>
+          A Map bejárható <code>for...of</code>-fal, és alapértelmezés szerint <code>[key, value]</code> párokat ad.
+        </p>
+
+        <textarea data-lang="js">
+const prices = new Map()
+prices.set("alma", 399)
+prices.set("körte", 499)
+
+for (const [product, price] of prices) {
+  console.log(product, "-&gt;", price)
+}
+        </textarea>
+      </article>
+      <p>Ha nincs szükséged extra hatékony kódra, Map nélkül is teljesen jól el lehet boldogulni, csak
+      azért mutattuk be, hogy ne lepődj meg ha találkozol vele.</p>
+    </section>
+
+    <section>
+      <h2>6. RegExp (reguláris kifejezés)</h2>
+      <p>
+        A <code>RegExp</code> (reguláris kifejezés) szövegek mintázat alapú keresésére és ellenőrzésére való.
+        Ebben a kurzusban inkább csak említés szinten szerepel: a teljes téma önmagában is egy külön lecke (vagy tanfolyam) lenne.
+      </p>
+
+      <article>
+        <h3>6.1. Egy rövid, gyakorlati példa</h3>
+        <p>
+          A példa azt mutatja, hogyan lehet megnézni, hogy egy szöveg tartalmaz-e legalább egy számjegyet.
+        </p>
+
+        <textarea data-lang="js">
+const hasDigit = /\d/.test("jelszo123")
+console.log(hasDigit) // true
+
+const hasDigit2 = /\d/.test("nincs_szam")
+console.log(hasDigit2) // false
+        </textarea>
+      </article>
+
+      <article>
+        <h3>6.2. Mire figyelj?</h3>
+        <p>
+          A reguláris kifejezések nagyon tömörek, de nem túl jól olvashatók. Akkor használd őket,
+          ha összetett mintát kell ellenőrizni, vagy dinamikusan kell megadni az ellenőrzési szabályokat.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>7. Mini minták (feladatmegoldások)</h2>
+
+      <article>
+        <h3>7.1. Tömb szerkesztés</h3>
+        <p>
+          Készíts egy tömböt 5 darab számmal. Add hozzá a végére a <code>100</code>-at, vedd le az utolsó elemet,
+          majd vágd ki belőle a középső 2 elemet <code>slice</code>-szal (új tömbként).
+        </p>
+
+        <textarea data-lang="js">
+// 1) hozd létre
+const nums = [3, 7, 9, 11, 15]
+
+// 2) végére 100
+nums.push(100)
+
+// 3) utolsó elem levétele
+const last = nums.pop()
+
+// 4) középső 2 elem kivágása (új tömb)
+const middle2 = nums.slice(2, 4)
+
+console.log(nums)
+console.log(last)
+console.log(middle2)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>7.2. Objektum és egymásba ágyazás</h3>
+        <p>
+          Készíts egy <code>book</code> objektumot (cím, szerző, év), majd tegyél bele egy <code>reviews</code> tömböt,
+          ami értékeléseket tartalmaz objektumként (név + pontszám).
+        </p>
+
+        <textarea data-lang="js">
+const book = {
+  title: "JavaScript alapok",
+  author: "Ismeretlen",
+  year: 2026,
+  reviews: [
+    { name: "Kata", score: 5 },
+    { name: "Béla", score: 4 }
+  ]
+}
+
+console.log(book.reviews[0].name, book.reviews[0].score)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>7.3. Set: duplikátumok kiszűrése</h3>
+        <p>
+          Van egy tömbünk nevekkel, amiben vannak ismétlődések. Alakítsuk át úgy, hogy csak az egyedi nevek maradjanak.
+        </p>
+
+        <textarea data-lang="js">
+const names = ["Kata", "Béla", "Kata", "Mester", "Béla"];
+const uniqueNames = [...new Set(names)];
+
+console.log(uniqueNames);
+        </textarea>
+      </article>
+
+      <article>
+        <h3>7.4. Map: gyors kulcs-érték tárolás</h3>
+        <p>
+          Készíts egy Map-et, ami termékneveket rendel árakhoz, majd írd ki, hogy egy megadott termék mennyibe kerül.
+        </p>
+
+        <textarea data-lang="js">
+const priceMap = new Map()
+priceMap.set("alma", 399)
+priceMap.set("körte", 499)
+
+const product = "alma"
+console.log(product, "ára:", priceMap.get(product))
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>8. Összefoglalás</h2>
+      <ul>
+        <li>
+          <strong>Array</strong>: rendezett lista indexekkel; mutábilis; tipikus metódusok: <code>push</code>, <code>pop</code>,
+          <code>shift</code>, <code>unshift</code>, <code>slice</code>, <code>splice</code>.
+        </li>
+        <li>
+          <strong>Object</strong>: property-k gyűjteménye; pontozással vagy <code>[]</code> szintaxissal érhető el;
+          könnyen bővíthető és egymásba ágyazható.
+        </li>
+        <li>
+          <strong>Date</strong>: időpontok és különbségek kezelése; gyakori a <code>toISOString()</code> használata.
+        </li>
+        <li>
+          <strong>Set</strong>: egyedi elemek gyűjteménye; duplikátumszűrésre kiváló.
+        </li>
+        <li>
+          <strong>Map</strong>: kulcs-érték tároló rugalmas kulcsokkal (akár objektum is lehet kulcs).
+        </li>
+        <li>
+          <strong>RegExp</strong>: mintázat alapú szövegkezelés (most csak említés szinten).
+        </li>
+      </ul>
+
+      <p>
+        A következő leckében ezekre építve már "komolyabb" nyelvi eszközökkel foglalkozunk:
+        hibakezelés, modulok és a prototype-os működés kerül elő.
+      </p>
+    </section>
+  </main>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

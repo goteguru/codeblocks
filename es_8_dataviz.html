@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>7.3 Egyszerű adatvizualizáció JavaScript-tel</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+
+<body>
+  <header>
+    <h1>7.3 lecke – Egyszerű adatvizualizáció EcmaScript tudással</h1>
+    <p>
+      Ebben a leckében azt nézzük meg, hogyan lehet adatokból gyorsan és érthetően ábrát csinálni JavaScriptből.
+      Először egy "bemelegítő" konzolos oszlopdiagramot csinálunk (csak szöveg), majd három elterjedt könyvtárat
+      mutatunk meg: <strong>Chart.js</strong>, <strong>Google Charts</strong> és <strong>D3.js</strong>.
+    </p>
+    <p>
+      A cél nem az, hogy egy-egy könyvtárat "megtanuljunk" (az külön tanfolyam lenne), hanem hogy
+      lásd a gondolkodási mintát: <em>adat → ábra</em>, és hogy tudd, hol érdemes könyvtárat használni.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>0. Előkészítés: a demó felület</h2>
+      <p>
+        A futtatható példák erre az oldalra rajzolnak. Ha egy kódot többször futtatsz, érdemes
+        "takarítani" előtte, különben egymásra rajzolhat vagy duplán hozzáadhat elemeket.
+      </p>
+
+      <textarea data-lang="js">
+/*
+Segédfüggvények a demókhoz: töröljük a korábbi rajzot, hogy az új futtatás tiszta legyen.
+Ezeket nem kell megjegyezni, csak praktikusak a példák újrafuttatásához.
+*/
+
+function resetChartJsCanvas() {
+}
+
+function resetGoogleChart() {
+}
+
+function resetD3() {
+}
+
+console.log("Demó felület készen áll")
+      </textarea>
+    </section>
+
+    <section>
+      <h2>1. Bemelegítés: "grafikon" a konzolon</h2>
+      <p>
+        Először csináljunk egy minimál oszlopdiagramot kizárólag a konzolra.
+        Ennek az a didaktikai lényege, hogy lásd: az ábra nem varázslat, hanem
+        egy <strong>reprezentáció</strong>. Itt az oszlop egy ismételt karakter.
+      </p>
+
+      <article>
+        <h3>1.1. Egyszerű oszlopok (ASCII / Unicode)</h3>
+        <textarea data-lang="js">
+const data = [3, 7, 2, 5, 9, 4, 6, 1, 8, 3, 5, 2]
+
+// egy egyszerű "oszlop" karakter
+const block = "█"
+
+for (let value of data) {
+  console.log(block.repeat(value))
+}
+        </textarea>
+        <p>
+          Ezt a mintát azért szeretjük, mert azonnal látszik a kapcsolat: <code>value</code> nagyobb → hosszabb oszlop.
+          Nincs tengely, nincs skála, de az alapötlet már megvan.
+        </p>
+      </article>
+
+      <article>
+        <h3>1.2. Skálázás: ha az adatok túl nagyok</h3>
+        <p>
+          A valódi adatok gyakran nem férnek ki "karakterben". Ilyenkor skálázunk:
+          a legnagyobb érték kapja a maximális oszlophosszt, a többi arányosan rövidebb.
+        </p>
+
+        <textarea data-lang="js">
+const data = [120, 35, 90, 12, 200, 160, 55, 18, 75, 40, 10, 145]
+
+const maxBar = 30
+const maxValue = Math.max(...data)
+
+for (let value of data) {
+  const scaled = Math.round(value / maxValue * maxBar)
+  const bar = "█".repeat(scaled)
+  console.log(String(value).padStart(4, " "), bar)
+}
+        </textarea>
+
+        <p>
+          Itt már megjelenik egy tipikus vizualizációs gondolat: <strong>leképezés</strong>.
+          Az adatértéket "átfordítjuk" egy megjelenítési mértékegységre (karakterek száma).
+        </p>
+      </article>
+
+      <article>
+        <h3>1.3. Miért nem csinálunk mindent "kézzel"?</h3>
+        <ul>
+          <li>ha kell <strong>tengely</strong>, <strong>skála</strong>, <strong>felirat</strong>, gyorsan elszaporodnak a részletek</li>
+          <li>ha kell <strong>interakció</strong> (hover, tooltip), még több kód</li>
+          <li>ha kell <strong>testreszabás</strong> és <strong>reszponzív</strong> működés, a "kézi" megoldás hamar drágává válik</li>
+        </ul>
+        <p>
+          Itt jönnek a képbe a könyvtárak: a rutinfeladatot (tengely, skála, tooltip) megoldják helyetted,
+          neked pedig az adatok és az ábra típusa marad.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Chart.js</h2>
+      <p>
+        A Chart.js egy népszerű, könnyen használható könyvtár, ami a legtöbb alap diagramtípusra (bar, line, pie)
+        gyors megoldást ad. A tipikus workflow: adatok + címkék + egy konfigurációs objektum.
+      </p>
+
+      <article>
+        <h3>2.1. Előnyök</h3>
+        <ul>
+          <li>gyors sikerélmény, kevés kód</li>
+          <li>jó alapértelmezések (tengelyek, feliratok, tooltip)</li>
+          <li>Canvas alapú, "egyben" renderel</li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>2.2. Minimál példa: oszlopdiagram 12 adattal</h3>
+        <p>
+          A kód lefutása után a fenti <code>&lt;canvas&gt;</code>-ra rajzol. Újrafuttatás előtt takarítunk.
+        </p>
+
+      <figure>
+        <figcaption>Chart.js célfelület (Canvas)</figcaption>
+        <canvas id="chartjsCanvas" width="700" height="320" aria-label="Chart.js diagram vászon" role="img"></canvas>
+      </figure>
+
+        <textarea data-lang="js">
+// ez lenne a vászon (felül)
+const canvas = document.getElementById("chartjsCanvas")
+const ctx = canvas.getContext("2d")
+
+// gyorsan letöröljük a vásznat ha lenne ott már valami:
+ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+// ezek lesznek az adataink
+const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const values = [12, 19, 7, 15, 22, 9, 14, 18, 10, 16, 13, 8]
+
+// ha már futott korábban, az előző chart példányt érdemes megsemmisíteni
+if (window.__chartjsInstance) {
+  window.__chartjsInstance.destroy()
+}
+
+window.__chartjsInstance = new Chart(ctx, {
+  type: "bar",
+  data: {
+    labels,
+    datasets: [
+      {
+        label: "Példa adat",
+        data: values
+      }
+    ]
+  },
+  options: {
+    responsive: false,
+    plugins: {
+      title: {
+        display: true,
+        text: "Chart.js – egyszerű oszlopdiagram"
+      }
+    }
+  }
+})
+
+undefined
+        </textarea>
+        <p>
+	A kód végére csak azért írtunk egy <code>undefined</code>-t, mert
+	A kódblokkjaink az utolsó értéket megjelenítik, és ez a gigászi
+	Chart objektum lenne. Ha kíváncsi vagy hogy néz ki, szedd ki az utolsó
+	sort, futtasd újra és megnézheted. Szép nagy.
+	</p>
+
+        <p>
+          A lényeg amit érdemes látni, hogy a könyvtár átveszi a "piszkos munkát" (tengely, skála, felirat),
+          nekünk csak a <code>labels</code> és <code>data</code> szerkezettel kell foglalkoznunk.
+	  Ha az alapbeállítás jó, akkor jó, ha nem tetszik,
+	  akkor is számtalan opció áll rendelkezésre a testreszabáshoz.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.3. További demók</h3>
+        <p>
+	Persze nem csak oszlopdiagrammokat tud rajzolni ez a könyvtár. Olyan sok beépített típust 
+	tartalmaz, hogy egy egész honlap kéne a bemutatásához. Van is ilyen persze, érdemes megnézni:
+        </p>
+        <ul>
+          <li><a href="https://www.chartjs.org/docs/latest/samples/" target="_blank" rel="noreferrer">Chart.js Samples</a></li>
+          <li><a href="https://www.chartjs.org/docs/latest/" target="_blank" rel="noreferrer">Chart.js Documentation</a></li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Google Charts</h2>
+      <p>
+        A Google Charts erőssége, hogy nagyon sok "kész" diagramtípust ad, és vannak olyan speciális ábrái is,
+        amelyekhez más könyvtárban több munka kellene. Ilyen például a <strong>GeoChart</strong> (térképes ábra).
+      </p>
+
+      <article>
+        <h3>3.1. Előnyök</h3>
+        <ul>
+          <li>rengeteg kész diagramtípus</li>
+          <li>jó "dashboard" jellegű megoldások (tooltip, feliratok)</li>
+          <li>GeoChart: országok/régiók adatai térképen</li>
+        </ul>
+      </article>
+      
+      <figure>
+        <figcaption>Google Charts célfelület</figcaption>
+        <div id="googleChart" role="img" aria-label="Google Charts diagram" style="width: 700px; height: 360px"></div>
+      </figure>
+
+      <article>
+        <h3>3.2. Minimál példa: oszlopdiagram</h3>
+        <p>
+          A Google Charts betöltése aszinkron: először betöltjük a csomagot, majd callbackben rajzolunk.
+        </p>
+
+        <textarea data-lang="js">
+// ide kerül a diagram (ha van ott valami töröljük)
+const gchart = document.getElementById("googleChart")
+gchart.innerHTML = ""
+
+google.charts.load("current", { packages: ["corechart"] })
+
+google.charts.setOnLoadCallback(() => {
+  const data = google.visualization.arrayToDataTable([
+    ["Hónap", "Érték"],
+    ["Jan", 12],
+    ["Feb", 19],
+    ["Mar", 7],
+    ["Apr", 15],
+    ["May", 22],
+    ["Jun", 9],
+    ["Jul", 14],
+    ["Aug", 18],
+    ["Sep", 10],
+    ["Oct", 16],
+    ["Nov", 13],
+    ["Dec", 8]
+  ])
+
+  const options = {
+    title: "Google Charts - egyszerű oszlopdiagram",
+    legend: { position: "none" }
+  }
+
+  const chart = new google.visualization.ColumnChart(gchart)
+  chart.draw(data, options)
+})
+        </textarea>
+
+        <p>
+          Itt a "markup" tényleg minimál: egyetlen <code>&lt;div&gt;</code> a célfelület, és a többi mind konfiguráció.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.3. További demók</h3>
+        <ul>
+          <li><a href="https://developers.google.com/chart/interactive/docs/gallery" target="_blank" rel="noreferrer">Google Charts Gallery</a></li>
+          <li><a href="https://developers.google.com/chart/interactive/docs" target="_blank" rel="noreferrer">Google Charts Documentation</a></li>
+          <li><a href="https://developers.google.com/chart/interactive/docs/gallery/geochart" target="_blank" rel="noreferrer">GeoChart</a></li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. D3.js</h2>
+      <p>
+        A D3.js nem csak "kész grafikonokat" ad, hanem egy alacsonyabb szintű eszköztár:
+        adatok alapján DOM/SVG elemeket hozol létre és állítasz be. Ez sokkal rugalmasabb, de több gondolkodást kíván.
+      </p>
+
+      <article>
+        <h3>4.1. Előnyök</h3>
+        <ul>
+          <li>nagyon rugalmas (egyedi vizualizációk)</li>
+          <li>erős skála- és adatleképezési eszközök</li>
+          <li>interakció és animáció jól kezelhető</li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>4.2. Minimál példa: "csupasz" oszlopdiagram SVG-ben</h3>
+        <p>
+          Ez a példa szándékosan egyszerű: nincs tengely, nincs felirat.
+          A cél, hogy lásd a D3 alapgondolatát: <strong>adat → elemek</strong>.
+        </p>
+
+      <figure>
+        <figcaption>D3 célfelület (SVG)</figcaption>
+        <div id="d3Chart" aria-label="D3 diagram konténer"></div>
+      </figure>
+
+        <textarea data-lang="js">
+// ide kerül a kép. Letöröljük, ha lenne ott valami
+const d3chart = document.getElementById("d3Chart")
+d3chart.innerHTML = ""
+
+const values = [12, 19, 7, 15, 22, 9, 14, 18, 10, 16, 13, 8]
+const padding = 20
+const width = 700 // legyen ilyen széles a diagramm
+const height = 320 // és ilyen magas
+
+const maxValue = d3.max(values)
+
+// skála: adatérték -> pixel magasság
+const y = d3.scaleLinear()
+  .domain([0, maxValue])
+  .range([0, height - 2 * padding])
+
+const barWidth = (width - 2 * padding) / values.length
+
+const svg = d3.select("#d3Chart")
+  .append("svg")
+  .attr("width", width) 
+  .attr("height", height) 
+
+svg.selectAll("rect")
+  .data(values)
+  .enter()
+  .append("rect")
+  .attr("x", (d, i) => padding + i * barWidth)
+  .attr("y", d => height - padding - y(d))
+  .attr("width", Math.max(1, barWidth - 4))
+  .attr("height", d => y(d))
+  .attr("fill", "steelblue")
+
+// cím (csak szöveg, hogy legyen kontextus)
+svg.append("text")
+  .attr("x", padding)
+  .attr("y", padding)
+  .text("D3.js - egyszerű oszlopdiagram")
+
+undefined
+        </textarea>
+        <p>
+       	  Talán ennyiből is látszik, hogy D3 nem ad nekünk kész grafikonokat. Sokkal inkább
+	  egy segédeszköz a mögöttes technológia (SVG) kezeléséhez, amelyel szép konzisztens
+	  (és adatvezérelt) módon le tudjuk képezni az adatot SVG elemekké.
+        </p>
+
+        <p>
+          Ha most hozzáadnánk pár kiegészítést: tengelyt, címkéket, tickeket, tooltipet, reszponzív viselkedést,
+          a kód igen szép kövérre nőne - ezért a D3-at akkor használd, amikor a testreszabás a fontos,
+	  vagy valami egyedi dolgot szeretnél megvalósítani, amit a célzottabb könyvtár nem tud.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.3. További demók</h3>
+        <ul>
+          <li><a href="https://d3js.org/" target="_blank" rel="noreferrer">D3 hivatalos oldal</a></li>
+          <li><a href="https://observablehq.com/@d3/gallery" target="_blank" rel="noreferrer">D3 Gallery (Observable)</a></li>
+          <li><a href="https://github.com/d3/d3/wiki" target="_blank" rel="noreferrer">D3 Wiki / dokumentáció</a></li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. LLM használat</h2>
+      <p>
+        Egy nagyobb könyvtár beállításai elsőre ijesztőnek tűnhetnek, mert (néha túl) sok opció van. Ma már mégis nagyon könnyű velük dolgozni, mert:
+      </p>
+      <ul>
+        <li>ezek a könyvtárak elterjedtek, sok a példa, sok a kész megoldás;</li>
+        <li>ritkán akarunk újraírni mindent a nulláról, általában az ember testreszab egy mintát (aka copy-paste 😉);</li>
+        <li>a nagy nyelvi modellek (LLM-ek) nagyon jól le tudják generálni szabad szövegből is a kódot!</li>
+      </ul>
+
+      <p>
+      	Persze sokat segít, ha nagyjából ismered a lehetőségeket (a megfelelő kifejezéseket) és beleírod a promptba:
+        "Készíts Chart.js oszlopdiagramot 12 adattal, legyen hozzá tooltip és title,
+        és készíts hozzá egy gombot, ami új véletlen adatokat tölt be".
+        Így nem neked kell fejben tartanod az összes opciót: elég, ha tudod, mit szeretnél.
+      </p>
+    </section>
+
+    <section>
+      <h2>6. Összefoglalás</h2>
+      <ul>
+        <li>Egyszerű grafikont nem is nehéz programozni! Adatreprezentáció akár konzolos is működhet.</li>
+        <li>A "kézi" megoldás nem tűnik vészesnek, de az ördög a részletekben búvik meg. Ha már több minden kell: könyvtár.</li>
+        <li>A könyvtárak kezelik helyetted a macerás részleteket: tengelyek, tooltip, skálázás, reszponzivitás.</li>
+        <li>Chart.js: gyors és kényelmes "általános célra".</li>
+        <li>Google Charts: sok kész típus, specialitások (pl. GeoChart).</li>
+        <li>D3: rugalmas, de több munka - akkor jó, ha valami egyedit szeretnél.</li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- CDN-ek: a kódpéldák ezekre támaszkodnak -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="codeblocks.js"></script>
+</body>
+</html>

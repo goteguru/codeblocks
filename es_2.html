@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok – 2. lecke</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+<body>
+  <header>
+    <h1>2. lecke - Operátorok, típuskonverzió és vezérlési szerkezetek</h1>
+    <p>
+      Ebben a leckében azt tanuljuk meg, hogyan "dolgozik" a JavaScript az értékekkel: hogyan számol,
+      hogyan hasonlít össze, hogyan hoz döntést, és hogyan ismétel. Ezek a nyelv legalapvetőbb eszközei
+      ahhoz, hogy a program ne csak utasítások sorozata legyen, hanem a helyzettől függően különbözőképpen
+      viselkedjen.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Statement, kifejezések, Operátorok</h2>
+      <p>
+        Az <strong>operátor</strong> egy olyan jel (például <code>+</code> vagy <code>===</code>), amely egy vagy több értéken
+        valamilyen műveletet végez. Az operátorokkal jellemzően <em>kifejezéseket</em> (expression) írunk:
+        olyan részeket, amelyeknek van eredménye (értéke).
+      </p>
+      <p>
+        Például a <code>10 + 5</code> egy kifejezés: kiértékelés után az eredménye <code>15</code>. Ezzel szemben az
+        <code>let x = 10</code> inkább egy utasítás (statement), amely létrehoz/állít valamit, nem "önmagában
+        egy érték". Magyarra fordítva úgy olvasnánk, hogy "x értéke legyen 10".
+      </p>
+
+      <article>
+        <h3>1.1. Aritmetikai operátorok</h3>
+        <p>
+          Aritmetikai operátorokkal számolunk. Ezek nagy része ismerős matematikából, de van néhány kifejezetten
+          programozói célú (például a maradékos osztás).
+        </p>
+
+        <ul>
+          <li><code>+</code> összeadás</li>
+          <li><code>-</code> kivonás</li>
+          <li><code>*</code> szorzás</li>
+          <li><code>/</code> osztás</li>
+          <li><code>%</code> maradékos osztás (modulo)</li>
+          <li><code>**</code> hatványozás</li>
+        </ul>
+
+        <textarea data-lang="js">
+console.log(10 + 5);   // 15
+console.log(10 - 5);   // 5
+console.log(10 * 5);   // 50
+console.log(10 / 5);   // 2
+console.log(10 % 3);   // 1 (10 osztva 3-mal: 3*3=9, maradék 1)
+console.log(2 ** 3);   // 8
+        </textarea>
+
+        <p>
+          Fontos sajátosság, hogy a <code>+</code> operátor nem csak számoknál működik: szövegeknél
+          <strong>összefűzést</strong> (konkatenációt) végez.
+        </p>
+
+        <textarea data-lang="js">
+console.log("Hello" + " world");   // "Hello world"
+console.log("5" + 2);              // "52" (szöveg + szám -> szöveg lesz)
+        </textarea>
+
+        <p>
+          Ez a viselkedés gyakori hibaforrás: ha valamit számolni szeretnénk, de az adat valójában szöveg,
+          akkor a <code>+</code> könnyen "szöveges irányba" viszi az eredményt és ahelyett, hogy összeadná őket összefűzi.
+	  A típuskonverziónál erről még majd lesz szó.
+        </p>
+      </article>
+
+      <article>
+        <h3>1.2. Értékadás (assignment) operátorok</h3>
+        <p>
+          Az <code>=</code> jel programozásban <strong>értékadást</strong> jelent: a jobb oldali értéket "betesszük"
+          a bal oldali változóba. Ez nem összehasonlítás, hanem állítás.
+        </p>
+
+        <textarea data-lang="js">
+let x = 10;
+console.log(x); // 10
+        </textarea>
+	<p>Valójában az eset nem ilyen egyértelmű, mert javascriptben az értékadás tulajdonképpen operátor is,
+	ugyanis a <code>x = 183</code> kifejezésként is értelmezhető, ugyanis van értéke: a bal oldali érték.	
+	Ez teszi lehetővé, hogy egyszerre több változóhoz is hozzárendeljünk egy értéket!
+	</p>
+        <textarea data-lang="js">
+		const x = y = z = 0 
+		console.log(x, y, z)
+        </textarea>
+        <p>
+	Ez tulajdonképpen valami ilyesmi: <code>x = (y = (z = 0))</code>. A legbelső részben z-hez rendeljük
+	a nullát, de egyben a kifejezés értéke is 0, amit hozzárendelünk y-hoz, aminek mint kifejezés szintén 0 az értéke 
+	és ezt rendeljük az x-hez.
+        </p>
+
+        <p>
+          Gyakoriak a rövidített értékadások, amelyek kényelmesen kombinálnak egy műveletet és egy értékadást.
+        </p>
+
+        <textarea data-lang="js">
+let x = 10;
+
+x += 5; // x = x + 5
+console.log(x); // 15
+
+x -= 2; // x = x - 2
+console.log(x); // 13
+        </textarea>
+
+        <p>
+          Ezeket azért használjuk, mert kifejezik a szándékot: "növeld", "csökkentsd", "halmozd" az értéket.
+        </p>
+
+	<p>Mivel elég gyakori, hogy pontosan 1-el akarunk valamit növelni vagy csökkenteni (pl. mert megszámolunk valamit)
+	erre van egy még egyszerűbb jelölés, a <code>++</code> és <code>--</code> operátor. Különlegessége, 
+	hogy az interpreter előbb nézi az értékét és csak <em>aztán</em> növeli. Tehát ott, ahol beírtuk még a régi értéke érvényes:
+	</p>
+
+        <textarea data-lang="js">
+let c = 10;
+
+console.log(c++); // itt még a (c++) kifejezés értéke 10
+console.log(c); // de itt már 11
+c++; // ha csak önmagában írjuk, akkor persze mindegy
+console.log(c); // itt már 12
+
+        </textarea>
+
+	<p>Amikor azt írjuk, hogy <code>let x=40</code> akkor valójában két dolgot csinálunk! Egyszer létrehozunk egy változót x néven, majd értéket adunk neki. Ezt csinálhatjuk külön is. A változót csak egyszer hozhatjuk létre (a második <code>let x</code> már hiba lenne) de akárhányszor értéket adhatunk neki!</p>
+	<textarea data-lang="js">
+		let x; // hozd létre x-et, x értéke itt undefined
+		x = 7; // x legyen 7
+		x = "hello"; // ... vagyis mégis inkább legyen "hello"
+		console.log(x);
+	</textarea>
+	<p>Néha előfordul, hogy kifejezetten nem szeretnénk, hogy a névhez rendelt értéket meg lehessen változtatni. Azaz nem változót szeretnénk,
+	hanem konstans értéket. Ilyenkor a <code>let</code> kulcsszó helyett a <code>const</code> kulcsszót használjuk. Ez esetben a név értékének megváltoztatása hiba!</p>
+	<textarea data-lang="js">
+		const e = 2.71828
+		e = 42 // ilyet nem csinálhatunk most már!
+	</textarea>
+	<p>Ha lefuttatod a kódblokkot láthatod, hogy az interpreter reklamál: a konstans értékeket nem lehet megváltoztatni!</p>
+	<p>Gondolom kitaláltad, hogy olyat önmagában nincs értelme írni, hogy <code>const k</code> (tehát úgy, hogy nem adunk rögtön értéket neki)
+	hiszen akkor létrejönne egy <code>k</code> név aminek <code>undefined</code> az értéke, de soha nem tudnánk ezt megváltoztatni.
+	Ezt az interpreter nem is hagyja ilyenkor is hibát dob.</p>
+
+      </article>
+
+      <article>
+        <h3>1.3. Összehasonlító operátorok</h3>
+        <p>
+          Összehasonlításkor az eredmény mindig logikai érték: <code>true</code> vagy <code>false</code>. Ezeket használjuk
+          például <code>if</code> feltételekben és ciklusok megállási feltételeiben.
+        </p>
+
+        <ul>
+          <li><code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code> (nagyobb/kisebb)</li>
+          <li><code>==</code>, <code>!=</code> (laza egyenlőség/különbözőség)</li>
+          <li><code>===</code>, <code>!==</code> (szigorú egyenlőség/különbözőség)</li>
+        </ul>
+
+        <textarea data-lang="js">
+console.log(5 > 3);     // true
+console.log(5 < 3);     // false
+console.log(5 >= 5);    // true
+console.log(5 <= 4);    // false
+        </textarea>
+
+        <p>
+          A legfontosabb különbség a <code>==</code> és a <code>===</code> között:
+          a <code>===</code> <strong>típusra is</strong> figyel, a <code>==</code> pedig megpróbál a háttérben
+          típusokat átalakítani, hogy "össze tudja hasonlítani" őket.
+        </p>
+
+        <textarea data-lang="js">
+console.log(5 == "5");   // true  (a JS konvertál valamit a háttérben)
+console.log(5 === "5");  // false (más típus: number vs string)
+
+console.log(0 == false);   // true  (meglepő lehet)
+console.log(0 === false);  // false
+        </textarea>
+
+        <p>
+          Gyakorlati szabály: ha az ember biztosra akar menni, akkor mindig <code>===</code> és <code>!==</code> a jó megoldás.
+          Ezzel sok félreértést és rejtett hibát lehet elkerülni.
+        </p>
+      </article>
+
+      <article>
+        <h3>1.4. Logikai operátorok</h3>
+        <p>
+          Logikai operátorokkal több feltételt tudunk összekapcsolni. Tipikus eset, amikor egy döntéshez
+          nem elég egyetlen összehasonlítás.
+        </p>
+
+        <ul>
+          <li><code>&amp;&amp;</code> (ÉS): csak akkor igaz, ha mindkét oldal igaz</li>
+          <li><code>||</code> (VAGY): akkor igaz, ha legalább az egyik oldal igaz</li>
+          <li><code>!</code> (NEM): megfordítja az igaz/hamis értéket</li>
+        </ul>
+
+        <textarea data-lang="js">
+const age = 20;
+const hasTicket = true;
+
+console.log(age >= 18 && hasTicket); // true (mindkettő igaz)
+console.log(age < 18 || hasTicket);  // true (legalább az egyik igaz)
+console.log(!hasTicket);             // false
+        </textarea>
+
+        <p>
+          A logikai operátorok a mindennapi programozás alapjai: engedélyek ellenőrzése, űrlapmezők validálása,
+          "ha ez és ez teljesül, akkor legyen …" típusú "üzleti szabályok" mind így készülnek.
+        </p>
+      </article>
+      <article>
+        <h3>1.5. Különleges operátorok</h3>
+        <p>
+	JavaScriptben több olyan operátorral is találkozhatunk, amelyeknek nem igazán van matematikai értelme 
+	inkább a program szerkezetében, megírásában segít. 
+	Később még találkozni fogunk velük!
+        </p>
+
+        <ul>
+          <li><code>[]</code>string tulajdonság kiválasztása</li>
+          <li><code>.</code>objektum tulajdonság kiválasztása</li>
+          <li><code>?.</code>objektum tulajdonság feltételes kiválasztása</li>
+          <li><code>??</code>ha a bal oldal null/undefined, akkor a jobb oldal</li>
+        </ul>
+
+	<p>Ezek közül a <code>.</code> operátorral igazából folyamatosan találkozunk (már eddig is számtalanszor leírtuk).
+	Ezzel lehet ugyanis egy objektum valamilyen tulajdonságát elérni. Például amikor hazt írtuk, hogy <code>Math.sin</code>
+	akkor tulajdonképpen a <code>.</code> operátort alkalmaztuk a Math objektumon, és kiválasztottuk belőle a sin
+	tulajdonságot, ami történetesen egy függvény.
+	</p>
+
+	<p>
+	Sőt, ezt az operátort nagyon gyakran "láncolják" is, egész sorokat láthatunk belőle! Legkönnyebben talán
+	egy hierarchikus objektumon érthetjük meg, de ugyanígy használjuk akkor is, ha egy metódus (vagy bármilyen függvény) objektumot ad vissza!
+	</p>
+	<textarea data-lang="js">
+const company = {
+	name: "Google",
+	address: {
+		city: "Mountain View",
+		state: "CA"
+	}
+}
+console.log(company.address.state)
+	</textarea>
+
+        <p>
+	A company egy objektum, aminek az address tulajdonsága szintén egy objektum. A console.log-ban tehát lekértük
+	a company objektum address tulajdonságát (ami egy objektum) aminek lekértük a state tulajdonságát. 
+        </p>
+
+        <p>
+	Hasonlóan néz ki, ha egy függvény objektumot ad vissza, a console.log-ban a függvény tulajdonságat fogja megadni.
+        </p>
+	<textarea data-lang="js">
+// ez a függvény egy objektumot ad vissza!
+function createCompany(name, city, state) {
+  return {
+    name: name,
+    address: {
+      city: city,
+      state: state
+    }
+  }	
+}
+
+createCompany("Google", "Mountain View", "CA").address.state
+	</textarea>
+	<p> A <code>?.</code> operátorral igazából ugyanaz mint a <code>.</code> csak segít nekünk elkerülni a hibát, amikor a bal oldal null vagy undefined. 
+	Hiszen ha a bal oldalon éppen null van, az nem is objektum, nyilván nincs semmilyen tulajdonsága, hiába akarjuk elérni.</p>
+
+	<p>Hogy mi a szöszért akarnánk elérni egy null érték tulajdonságát? Nos ami azt illeti elég gyakran akarjuk. Ugyanis mint tudjuk
+	a null azt jelenti, hogy nem ismert. Az pedig simán lehet, hogy ahol objektumot várnánk, az éppen nem ismert!</p>
+	<textarea data-lang="js">
+const company = {
+	name: "SuperSecretCompany",
+	address: null, // nem tudjuk hol van
+}
+
+// mi nem tudhatjuk előre, hogy cím ismert-e vagy sem, 
+// megpróbáljuk elérni:
+company_state = company.address.state
+
+console.log(typeof company_state) // milyen típusú a company_state?
+	</textarea>
+	<p>Mivel a <code>company.address</code> tulajdonság null, szép nagy hibát kapunk amikor el akarjuk érni az address mezőjét, mivel nincs neki olyan. 
+	Na, ilyenkor segít nekünk <code>?.</code>! Írd át a programot úgy, hogy pont helyett ?. álljon (tehát írj egy kérdőjelet a pont elé) és a hiba eltűnik: 
+	Azt kapjuk amit várnánk, a <code>company_state</code> simán csak <code>undefined</code> lesz. </p>
+	
+
+	<p>
+	A <code>??</code> valami nagyon hasonlót csinál, csak nem kell, hogy object legyen a bal oldalán, hanem bármilyen érték lehet. Ha a bal oldalán valami nem definiált dolog van akkor a jobb oldalt adja vissza, ha viszont valami érték, akkor azt tartja meg. Modern kódban sokszor fogsz vele találkozni, mert nagyon praktikusan lehet vele kezelni a hiányzó értékeket!
+	</p>
+    <textarea data-lang="js">
+const demoConfig = { title: "Demo", debug: true }
+const liveConfig = { title: "Production", version: 1.2 }
+
+config = demoConfig // írd át liveConfigra és úgy is nézd meg!
+
+console.log(config?.title, "konfiguráció:") 
+console.log('debug:', config?.debug ?? false) // Alapból a hibakeresés ki van kapcsolva
+console.log('version:', config?.version ?? 0) // Ha nincs megadva verzió, akkor legyen 0 
+
+    </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Típuskonverzió</h2>
+      <p>
+        A JavaScript nyelv "dinamikusan típusos": egy változó különböző időpontokban különböző típusú értéket is tárolhat.
+	Tehát attól még, hogy egy változóban egy számot tárolunk, nyugodtan beletehetünk később egy szöveget,
+	vagy éppen tömböt. Az is gyakran előfordul, hogy a nyelv automatikusan megpróbál típusokat átalakítani. Ezt nevezzük
+        <strong>típuskonverziónak</strong>.
+      </p>
+
+      <article>
+        <h3>2.1. Implicit konverzió (automatikus átalakítás)</h3>
+        <p>
+          Implicit konverziónál a JavaScript "kitalálja", hogy szerinte milyen típusra van szükség a művelethez.
+	  Ez többnyire akkor fordul elő, ha a művelet (operátor) amit használunk, egy konkrét típuson
+	  szeret dolgozni, de mi valami mást adunk át. Ilyenkor azt a valami mást megpróbálja átalakítani
+	  arra amit szeret. Ez kényelmes, de egyben veszélyes is lehet, mert a szabályok nem mindig intuitívak.
+        </p>
+
+        <textarea data-lang="js">
+console.log("5" * 2);   // 10  (a JS számmá alakítja a "5"-öt)
+console.log("5" - 2);   // 3
+console.log("5" / 2);   // 2.5
+
+console.log("5" + 2);   // "52" (itt viszont szöveg-összefűzés történik)
+        </textarea>
+
+        <p>
+          Látható, hogy a <code>*</code>, <code>-</code>, <code>/</code> "szám irányba" konvertál,
+	  mivel ezek az operátorok szövegeken nincsenek értelmezve,
+          ugyanakkor a <code>+</code> "szöveges irányba" viszi az eredményt, ugyanis az összeadás
+	  szövegeken is értelmezett (összefűzést jelent). Ezért számolásnál különösen fontos,
+          hogy tisztában legyünk a bemenet típusával.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.2. Explicit konverzió (szándékos átalakítás)</h3>
+        <p>
+          Explicit konverziónál mi mondjuk meg egyértelműen, hogy mit szeretnénk. Ez olvashatóbb és megbízhatóbb,
+          különösen akkor, ha a bemenet külső forrásból jön (felhasználói űrlap, fájl, API).
+        </p>
+
+        <textarea data-lang="js">
+console.log(Number("5"));     // 5
+console.log(String(123));     // "123"
+console.log(Boolean(1));      // true
+console.log(Boolean(0));      // false
+        </textarea>
+
+        <p class="info">
+          A <code>Number("valami")</code> nem mindig tud értelmes számmá alakítani. Ilyenkor az eredmény
+          <code>NaN</code> (Not-a-Number) lesz, ami szintén egy speciális szám jellegű érték.
+        </p>
+
+        <textarea data-lang="js">
+console.log(Number("alma")); // NaN
+console.log(Number("negyvenkettő")); // nem tud magyarul
+console.log(Number("fourty two")); // de amúgy angolul se
+console.log(Number("-42.0")); // csak a numerikus szövegből lesz szám 
+        </textarea>
+      </article>
+
+      <article>
+        <h3>2.3. Truthy és falsy értékek</h3>
+        <p>
+          Sok helyzetben a JavaScript nem kéri, hogy a feltétel szó szerint <code>true</code> vagy <code>false</code> legyen.
+          Ehelyett egy értéket "igaznak" vagy "hamisnak" tekint. Ezeket nevezzük <strong>truthy</strong> és
+          <strong>falsy</strong> értékeknek.
+        </p>
+
+        <p>
+          A legfontosabb <strong>falsy</strong> értékek:
+        </p>
+        <ul>
+          <li><code>false</code></li>
+          <li><code>0</code></li>
+          <li><code>""</code> (üres szöveg)</li>
+          <li><code>null</code></li>
+          <li><code>undefined</code></li>
+          <li><code>NaN</code></li>
+        </ul>
+
+        <p>
+          Minden más érték <strong>truthy</strong>. Ez azért hasznos, mert sokszor elég azt kérdezni:
+          "van-e érték?", "nem üres-e?", "sikerült-e?".
+        </p>
+
+        <textarea data-lang="js">
+console.log(Boolean(""));       // false
+console.log(Boolean("hello"));  // true
+
+console.log(Boolean(0));        // false
+console.log(Boolean(42));       // true
+
+console.log(Boolean(null));     // false
+console.log(Boolean(undefined));// false
+        </textarea>
+      </article>
+      <article>
+        <h3>2.4. Shortcut (rövidzár)</h3>
+	<p>Megfigyelheted, hogy a logikai jelek nem alakítják bool (true/false) értékké a paramétereket,
+	mielőtt eldöntenék, hogy mi az eredmény, hanem truthy/falsy értékként használják őket, és
+	true/false helyett a paraméterek valamelyikét adják vissza!</p>
+        <textarea data-lang="js">
+console.log(34 || 56) // ez 34 és nem true
+console.log(34 && 0) // ez 0 és nem false
+        </textarea>
+
+	<p>Látszólag nincs sok értelme, de valójában nagyon is van.</p>
+	<p>
+	A JavaScriptben a logikai jelek (<code>&&</code>, <code>||</code>) úgynevezett shortcut (rövidzár) operátorok. Ez azt jelenti, 
+	hogy ha az első feléből ki tudja találni az eredményt, a második részt már nem is értelmezi (nem hajtja végre).
+	Például ha azt írod, hogy <code>20 || 8</code> akkor már a 20 "elolvasásakor" látja, hogy biztosan igaz lesz, hiszen
+	teljesen mindegy, hogy a "vagy" után mi áll, ha az egyik igaz, akkor már igaz, tehát a második részt el se kell olvasni. 
+	Így szuper tömör feltételes végrehajtásra is használhatjuk őket! 
+        </p>
+
+        <textarea data-lang="js">
+let log = true;
+log && console.log("Fontos naplóüzenet!")
+log && console.log("Fontos naplóüzenet 2!")
+"egyéb program kimenet"
+	</textarea>
+	<p>A fenti kód, csak akkor írja ki a fontos naplóüzenetet, ha a log értéke <code>true</code>. (Hiszen ha <code>false</code> 
+	akkor nincs értelme az <code>&&</code> utáni részt megnézni, mert nyilván hamis az egész kifejezés!). Próbáld ki: 
+	írd át a fenti kódban a log értékét false-ra!</p>
+        
+	<textarea data-lang="js">
+let value = null; // ez például adatbázisból jön, vagy felhasználó irja be
+// ... 
+let calculated = value || 42;
+calculated
+	</textarea>
+	<p>A fenti példában arra használjuk ezt a működést, hogy alapértelmezett értéket adjunk valaminek. 
+	Ha a <code>value</code> értéke hiányzik (például undefined vagy null) akkor a <code>default</code> értéket használjuk.
+	Ha viszont átírod a value értékét valami truthy értékre (például 100) akkor azt fogja használni!
+	</p>
+
+	<p>Ha felolvasod, igazából elég jól le is írja mit csinál: "Legyen a számított (calculated) értéke ugyanaz mint a value <em>vagy</em> ha az nincs akkor 42".
+	</p>
+
+	<p>Ezzekkel a kifejezésekkel nagyon gyakran találkozhatsz JavaScript programokban.</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. A program futásának sorrendje</h2>
+      <p>
+        A JavaScript alapértelmezésben <strong>szekvenciálisan</strong> fut: felülről lefelé halad, sorban végrehajtja
+        az utasításokat. Ez a "normál" működés, de a valódi programokban szükség van elágazásokra és ismétlésekre,
+        hogy a program reagálni tudjon a helyzetre.
+      </p>
+
+      <article>
+        <h3>3.1. Szekvenciális végrehajtás</h3>
+        <p>
+          Szekvenciális kódban a program "nem gondolkodik", csak egymás után végrehajtja a lépéseket.
+        </p>
+
+        <textarea data-lang="js">
+console.log("Első lépés");
+console.log("Második lépés");
+console.log("Harmadik lépés");
+        </textarea>
+      </article>
+      
+      <article>
+        <h3>3.2. Kód blokkok</h3>
+        <p>
+          Több utasítást összecsomagolhatunk egyetlen "utasításcsomaggá" ha kapcsos zárójelbe tesszük őket. 
+	  Tradícionálisan a kapcsos zárójelek közötti részt kicsit beljebb szokták kezdeni, 
+	  de az interpretert igazából ez nem érdekli.
+        </p>
+
+        <textarea data-lang="js">
+{
+	console.log("Első lépés");
+	console.log("Második lépés");
+}
+        </textarea>
+        <p>
+	A kód blokk két dologra jó. Egyrészt így könnyen megmondhatjuk, hogy a feltétel vagy ciklus (lásd alaább)
+	ne csak egyetlen utasításra, hanem egy egész csokornyira vonatkozzon, másrészt, 
+	a változók amiket a <code>let</code> vagy <code>const</code> kulcsszóval definiáltunk,
+	csak a kódblokkon belül látszanak. Ezt úgy nevezik, hogy "block scope" vagyis ott vannak értelmezve.
+        </p>
+        <textarea data-lang="js">
+let common = 100
+{
+	let alfa = 1
+	// a common belül is látható!
+	console.log(common,alfa);
+}
+
+// itt hibát fogunk kapni, mert az alfa nem látható!
+console.log(common,alfa);
+        </textarea>
+        <p>Tehát a szabály annyi, hogy ha valahol definiáltunk valamit akkor az mindenhol "alatta" elérhető,
+	de ha egy belső blokkban definiálunk valamit az feljebb (vagy kijjebb, ha úgy tetszik) már nem látszik.</p>
+        
+	<p>Ha belegondolsz, pont így csináltuk a függvényeket is. Adtunk neki egy nevet, paramétereket
+	és egy kód-blokkot (kapcsos zárójelben), hogy mit kell neki csinálni. A fenti "scope" szabály
+	pont ugyanúgy vonatkozik rájuk is.</p>
+      </article>
+
+      <article>
+        <h3>3.3. Elágazás</h3>
+        <p>
+          Elágazásnál a program feltétel alapján választ utat. Ez teszi lehetővé, hogy ugyanaz a kód más eredményt adjon
+          például eltérő bemenetekre.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.4. Ismétlés</h3>
+        <p>
+          Ismétlésnél egy műveletsor többször fut le. Ez elengedhetetlen, amikor listákat, sorozatokat, tömeges adatokat
+          kell feldolgozni. A programozás egyik legnagyobb ereje, hogy a gép nem "fárad el" az ismétléstől.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.5. Előretekintés: aszinkron végrehajtás</h3>
+        <p>
+          Később foglalkozunk azzal, hogy a JavaScript bizonyos feladatokat nem azonnal, nem sorban fejez be
+          (például hálózati kérés, időzítés, eseménykezelés). Ezt nevezzük <strong>aszinkron</strong> működésnek.
+          Most elég annyit megjegyezni, hogy nem minden programfutás "szigorúan lineáris", lehet olyan
+	  helyzet amikor (legalábbis logikailag) párhuzamosan fut két kódrészlet.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Vezérlési szerkezetek</h2>
+      <p>
+        A vezérlési szerkezetek azok az eszközök, amelyekkel a program futását irányítjuk:
+        döntést hozunk (<code>if</code>), vagy ismétlünk (<code>for</code>, <code>while</code>). 
+	Általában mindegyiknél egy kódblokkot adunk meg, amire a vezérlés vonatkozik.
+      </p>
+
+      <article>
+        <h3>4.1. if / else</h3>
+        <p>
+          Az <code>if</code> egy feltételvizsgálat. A zárójelben lévő kifejezést a JavaScript kiértékeli
+          és ha az érték <code>true</code> vagy annak megfelelő (truthy) akkor végrehajtja a zárójel
+	  utáni utasítást vagy kódblokkot (több utasítást).
+	</p>
+	<p>
+	Ha <code>false</code> (vagy falsey) eredmény esetén valami mást szeretnénk csinálni, akkor
+	a szerkezetet folytathatjuk egy alternatív <code>else</code> ággal.
+
+        </p>
+
+        <textarea data-lang="js">
+
+if (screen.width > 1200) 
+	console.log("A képernyőd több mint 1200 pixel széles.");
+
+if (window.innerWidth >= 1200) {
+  console.log("Több utasítás is van");
+  console.log("Széles ablak");
+} else {
+  console.log("Keskeny ablak");
+}
+        </textarea>
+        <p>
+        Itt megnézzük, hogy milyen széles a képernyő és a böngészőablak és ettől függően írunk ki valamit! (Vedd keskenyebbre az ablakot és futtestd le úgy).
+        </p>
+        <p>
+	Ha a feltételes rész csak egy utasításból áll, akkor nincs szükség blokkra (nem kell a kapcsos zárójel), 
+	de sok programozó mindig kiteszi a kapcsos zárójelet, hogy egyértelmű legyen mi tartozik a feltételhez.
+	(Ezt csináltuk az else ágban). Tradícionálisan azt a részt amire a feltétel (vagy az alternatív rész)
+	érvényes, beljebb szoktuk kezdeni, hogy jól olvasható legyen. 
+        </p>
+
+        <p>
+          Ha több lépcsős döntés kell, gyakori az <code>else if</code> szerkezet is.
+        </p>
+
+        <textarea data-lang="js">
+const score = 72;
+
+if (score >= 90) {
+  console.log("Jeles");
+} else if (score >= 70) {
+  console.log("Jó");
+} else if (score >= 50) {
+  console.log("Közepes");
+} else {
+  console.log("Elégtelen");
+}
+        </textarea>
+
+        <p>
+          Az <code>if</code> blokkokkal a program viselkedése a bemenettől függően változik.
+          Ez az alapja minden "üzleti logikának" (tehát tényleges döntési algoritmusnak, hogy mire hogyan reagál a programod).
+        </p>
+      </article>
+
+      <article>
+        <h3>4.2. for ciklus</h3>
+        <p>
+          A <code>for</code> ciklust akkor használjuk, amikor előre látható, hányszor akarunk ismételni.
+          A klasszikus <code>for</code> három részből áll:
+        </p>
+
+        <ol>
+          <li><strong>Inicializálás</strong> (például <code>let i = 0</code>)</li>
+          <li><strong>Feltétel</strong> (például <code>i &lt; 5</code>)</li>
+          <li><strong>Léptetés</strong> (például <code>i++</code>)</li>
+        </ol>
+
+        <textarea data-lang="js">
+for (let i = 0; i < 5; i++) {
+  console.log("i értéke:", i);
+}
+        </textarea>
+
+        <p>
+          A ciklus addig fut, amíg a feltétel igaz. Minden kör végén lefut a léptetés.
+	  Ezt a szuper fapados szintaxist a C nyelvből örökölte az EcmaScript. 
+	  Igaz ez egy rugalmas és gyors megoldás, de nem valami olvasható.
+	  Szerencsére a modern verziókban vannak ennél olvashatóbb ciklus szerkezet is.
+        </p>
+        <textarea data-lang="js">
+let adatok = [9, 23, 22, 11, 7]
+for (adat of adatok) {
+  console.log(adat*2)
+}
+        </textarea>
+        <p>A fenti kód végiglépdel a tömb elemein és az adat változó sorra felveszi az értékeket,
+	majd kiírja a dupláját. </p>
+        <p>Ha csak egy utasítást akarunk ismételni, itt sem kötelező a kapcsos zárójel (nem kell blokk),
+	de sok programozó (épp mint a feltételnél) akkor is kiteszi, ha csak egy utasítást ismétel.</p>
+        <p>
+	Ha nem az értékeken, hanem az indexeken szeretnénk végiglépkedni, írhatjuk ezt is:
+	</p>
+        <textarea data-lang="js">
+let adatok = [9, 23, 22, 11, 7]
+for (index in adatok)
+	console.log(index, "-->" , adatok[index]);
+        </textarea>
+        <p>
+	Itt az "index" egy változónév, bármi lehet, te döntöd el, gyakran csak i-t használnak. Valamint
+	itt most nem használtunk kódblokkot (kapcsos zárójelet) mert csak egy utasítást ismétlünk.
+	</p>
+      </article>
+
+      <article>
+        <h3>4.3. while ciklus</h3>
+        <p>
+          A <code>while</code> ciklust akkor használjuk, amikor nem feltétlenül tudjuk előre, hányszor kell ismételni,
+          csak azt tudjuk, hogy "addig csináld, amíg valami teljesül".
+        </p>
+
+        <textarea data-lang="js">
+let count = 3;
+
+while (count > 0) {
+  console.log("Visszaszámlálás:", count);
+  count--;
+}
+console.log("Start!");
+        </textarea>
+
+        <p>
+          A <code>while</code> ciklusnál különösen fontos, hogy a ciklusmagban legyen olyan lépés, ami
+          idővel hamissá teszi a feltételt. Ha ez elmarad, <strong>végtelen ciklus</strong> jön létre,
+	  és a program "beragad". A böngészőben ez úgy fog kinézni, hogy a lap érzéketlenné válik,
+	  majd egy idő után a böngésző szól, hogy nem válaszol a javascript (túl sokáig tart) és leállítsa-e.
+	</p>
+
+	<p>
+	 Ha kíváncsi vagy, kipróbálhatod mi történik ilyenkor. A fenti kódban
+	  töröld ki a <code>count--</code> sort (azaz a csökkentést), hiszen akkor sosem fog csökkeni
+	  a count, így sosem lesz 0, tehát örökké fut. A böngészőablakod (ez az egy) válaszképtelen
+	  lesz, sehova nem tudsz majd kattintani. Pár  másodperc (max egy perc) után a böngésző észleli,
+	  hogy gond van és felajánlja a leállítást (ezzel visszakapod az irányítást). Legrosszabb 
+	  esetben zárd be a lapot és nyisd meg újra. Bajt nem tudsz csinálni ezzel.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Összefoglalás</h2>
+      <p>
+        Ebben a leckében három kulcsterületet építettünk össze:
+      </p>
+      <ul>
+        <li>
+          <strong>Operátorok</strong>: számolás, értékadás, összehasonlítás, logikai összekapcsolás.
+        </li>
+        <li>
+          <strong>Típuskonverzió</strong>: hogyan lesz egy értékből más típus, mikor történik automatikusan, és mikor érdemes
+          szándékosan (explicit) konvertálni.
+        </li>
+        <li>
+          <strong>Vezérlés</strong>: hogyan dönt és hogyan ismétel a program (<code>if</code>, <code>for</code>, <code>while</code>).
+        </li>
+      </ul>
+
+      <p>
+        Ha ezt a három területet stabilan érted, akkor már képes vagy egyszerű programlogikát felépíteni:
+        ellenőrzéseket írni, feltételek alapján eltérő kimenetet adni és adathalmazokon ismételve feldolgozni a bemenetet.
+      </p>
+    </section>
+  </main>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

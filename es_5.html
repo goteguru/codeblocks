@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok – 5. lecke</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+<body>
+  <header>
+    <h1>5. lecke – Hibakezelés, modulok, prototype</h1>
+    <p>
+      Ebben a leckében három haladóbb témát veszünk elő:
+    </p>
+    <ol>
+	    <li>hogyan kezelsz hibákat és váratlan helyzeteket,
+	    <li>hogyan szervezhető a kód modulokba,
+	    <li> mi a JavaScript objektumrendszerének alapja: a prototype lánc.
+    </ol>
+    <p>
+      A cél nem az, hogy mindent az utolsó apróságig megérts, inkább hogy világos legyen a mögöttes modell:
+      mikor érdemes hibát dobni, mikor érdemes elkapni, hogyan darabolod a kódot fájlokra,
+      és miért működik úgy az öröklődés, ahogy.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Hibakezelés</h2>
+
+      <article>
+        <h3>1.1. Mi az a runtime error</h3>
+        <p>
+          <strong>Runtime error</strong> (futásidejű hiba) akkor történik, amikor a program futása közben
+          egy olyan helyzetbe kerülünk, amit a JavaScript nem tud "kitalálni" vagy automatikusan kezelni.
+          Ilyenkor a futás megszakad, kivéve, ha valahol hibakezeléssel elkapjuk.
+        </p>
+        <p>
+          Például: nem létező változóra hivatkozunk, rossz típuson hívunk metódust, vagy egy függvény
+          "nem tud mit kezdeni" a bemenettel.
+        </p>
+
+        <p>Ilyen hibát akár mi is tudunk "generálni". A <code>throw</code> kulcsszó éppen erre való: létrehozhatunk egy hibát.</p>
+        <textarea data-lang="js">
+console.log("fut a program 1")
+throw new Error("Nagy ronda hiba.")
+console.log("fut a program 2")
+        </textarea>
+        <p>
+	Mint látod, a fut a program 2 részig már nem jutunk el, mert közben a program hibával leáll.
+	</p>
+        <p>
+	Hogy miért akarnánk hogy leálljon a program? Hát azért, mert a hibát kezelni is tudjuk. 
+	Sokszor sokkal jobb ha tudjuk hogy hiba történt, mintha csendben lenyelnénk a furcsa működést.
+	Például mint már említettük, Javascriptben a nullával való osztás nem is hiba. 
+	Ha ez bántja a matematikai lelkünket, akkor készíthetünk egy "biztonságos" osztás függvényt
+	ami szépen hibát dob, ha ilyesmi történne.
+	</p>
+        <textarea data-lang="js">
+function safeDivide(a, b) {
+  if (typeof a !== "number" || typeof b !== "number")
+    throw new TypeError("A safeDivide csak számokat fogad")
+
+  if (b === 0)
+    throw new RangeError("Nullával nem osztunk")
+
+  return a / b
+}
+
+try {
+  console.log(safeDivide(10, 2))
+  console.log(safeDivide(10, 0))
+  console.log("Ezt már nem fogjuk látni, ha nem kezeljük a hibát")
+} catch (err) {
+  console.log("Hiba történt:", err.name, "-", err.message)
+}
+        </textarea>
+
+        <p>
+          Miért jó ez a minta? Mert <strong>a hiba okát ott jeleztük, ahol a hiba keletkezik</strong>
+          (<code>throw</code>), de <strong>ott kezeljük, ahol van értelme</strong> (a felhasználói logikában).
+          Így a függvényed tiszta marad: vagy visszaad jó eredményt, vagy egyértelműen jelzi, hogy nem tud.
+        </p>
+      </article>
+
+      <article>
+        <h3>1.2. try / catch / finally</h3>
+        <p>
+          A <code>try</code> blokkban futtatod azt a kódot, ami hibát dobhat.
+          A <code>catch</code> blokkban elkapod és kezeled a hibát.
+          A <code>finally</code> blokk pedig <em>akkor is lefut</em>, ha volt hiba, és akkor is, ha nem volt.
+        </p>
+        <p>
+          A <code>finally</code> tipikus szerepe: "takarítás" (erőforrás lezárás, állapot visszaállítás,
+          logolás, UI gomb visszaengedése).
+        </p>
+
+        <textarea data-lang="js">
+function parseJsonOrNull(text) {
+  try {
+    // az alábbi utasítás vagy működik vagy nem,
+    // ha a text nem helyes JSON formájú akkor hiba keletkezik.
+    return JSON.parse(text)
+  } catch (err) {
+    return null
+  } finally {
+    console.log("parseJsonOrNull lefutott")
+  }
+}
+
+json_adat = '{"ok": true, "n": 42}'
+console.log(parseJsonOrNull(json_adat))
+
+        </textarea>
+	<p>Próbáld ki! Írd át a <code>json_adat</code> tartalmát valami értelmetlen kriszkrakszra és futtasd úgy.</p>
+
+        <p>
+          Miért gondoljuk, hogy itt hiba lesz? Miért nem adunk meg normális adatot? Mert a valós életben a bemenet gyakran
+          nem kontrollált (felhasználó, fájl, hálózat irányából jön).
+	  Ha nem kontrolláljuk, nem is tudjuk garantálni, hogy az jó és helyes. 
+	  A hibakezelés a program stabilitásának része.
+        </p>
+      </article>
+
+      <article>
+        <h3>1.3. Aszinkron előnézet: try/catch nem fog mindent elkapni</h3>
+        <p>
+          Fontos: a <code>try/catch</code> <strong>a szinkron</strong> kódrészt fogja elkapni.
+          Ha később (például időzítőben) történik a hiba, az már nem ugyanabban a futási "pillanatban" van.
+	  Azt nem fogja "elkapni".
+          (A 6. leckében ezt részletesen kibontjuk.) 
+        </p>
+
+        <textarea data-lang="js">
+try {
+  setTimeout(() =&gt; {
+    // Ez hiba mert ilyen függvény nincs:
+    notExistingFunction()
+  }, 0)
+
+  console.log("A try blokk itt már véget ért")
+} catch (err) {
+  console.log("Ezt nem fogod látni (ha nem történt hiba)")
+}
+        </textarea>
+
+        <p>
+          Miért fontos ez? Mert ha aszinkron kódod van, akkor a hibakezelés stratégiája is más lesz
+          (például Promise/async/await szinten).
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Strict mode</h2>
+
+      <article>
+        <h3>2.1. Mit csinál a "use strict"</h3>
+        <p>
+          A <code>"use strict"</code> egy kapcsoló, ami szigorúbb szabályokat kér a JavaScripttől.
+          Modern környezetekben (például ES modulokban) a strict mód alapból aktív, de régebbi vagy
+          lazább futtatási környezetben még találkozhatsz vele.
+        </p>
+        <p>
+          A strict mód célja: <strong>korábban és hangosabban jelezni</strong> bizonyos hibás mintákat,
+          amik lazább módban csendben "átcsúsznának", és később okoznának rejtett bugot.
+        </p>
+
+        <textarea data-lang="js">
+function sloppyExample() {
+  // "use strict"
+  x = 10
+  return x
+}
+
+function strictExample() {
+  "use strict"
+  // itt a következő sor hibát dob, mert x nincs deklarálva
+  x = 10
+  return x
+}
+
+console.log("sloppyExample:", sloppyExample())
+
+try {
+  console.log("strictExample:", strictExample())
+} catch (err) {
+  console.log("Strict mode hiba:", err.name, "-", err.message)
+}
+        </textarea>
+
+        <p>
+          Miért jó ez? Mert a "véletlen globális változó" (mint a fenti <code>x</code>) tipikus hibaforrás:
+          könnyű felülírni, nehéz debuggolni. A strict mód ezt azonnal leállítja.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Modulok</h2>
+
+      <article>
+        <h3>3.1. Miért kellenek modulok</h3>
+        <p>
+          Modulokra azért van szükség, mert ha mindent egy fájlba írunk a kód egy idő után kezelhetetlenné válik:
+          nehéz benne eligazodni, nehéz újrahasznosítani részeket, és könnyű névütközéseket csinálni, 
+	  ráadásul, ha többen fejlesztenek, mindenki ugyanazt a fájlt macerálná.
+        </p>
+        <p>
+          A modulok célja:
+        </p>
+        <ul>
+          <li>kód <strong>szétválasztása</strong> felelősségek szerint</li>
+          <li>explicit <strong>publikus API</strong> (export) kijelölése</li>
+          <li>explicit <strong>függőségkezelés</strong> (import)</li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>3.2. export és import (ES modul szintaxis)</h3>
+        <p>
+          ES (EcmaScript) modulok világában a modul <strong>exportál</strong> dolgokat (függvény, konstans, objektum),
+          a másik modul pedig <strong>importálja</strong> őket. Tulajdonképpen ez egy szerződés
+          a fájlok között: mit adsz ki, és mit használsz fel.
+        </p>
+
+        <p>
+	Ez annak a fájlnak is jó amelynek a kódját felhasználják (exportál) és annak is 
+	amelyik felhasználja azt (importál). Az exportáló kód biztos lehet benne, 
+	hogy amit <em>nem</em> exportál azt a másik fél biztosan nem fogja felülírni
+	vagy elrontani, mert nem is látja azt. Az importáló kód pedig egy szépen definiált
+	egyértelmű "felhasználói felületet" kap, amivel a céljait eléri, és nem kell
+	fogalkoznia a konkrét implementációs részletekekkel (tulajdonképpen hogy is csinálták azt meg).
+	</p>
+
+        <p>Az importáló kódot nem érdekli, hogy konkrétan milyen mágiával kerül a
+	háttértárra/adatbázisba az ember neve amit elküldött, vagy hogyan 
+	készül el az a szép interaktív grafikon amit be akar mutatni, és nem is kell tudnia.</p>
+        <p>Elég ha annyit tud, hogy mondjuk name paraméterként kell átadni a nevet a storeUser metódusnak, 
+	vagy egy data paraméterbe kell legyen a megjelenítendő adat a CreateFancyGraph függvény hívásakor.</p>
+
+        <p>
+          Az alábbi példák szemléltetnek két tipikus export formát:
+          <strong>named export</strong> és <strong>default export</strong>.
+          Ezeket nem tudod futtatni, mert a kódblokkokban nem lehet import/export,
+	  szóval ezeket most csak nézegetni lehet. 
+        </p>
+
+        <p>Ez lenne az egyik fájl (aki exportál). A fájl neve math.js</p>
+        <textarea data-lang="js" data-readonly>
+/* math.js */
+export function add(a, b) {
+  return a + b
+}
+
+export const PI = 3.141592653589793
+        </textarea>
+
+        <p> Ez lenne egy másik fájl aki importál (legyen mondjuk index.js): </p>
+        <textarea data-lang="js" data-readonly>
+/* index.js */
+import { add, PI } from "./math.js"
+
+console.log(add(2, 3))
+console.log(PI)
+        </textarea>
+
+      </article>
+
+      <article>
+        <h3>3.3. Import egy publikus URL-ről (külső könyvtár)</h3>
+        <p>
+          Modern böngészőkben lehet importálni közvetlen URL-ről is.
+        </p>
+        <p>
+          Az alábbi példa a <code>lodash-es</code> csomagból importál egy függvényt
+          <code>jsDelivr</code> ESM végpontról. Sajnos ezt sem tudod itt futtatni.
+        </p>
+
+        <textarea data-lang="js" data-readonly>
+import chunk from "https://cdn.jsdelivr.net/npm/lodash-es@4.17.21/chunk.js"
+
+console.log(chunk([1, 2, 3, 4, 5], 2))
+        </textarea>
+
+        <p>
+          Érdemes azért egyszer látni. A modulrendszer ugyanaz, a különbség csak annyi,
+          hogy a függőség nem helyi fájl, hanem URL. A "mit használok" továbbra is explicit.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.4. Modulhatás érzés nélkül: egy futtatható "mini-modul" minta</h3>
+        <p>
+          Ha nincs modulrendszer (vagy a futtató környezeted nem modul), akkor is érdemes a kódot
+          "elkülöníteni", hogy ne szennyezzük a változóinkkal a globális névteret.
+	  Erre egy klasszikus minta az IIFE (azonnal meghívott függvénykifejezés).
+	  Régebbi kódokban (es modul elötti érából) gyakran találkozhatsz vele:
+        </p>
+
+        <textarea data-lang="js">
+const MathBox = (() => {
+  const PI = 3.141592653589793
+
+  function add(a, b) {
+    return a + b
+  }
+
+  function circleArea(r) {
+    return PI * r * r
+  }
+
+  return { add, circleArea }
+})()
+
+console.log(MathBox.add(2, 3))
+console.log(MathBox.circleArea(10))
+        </textarea>
+	<p> Ez a fura forma egy függvénydefiníció, amit rögtön meg is hívunk (azért van a végén az üres nyitó-csukó zárójel). 
+	<code>(() =&gt; { ...program... })()</code>
+	</p>
+	<p>Mivel rögtön lefut rögtön vissza is ad egy objektumot (jelen esetben egy olyat amiben egy <code>add</code> és egy <code>circleArea</code>
+	property van), tehát a MathBox végül is egy ilyen objektum lesz. Ravasz, mi?
+	</p>
+        <p>
+          Kacifántos, de miért jobb így, mint egyszerűen csak definiálni őket? 
+	  Mert a scope szabály miatt (minden csak a blokkon belül látszik amit ott hoztunk létre)
+	  a belső változók (<code>PI</code>) így nem szivárognak ki,
+          és a publikus API egyetlen objektumban látszik (<code>MathBox</code>).
+          Logikailag a modul pontosan ez: belső rész + exportált felület.
+        </p>
+	<p>
+	Tegyük fel, hogy az egyik programozó használta a PI-t valamire a kódban (pl. itt területet számolt). 
+	De mi egy másik csomagot is szeretnénk használni, és annak az alkotója történetesen
+	szintén használja a PI nevet, csak ő éppen ezt mondjuk a Protokoll Identifier
+	értelemben használta és ezért nála a PI="89541-2".  Gondolom elképzelhető, mi történne, ha a 
+	ronda azonosító felülírná a jó öreg 3.14-et. Maradjunk annyiban, hogy többé már nem számolná
+	valami jól a területet... :)
+	</p>
+	<p>Egy szó mint száz, néha nagyon is hasznos, ha nem is látják egymást.</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Speciális object szintaxis</h2>
+
+      <article>
+        <h3>4.1. Short property</h3>
+        <p>
+          Ha a property neve és a változó neve ugyanaz, akkor a <strong>short property</strong> szintaxis
+          lerövidíti a kódot: <code>{ x: x }</code> helyett elég <code>{ x }</code>.
+        </p>
+
+        <textarea data-lang="js">
+const x = 10
+const y = 20
+
+const pointLong = { x: x, y: y }
+const pointShort = { x, y }
+
+console.log(pointLong)
+console.log(pointShort)
+        </textarea>
+
+        <p>
+          Mert kevesebb a zaj, és a kód szándéka tisztább: "fogd ezt a változót, és tedd be ilyen néven".
+	  Az exportálásnál igen gyakran találkozunk ezzel a formával. Nem adnak neki másik nevet.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.2. Computed property</h3>
+        <p>
+          Ha a property neve nem fix szöveg, hanem futás közben számolódik ki,
+          akkor <strong>computed property</strong> kell: <code>{ [expr]: value }</code>.
+        </p>
+
+        <textarea data-lang="js">
+const prefix = "user"
+const id = 42
+
+const obj = {
+  [prefix + "_" + id]: { name: "Ada", role: "admin" }
+}
+
+console.log(obj)
+console.log(obj.user_42)
+        </textarea>
+
+        <p>
+          Miért jó? Mert így természetesen tudsz map-szerű objektumot építeni
+          dinamikus kulcsokkal, anélkül hogy utólag külön sorokban kellene property-ket hozzáadni.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.3. Destructuring</h3>
+        <p>
+          A <strong>destructuring</strong> (szétszedés) kényelmes módja annak, hogy objektumból vagy tömbből
+          egyszerre több értéket vegyél ki változókba. A lényege: olvashatóbb, mint minden értéket külön sorban elérni.
+        </p>
+
+        <textarea data-lang="js">
+const user = { name: "Mira", age: 29, city: "Budapest" }
+
+const { name, age } = user
+console.log(name, age)
+
+const numbers = [10, 20, 30]
+const [first, second] = numbers
+console.log(first, second)
+        </textarea>
+
+        <p>
+          Miért jó? Mert a kódból azonnal látszik, mely mezőkre van szükséged, és nem ismétled a forrás objektum nevét.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Prototype</h2>
+
+      <article>
+        <h3>5.1. Prototype lánc</h3>
+        <p>
+          A JavaScriptet nem a klasszikus OOP (objektum oriented programming) filozófia mentén tervezték,
+	  a képességek "öröklését" a <strong>prototype láncon</strong> keresztül képzelték el:
+	  ha egy property nincs meg az objektumon, a JS megnézi a prototípusát (prototype),
+	  (ami szintén egy objektum)
+	  hátha annak van ilyen property-je, majd annak a prototype-ját, és így tovább.
+        </p>
+        <p>
+          Ez a lánc addig tart, amíg el nem ér a <code>null</code>-ig. A lánc tetején tipikusan az
+          <code>Object.prototype</code> van, ami sok alap metódust ad (például <code>toString</code>).
+        </p>
+	<p>Az alábbi kód megnézi, hogy a t-nek van-e olyan tulajdonsága, hogy age.</p>
+        <textarea data-lang="js">
+const t = {age:3}
+t.hasOwnProperty('age')
+	</textarea>
+	<p>Na de álljon meg a menet! Hogy hívhatunk meg egy olyan metódust, hogy hasOwnProperty, 
+	mikor ilyen nincs is a t-ben?!</p>
+	<p>Hát úgy, hogy a prototípusaként megadott Object-ben van! Amikor hivatkoztunk rá,
+	látta, hogy ezen a szinten nincs, és megnézte a prototípusat, ott talált egy ilyet
+	és azt használta.</p>
+        <textarea data-lang="js">
+const t = {age:3}
+console.log('itt nincs:', t.hasOwnProperty('hasOwnProperty'))
+console.log('innen szedte:', t.__proto__.hasOwnProperty('hasOwnProperty'))
+	</textarea>
+	<p> Ez azért jó nekünk, mert így nem kell minden objektumnál újra és újra
+	létrehozni a metódusokat. Ha megfelelő prototípus van beállítva, "ingyen"
+	kapunk egy rakás funkcionalitást!
+      </article>
+
+      <article>
+        <h3>5.2. Saját property vs örökölt property</h3>
+        <p>
+          Fontos különbség: az objektumnak lehet <strong>közvetlenül</strong> is tulajdonsága
+	  (own property), és lehet olyan is ami csak azért van neki mert a prototype-nak van.
+	  Ez befolyásolja például az iterálást és a hibakeresést is.
+	  Az iteráció csak a saját property-ket vizsgálja.
+        </p>
+
+        <textarea data-lang="js">
+const base = {
+  kind: "base",
+  describe() {
+    return "kind=" + this.kind
+  }
+}
+
+// az obj prototípusa a base lesz:
+const obj = Object.create(base)
+obj.kind = "child"
+
+console.log("obj.kind:", obj.kind)
+console.log("obj.describe():", obj.describe())
+
+console.log("own keys:", Object.keys(obj))
+console.log("hasOwn kind:", Object.prototype.hasOwnProperty.call(obj, "kind"))
+console.log("hasOwn describe:", Object.prototype.hasOwnProperty.call(obj, "describe"))
+        </textarea>
+
+        <p>
+	  Hát nem mondom, hogy szuper egyszerű, de mégis érdemes rágódni rajta egy kicsit,
+	  mert sok mágikusnak tűnő jelenség innen ered.
+        </p>
+      </article>
+
+      <article>
+        <h3>5.3. Objektum prototype hierarchia</h3>
+        <p>
+          A JavaScript beépített típusai is prototype láncot használják. Például egy tömb (amit mi hozunk létre) örökli az Array metódusait,
+          és azon keresztül (végül) az Object metódusait is.
+        </p>
+        <p>
+	Ezért tudunk olyat írni, hogy <code>arr.push()</code> annak ellenére, hogy soha nem definiáltuk azt a push-t.
+        </p>
+
+        <textarea data-lang="js">
+const arr = [1, 2, 3]
+
+console.log("arr.push létezik:", typeof arr.push)
+console.log("arr.toString létezik:", typeof arr.toString)
+
+// p1 legyen az arr prototípusa
+const p1 = Object.getPrototypeOf(arr)
+// p2 pedig a p1-é
+const p2 = Object.getPrototypeOf(p1)
+
+console.log("Array.prototype?", p1 === Array.prototype)
+console.log("Object.prototype?", p2 === Object.prototype)
+        </textarea>
+
+        <p>
+           Amikor azt mondjuk "az objektum örököl", akkor ez konkrétan azt jelenti,
+          hogy a keresés végig megy ezen a láncon. 
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>6. Összefoglalás</h2>
+      <ul>
+        <li>
+          <strong>Hibakezelés</strong>: <code>throw</code>: a hiba jelzése, <code>try/catch/finally</code>: a hibák kezelése.
+          Cél: A hibák ne állítsák meg a programot, hanem irányítottan kezelhetők legyenek.
+        </li>
+        <li>
+          <strong>Strict mode</strong>: szigorúbb szabályok, egyértelműbb hibajelzések
+          (különösen a véletlen globális változók ellen).
+        </li>
+        <li>
+          <strong>Modulok</strong>: explicit export/import, tiszta függőségek, karbantartható kódstruktúra.
+        </li>
+        <li>
+          <strong>Speciális object szintaxis</strong>: short property, computed property, destructuring
+          - mind a kód olvashatóságát és a szándék kifejezését segíti.
+        </li>
+        <li>
+          <strong>Prototype</strong>: a JavaScript öröklési modellje.
+        </li>
+      </ul>
+    </section>
+  </main>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok – 3. lecke</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+<body>
+  <header>
+    <h1>3. lecke – Függvények mélyebben</h1>
+    <p>
+      Ebben a leckében a függvényekkel foglalkozunk. Megnézzük mi az értelmük, és hogyan tudjuk őket
+      újrafelhasználható, érthető és hibabiztos formába hozni.
+      Áttekintjük a különböző függvénydefiníciós formákat, a <code>return</code> szerepét, a <code>this</code>
+      működésének alapjait, és bevezetést adunk az események (eventek) és callback-ek gondolatához.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Függvény alapfogalmak</h2>
+
+      <article>
+        <h3>1.1. Paraméter és argumentum</h3>
+        <p>
+          A függvény egy újrafelhasználható "műveletcsomag". Ha szeretnénk, hogy a függvény különböző
+          bemenetekkel is működjön, akkor <strong>paramétereket</strong> adunk neki.
+        </p>
+        <p>
+          Fontos különbség:
+        </p>
+        <ul>
+          <li><strong>Paraméter</strong>: a függvény definíciójában szereplő "helykitöltő" név.</li>
+          <li><strong>Argumentum</strong>: a függvény meghívásakor átadott konkrét érték.</li>
+        </ul>
+        <p class="info">
+	A függvény paraméter nevét (más paraméterektől megkülönböztetendő) szokás <em>formális paraméter</em>
+	néven is emlegetni.
+        </p>
+
+        <textarea data-lang="js">
+function greet(name) {         // name = paraméter
+  console.log("Szia, " + name + "!");
+}
+
+greet("Anna");                 // "Anna" = argumentum
+greet("Béla");                 // "Béla" = argumentum
+        </textarea>
+
+        <p>
+          A paraméter neve bármi lehet, lehetne például p1, p2, p3. De ez nem 
+	  valami jó gyakorlat, a függvényparaméterek neve mondhatni a dokumentáció része,
+	  segít megérteni, hogy nagyjából mit vár a függvény.
+          Ezért aztán célszerű beszédes neveket adni (például <code>name</code>, <code>count</code>, <code>price</code>).
+	  Így ha valaki más (vagy te két hét múlva) ránéz a kódra, sejtheti, hogy a 'price' paraméter
+	  helyére valamilyen árat kell írni amikor meghívja a függvényt. 
+        </p>
+        <p>Az argumentum is bármi lehet (primitive vagy objektum). Nincs típusellenőrzés (elsősorban ebben különbözik 
+	a TypeScript nevű nyelv, ami épp olyan mint a JavaScript, de van típusellenőrzés). Nyilván nekünk azt kell átadnunk
+	amit a függvény vár. Sok függvényt úgy írnak meg, hogy többféle (több típusú) adatot is elfogadjon, de nincs garancia.</p>
+        <p>
+	Igen gyakori, hogy paraméterként a függvény egy objektumot vár. Ez azért hasznos, mert ha sok paramétert adunk át,
+	akkor könnyen összekeveredhet a fejünkben, hogy melyiket kell hányadikként átadni. Ha objektumot adunk át,
+	akkor az egyes értékeknek van neve, így teljesen mindegy milyen sorrendben írjuk őket a név alapján a függvény
+	el tudja dönteni, melyik mire való. Természetesen ez nem automatikus, a függvényt úgy kell megírni,
+	hogy ilyen objektumot várjon.
+	</p>
+        <textarea data-lang="js" readonly>
+extra_complex_function({
+  action: "dosomething",
+  data: { special: true, count: 42 },
+  unique: true,
+  store_forever: true,
+  extra: 99.9999,
+})
+
+// a függvényt is úgy kell megírni, hogy tudja, mi mire való!
+// tehát valami ilyesmi lenne:
+
+function extra_complex_function(params) {
+  // teljesen mindegy a sorrend, mert van nevük.
+  console.log("extra: " + params.extra);
+  console.log("action: " + params.action);
+  console.log("store_forever: " + params.store_forever);
+}
+
+        </textarea>
+	<p>A fenti függvénynek most csak egy argumentuma van, az viszont egy objektum. Amiben nevekkel azonosítva sokmindent megadhatunk.</p>
+      </article>
+
+      <article>
+        <h3>1.2. Return value</h3>
+        <p>
+          A függvény két dolgot tehet:
+        </p>
+        <ul>
+          <li><strong>mellékhatást</strong> okoz (például kiír a konzolra),</li>
+          <li>vagy <strong>értéket ad vissza</strong> a <code>return</code> segítségével.</li>
+        </ul>
+        <p>
+	  Ha kifejezetten a mellékhatás miatt hívjuk a függvényt, gyakran nincs szükség
+	  a visszatérési értékre, mert a célunk annak a hatásnak az elérése. Ilyen lehet például
+	  egy hálózati üzenet elküldése, írás az adatbázisba, egy fájl törlése, stb.
+	  Mellékhatás alatt azt értjük, ami nem a program belső kiértékelésére van hatással,
+	  hanem a világban (ide értve mindent ami a programon kívül esik) okoz változást.
+        </p>
+        <p>Persze a mellékhatás érdekében hívott függvények is visszaadhatnak értéket ha akarnak.
+	Gyakran ezt is teszik. Például a hálózati üzenetküldő függvény visszadhatja, hogy sikerült-e
+	elküldeni az üzenetet, vagy az üzenet hosszát, esetleg egy hivatkozást rá.</p>
+        <p>
+	  Ha a függvényünk mellékhatás nélküli, akkor biztosan van benne return, máskülönben 
+	  nincs is értelme. A <code>return</code> egyszerre két dolgot jelent:
+        </p>
+        <ol>
+          <li>Megadja a függvény eredményét.</li>
+          <li>Azonnal befejezi a függvény futását (ami utána van, az már nem fut le).</li>
+        </ol>
+
+        <textarea data-lang="js">
+function add(a, b) {
+  return a + b
+  console.log('ez soha nem fut le!')
+}
+
+let result = add(10, 5)
+console.log(result) // 15
+
+// többször is meghívhatjuk, akár így is:
+console.log(add(1, 2)) 
+        </textarea>
+
+        <p>
+          Ha a függvény nem ír <code>return</code>-t, akkor is "visszaad" valamit: az értéke ilyenkor
+          <code>undefined</code>.
+        </p>
+
+        <textarea data-lang="js">
+function logOnly(message) {
+  console.log("Napló:", message)
+}
+
+let x = logOnly("Hello")
+console.log(typeof(x)) // undefined
+        </textarea>
+      </article>
+
+      <article>
+        <h3>1.3. Újrafelhasználhatóság</h3>
+        <p>
+          A függvények egyik legnagyobb értéke, hogy nem kell ugyanazt a logikát sok helyen lemásolni.
+          Ha jól megírod, ugyanazt az "ötletet" több helyen is használhatod.
+        </p>
+        <p>
+          Jó irányelv kezdőként: a függvény lehetőleg <strong>egy dolgot csináljon</strong>, és azt jól.
+          Így könnyebb tesztelni, könnyebb újra felhasználni, és kevésbé hibázol.
+        </p>
+
+        <textarea data-lang="js">
+function isAdult(age) {
+  return age >= 18
+}
+
+console.log(isAdult(20)) // true
+console.log(isAdult(16)) // false
+
+// Az isAdult újra felhasználható bármilyen döntésben:
+let age = 17
+if (isAdult(age)) {
+  console.log("Belépés engedélyezve.")
+} else {
+  console.log("Belépés tiltva.")
+}
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Függvénydefiníciók</h2>
+      <p>
+        JavaScriptben többféleképpen is létrehozhatsz függvényt. Ugyanazt az elvet fejezik ki
+        (egy meghívható művelet), csak a nyelvi forma más, illetve vannak gyakorlati különbségek is.
+      </p>
+
+      <article>
+        <h3>2.1. Function declaration</h3>
+        <p>
+          Ez a klasszikus forma. Előnye, hogy a JavaScript a függvényt a teljes blokkban ismeri az interpreter.
+	  Valahogy úgy képzelheted el, hogy előre végignézi az egész kódot (blokkot) függvények után kutatva
+	  és ha <em>később</em> van definiálva mint ahol használod, úgy is működik.
+        </p>
+
+        <textarea data-lang="js">
+// elvileg itt még nem tudjuk mi az a hello
+hello()
+
+// mert csak itt definiáljuk:
+function hello() {
+  console.log("Szia! (declaration)")
+}
+
+// mégis működik!
+        </textarea>
+
+        <p>
+          A <code>function</code> kulcsszó után áll a függvény neve, majd a paraméterlista zárójelben,
+          végül a törzs egy kódblokkban. Ezt a kódblokkot most nem lehet kihagyni, mint az
+	  <code>if</code>, <code>for</code> stb. esetében. A kapcsos zárójel itt kötelező!
+        </p>
+      </article>
+
+      <article>
+        <h3>2.2. Function expression</h3>
+        <p>
+          Itt a függvény egy érték: betesszük egy változóba. Ez nagyon fontos szemlélet:
+          a függvény ugyanúgy "adat", mint egy szám vagy szöveg, tehát átadható, eltárolható,
+          visszaadható.
+        </p>
+
+        <textarea data-lang="js">
+const hello = function () {
+  console.log("Szia! (expression)")
+};
+
+hello()
+        </textarea>
+
+        <p>
+          A function expression gyakori, amikor függvényt szeretnél átadni másik függvénynek
+          (például callback-ként, lásd később).
+        </p>
+        <p>
+	  Mivel itt a függvényedre egy teljesen hagyományos változóval hivatkozol,
+	  csak <em>azután</em> tudod használni, ami után létrehoztad. Próbáld ki! 
+	  Tedd a függvényhívást (hello()) a kódblokk legelejére és nézd meg lefut-e úgy is.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.3. Arrow function</h3>
+        <p>
+          Az arrow function (nyílfüggvény) egy rövidebb szintaxis. Gyakran használjuk rövid,
+          "egysoros" függvényekhez, különösen callback-eknél.
+        </p>
+        <p>
+	Ennél a formánál a nyíl elött a paraméter áll, a nyil után pedig a visszaadott érték 
+	(tehát amit egyébként a <code>return</code> után írnánk).
+        </p>
+
+        <textarea data-lang="js">
+const add = (a, b) => a + b
+
+console.log(add(3, 4)); // 7
+        </textarea>
+	<p>Ha csak egyetlen paramétered van, akkor a gömbölyű zárójelet sem kell kitenned.</p>
+        <textarea data-lang="js">
+const volume = edge => edge * edge * edge
+
+console.log(volume(10.1))
+        </textarea>
+        <p>
+	Az arrow függvény nagyon jól olvasható. Rögtön látszik, hogy az <code>x => x*x</code>
+	valami olyan dolog ami x-ből x*x-et készít.
+        </p>
+
+        <p>
+          Ha a törzs több utasításból áll, akkor itt is használhatjuk a kapcsos zárójelet, és 
+	  létrehozhatunk hosszabb függvényt is. Ekkor viszont már kelleni fog <code>return</code>
+	  utasítás ha vissza szeretnénk adni valamit.
+        </p>
+
+        <textarea data-lang="js">
+const repeat = (v, n) => {
+	for (i=0; i&lt;n; i++) {
+		console.log(v)
+	}
+	return "ezt adom vissza"
+}
+
+vissza = repeat("Szia!", 3)
+console.log(vissza)
+vissza = repeat("Szöveg", 2)
+console.log(vissza)
+        </textarea>
+
+        <p>
+          Fontos gyakorlati megjegyzés: az arrow function másképp kezeli a <code>this</code>-t, mint a
+          klasszikus <code>function</code>. Ezt a leckében a <code>this</code> résznél lesz majd szó.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Generator function</h2>
+      <article>
+        <h3>3.1. <code>function*</code> és <code>yield</code> (említés szinten)</h3>
+        <p>
+          A generator függvény különleges: nem "egyszer fut le és vége", hanem képes
+          <strong>megállni</strong> és később <strong>onnan folytatni</strong> ahol abbahagyta.
+          Ezt a <code>yield</code> kulcsszóval éri el.
+        </p>
+        <p>
+	A function kulcsszó után álló csillag mutatja, hogy ez egy ilyen spéci függvény. Úgy is 
+	elképzelheted, hogy sok "visszatérése" van. Visszaad valamit, aztán folytatja aztán megint
+	visszaad valamit. Vagy koncepcionálisan: értékeked "köpköd" magából, vagyis generál. Innen a neve: generátor.
+        </p>
+
+        <textarea data-lang="js">
+function* counter() {
+  yield 1;
+  yield 2;
+  yield 3;
+}
+
+const it = counter();
+
+console.log(it.next()); // { value: 1, done: false }
+console.log(it.next()); // { value: 2, done: false }
+console.log(it.next()); // { value: 3, done: false }
+console.log(it.next()); // { value: undefined, done: true }
+        </textarea>
+
+        <p>
+          A <code>counter()</code> itt nem "számot ad vissza", hanem egy iterátort (iterator) ad, amin
+          <code>next()</code>-tel léptetünk. A generator függvényeknek sok haszna van, például így lépkedhetünk végig
+	  egy összetett adatstruktúrán, de ez már későbbi, kicsit mélyebb téma.
+        </p>
+	<p>Azt esetleg érdemes tudni, hogy a <code>for</code> ciklusban korábban látott <code>of</code> 
+	kulcsszó pontosan ilyen iterátorokkal működik. Valahogy úgy kell érteni, hogy 
+	minden körben szedjen ki egy új értéket belőle.
+        </p>
+        <textarea data-lang="js">
+// ez a generátor az abc első három betűjét dobálja:
+function* abc_generator() {
+  yield 'a';
+  yield 'b';
+  yield 'c';
+}
+
+for (let c of abc_generator()) {
+	console.log('a következő betű:', c);
+}
+        </textarea>
+	
+	<p>Persze gondolom kicsit ködös, hogy mire jó az, ha előre megadott dolgokat
+	dobálunk. Hát valóban nem sokra, de általában nem is ezt tesszük. Nézzünk
+	egy (valamivel) értelmesebb példát: készítsünk egy generátort, ami egy
+	tömbből felváltva ad vissza elemeket. Egyet az elejéről egyet a végéről!
+        <textarea data-lang="js">
+function* two_sides(arr) {
+	last_index = arr.length - 1
+	first_index = 0
+	while (first_index &lt; last_index) {
+		yield arr[first_index]
+		first_index++
+		yield arr[last_index]
+		last_index--
+	}
+	// végül a középső elem, ha van olyan
+	if (first_index == last_index) {
+		yield arr[first_index]
+	}
+}
+
+// és így tudjuk majd használni:
+t = [9,11,20,1,3]
+iter = two_sides(t)
+for (let c of iter) {
+	console.log('a következő adat:', c);
+}
+        </textarea>
+	<p>Ha nem teljesen érted mit csinált a fenti kód, nyugodtan kérdezgess róla egy nagy nyelvi modellt.
+	Ha úgy sem, az sem baj. A lényeg, hogy például ilyesmire jó ez a generátor dolog.</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. A <code>this</code> kulcsszó</h2>
+      <p>
+        A <code>this</code> a JavaScript egyik leggyakrabban félreértett része. Egyenlőre elég egy
+        stabil szabályt megtanulni: <strong>metódus hívásakor</strong> a <code>this</code> jellemzően
+        "arra az objektumra mutat" (azt az objektumot jelképezi), amin a metódust meghívtad.
+      </p>
+
+      <article>
+        <h3>4.1. <code>this</code> mint aktuális objektum</h3>
+        <textarea data-lang="js">
+const user = {
+  name: "Anna",
+  greet: function () {
+    console.log("Szia, " + this.name + "!");
+  }
+};
+
+user.greet(); // "Szia, Anna!"
+        </textarea>
+
+        <p>
+          Itt a <code>greet</code> egy metódus (egy objektum property-je, aminek az értéke függvény),
+          ezért amikor a függvény fut a kódblokkjában a <code>this</code> a <code>user</code> objektumra fog mutatni.
+        </p>
+        <p class="info">
+	Hogy ez mire jó? Nos, valamikor valaki úgy gondolta, hogy milyen szuper lesz, ha
+	megspórolhatunk egy formális paramétert és ha a függvény úgyis benne van egy
+	objektumban (tehát van hozzá valami köze) akkor implicit módon megkapja
+	az adatait is. Ez az implicit adat a <code>this</code>. Azóta, a félreértések 
+	és hibák tömegének láttán sokan úgy gondolják, hogy ez mégsem volt annyira zseniális
+	ötlet mint elsőre látszott, de most már így marad. :)
+	</p>
+        
+	<p>
+	Szép, átlátható módon így nézne ki:
+	</p>
+        <textarea data-lang="js">
+const user = {
+  name: "Anna",
+  age: 22
+}
+
+function greet(person) {
+	console.log("Szia, " + person.name + "!")
+}
+        </textarea>
+	<p>Csak hát így most akkor nincs "összekötve" az felhasználó (user) és a köszöntés (greet), 
+	nekünk kell emlékezni rá, hogy a köszöntéshez felhasználó kell, illetve, hogy a felhasználót
+	egyáltalán lehet köszönteni.</p>
+	<p>Ha beletesszük a <code>greet</code> függvényt az objektumba (metódus)
+	akkor a kapcsolat nyilvánvaló de továbbra is mindig át kéne adnunk magát az objektumot:</p>
+<textarea data-lang="js">
+const user = {
+  name: "Anna",
+  age: 22
+  greet: function (person) {
+    console.log("Szia, " + person.name + "!")
+  }
+}
+
+// és amikor meghívjuk:
+user.greet(user);
+        </textarea>
+	<p>A meghíváskor macerás mindig kétszer írni a objektumot tároló változó nevét: <code>user.greet(user)</code>,
+	mennyivel egyszerűbb lenne ha csak ennyit kéne írni: <code>user.greet()</code> és a függvény "tudná", hogy
+	milyen adaton kell dolgoznia. Csinálhatták volna persze azt is, hogy automatikusan 
+	megkapja az objektumot paraméterként (a Python nyelv például pontosan ezt teszi) de itt
+	egy másik megoldást választottak: az objektum a függvényen belül a mágikus <code>this</code> névvel érhető el.</p>
+      </article>
+
+      <article>
+        <h3>4.2. Metódusok és <code>this</code> – tipikus hiba</h3>
+        <p>
+          Ha "kiveszed" a metódust az objektumból, és külön változóként hívod meg, a <code>this</code> már
+          nem feltétlenül ugyanaz lesz. Talán így érdemes megjegyezni: a <code>this</code> nem a
+          függvény "belső tulajdonsága", hanem inkább attól függ, <em>hogyan hívtad meg</em>.
+        </p>
+        <p>Ha egy objektum property értékeként hívtad meg (metódusként) akkor az az objektum
+	a <code>this</code> ha nem úgy hívtad meg akkor valami nem jól definiált és ne használd.</p>
+
+        <textarea data-lang="js">
+const user = {
+  name: "Béla",
+  greet: function () {
+    console.log("Szia, " + this.name + "!");
+  }
+};
+
+// kivesszük a függvényt egy f változóba
+const f = user.greet;
+
+// ha így hívjuk a this ki tudja mi...
+f(); 
+// (a legtöbb implementációban egyébként undefined).
+        </textarea>
+
+        <p>
+          Ezt a jelenséget később lehet precízen megérteni (strict mode, környezetek, bind/call/apply),
+          de most annyi a cél, hogy felismerd: metódusnál a <code>this</code> érzékeny a hívás módjára.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.3. Arrow function és <code>this</code></h3>
+        <p>
+          Az arrow function tipikusan nem úgy kezeli a <code>this</code>-t, mint a klasszikus
+          <code>function</code>. Emiatt metódusnak sokszor nem arrow-t, hanem hagyományos függvényt írunk.
+          Most ezt elég "szabályként" megjegyezni: ha <code>this</code>-t használsz metódusban, a
+          <code>function () {}</code> forma gyakran kiszámíthatóbb.
+        </p>
+
+        <textarea data-lang="js">
+const user = {
+  name: "Csilla",
+  // Szándékosan arrow-val: gyakran nem azt kapod, amit vársz.
+  greet: () => {
+    console.log("Szia, " + this.name + "!");
+  }
+};
+
+user.greet(); // tipikusan nem "Csilla" lesz
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Eventek</h2>
+      <p>
+        A modern JavaScript nagy része eseményvezérelt (event-driven): az program szigorú rendben végez feladatokat, hanem
+        gyakran <strong>valamilyen esemény hatására</strong> fut le valamelyik függvény. Ilyen esemény lehet
+        például egy kattintás, billentyűleütés, hálózati válasz vagy időzítő lejárata.
+      </p>
+
+      <article>
+        <h3>5.1. Esemény hatására meghívódó függvények</h3>
+        <p>
+          Böngészőben tipikus példa: kattintáskor egy függvény lefut. Ehhez általában egy "figyelőt" (listener)
+          állítunk be.
+        </p>
+
+        <p>
+	Ha megnyomod ezt a gombot, nem történik semmit:
+        </p>
+	<button id="exampleButton">Gomb</button>
+        <p>
+	Most az alábbi kódot futtatva rendeljünk hozzá valamilyen akciót (látszólag nem történik semmi) majd nyomd meg <em>ismét a gombot</em>!
+        </p>
+        <textarea data-lang="js">
+// megkeressük a gomb objektumot:
+const btn = document.querySelector("#exampleButton");
+
+// hozzárendelünk egy esemény kezelőt:
+btn.addEventListener("click", function () {
+	// kérünk három véletlen számot (rgb):
+	const r = Math.floor(Math.random() * 256);
+	const g = Math.floor(Math.random() * 256);
+	const b = Math.floor(Math.random() * 256);
+	// szinezzük ilyen színűre a gombot
+	btn.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+});
+        </textarea>
+
+        <p>
+          Itt a <code>addEventListener</code> azt jelenti: "ha történik <code>click</code> esemény, hívd meg ezt a függvényt".
+          A függvény tehát nem azonnal fut le, hanem később, az esemény pillanatában.
+        </p>
+        <p class="info">Figyeld meg, hogy a gomb objektumot az eseménykezelő kódblokkján kívül (elötte) 
+	rendeltük egy változóhoz, mégis tudjuk használni az eseménykezelő függvényen belül! Jól látszik
+	a korábban említett "scope" szabály: a külső cimkék bentről elérhetők, de kintről a bentiek nem.</p>
+      </article>
+
+      <article>
+        <h3>5.2. Callback</h3>
+        <p>Láttuk, hogy Az EcmaScriptben a függvények is adatok: hozzárendelhetjük őket egy
+	változóhoz, betehetjük őket egy objektumb és persze át is adhatjuk őket egy másik függvénynek!</p>
+        <p>
+          Az olyan függvényt, amit paraméterként "átadunk", pont azért, hogy később valaki más azt 
+	  majd meghívja, callback-nek nevezzük. Ez alapötlet az eseményeknél, és később az aszinkron programozásnál is.
+        </p>
+
+        <textarea data-lang="js">
+function runLater(callback) {
+  console.log("Előkészítés...");
+  callback();
+  console.log("Befejezés.");
+}
+
+// ez lesz majd a callback függvény
+fn = function () {
+  console.log("Callback lefutott.");
+}
+
+runLater(fn);
+        </textarea>
+
+        <p>
+          A fenti példában a <code>runLater</code> "nem tudja előre", hogy mit fog csinálni a callback,
+          csak annyit tud: van egy pont, ahol meg kell hívnia. Ez rugalmas programfelépítést ad.
+        </p>
+
+        <textarea data-lang="js">
+// Ugyanez arrow function-nel, rövidebben:
+runLater(() => console.log("Arrow callback lefutott."));
+        </textarea>
+        <p>Itt egyszerűen beírtuk a függvényt a paraméter helyére, nem adtunk neki külön nevet. 
+	A gyakorlatban gyakran fogunk találkozni ilyesmivel.</p>
+      </article>
+
+      <article>
+        <h3>5.3. Miért fontos ez a gyakorlatban?</h3>
+        <p>
+          A UI-k (felhasználói felületek) és a hálózati műveletek (API hívások) tipikusan eseményekhez
+          kötöttek. Nem várhatjuk meg körbe-körbe járva, amíg a felhasználó megnyom egy gombot, hiszen akkor addig
+	  semmi mást nem tudunk csinálni. Ráadásul mi van, ha egy másik gombot nyom meg és nem azt
+	  amit mi figyelünk? A függvények, callback-ek és az eseménykezelés modelljére épül
+          a legtöbb webes alkalmazás.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>6. Összefoglalás</h2>
+      <p>
+        Ebben a leckében nem csak "használtuk" a függvényeket, 
+	hanem (remélhetőleg) kicsit mélyebben megismertük
+	miképpen készíthetjük el és miképpen használjuk őket:
+      </p>
+      <ul>
+        <li><strong>Paraméter vs argumentum</strong>: definíció kontra meghívás.</li>
+        <li><strong><code>return</code></strong>: érték visszaadása és a futás lezárása.</li>
+        <li><strong>Definíciós formák</strong>: declaration, expression, arrow.</li>
+        <li><strong>Generatorök</strong>: <code>function*</code> és <code>yield</code> felismerése.</li>
+        <li><strong><code>this</code></strong>: metódus hívásnál az "aktuális objektum" alapötlete.</li>
+        <li><strong>Eventek és callback</strong>: eseményvezérelt futás bevezetése.</li>
+      </ul>
+      <p>
+        A következő leckékben a függvények és objektumok együttműködével még sokszor fogunk találkozni,
+        különösen akkor, amikor összetettebb adatstruktúrákkal (például tömbökkel és objektumokkal) dolgozunk.
+      </p>
+    </section>
+  </main>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

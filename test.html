@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+  <title>1. lecke – JavaScript alapmodell</title>
+</head>
+<body>
+  <main>
+    <h1>1. lecke – JavaScript alapmodell</h1>
+    <h2>Értékek, típusok, objektumok és függvények</h2>
+
+    <h3>Bevezetés</h3>
+    <p>
+      Ebben az első leckében megismerkedünk a JavaScript gondolkodásmódjának alapjaival.
+      Nem az a cél, hogy mindent azonnal részletesen megértsünk, hanem az, hogy képet kapjunk arról,
+      miből épül fel egy JavaScript program, és hogyan „gondolkodik” a nyelv.
+    </p>
+    <p>
+      A JavaScript nem varázslat: utasítások sorozata, amelyek értékekkel dolgoznak.
+      Ezeket az értékeket típusokba sorolja, az értékeket gyakran objektumokban tárolja,
+      és nagyon sok mindent függvényekkel old meg. Ezeket a fogalmakat most alapozzuk meg.
+    </p>
+
+    <h2>Mi az a programozás?</h2>
+    <p>
+      A programozás nem más, mint utasítások megfogalmazása egy számítógép számára.
+      Ezek az utasítások pontosak, egyértelműek, és mindig ugyanúgy hajtódnak végre.
+    </p>
+    <p>Egy program tipikusan:</p>
+    <ul>
+      <li>adatokat kap (például felhasználói bevitel),</li>
+      <li>feldolgozza azokat,</li>
+      <li>majd eredményt ad vissza (például megjelenít valamit).</li>
+    </ul>
+    <p>
+      A JavaScript eredetileg weboldalak „életre keltésére” készült, ma viszont szervereken,
+      mobilalkalmazásokban és sok más környezetben is használják.
+    </p>
+
+    <h2>Mi az a JavaScript?</h2>
+    <p>
+      A JavaScript egy dinamikus, gyengén típusos, magas szintű programozási nyelv.
+      A lényeg kezdőként:
+    </p>
+    <ul>
+      <li>futás közben derül ki, milyen típusú adat micsoda,</li>
+      <li>a nyelv rugalmas,</li>
+      <li>sok dolgot „elnéz” a programozónak,</li>
+      <li>ugyanakkor összetett rendszerek építhetők vele.</li>
+    </ul>
+
+    <h2>Statement és expression</h2>
+
+    <h3>Expression (kifejezés)</h3>
+    <p>Az expression (kifejezés) mindig egy értéket eredményez.</p>
+
+    <textarea data-lang="js">
+2 + 3
+    </textarea data-lang="js">
+
+    <p>Ez egy expression, mert az értéke <strong>5</strong>.</p>
+
+    <p>Ugyanilyen expression például:</p>
+    <textarea data-lang="js">
+"Hello"
+    </textarea data-lang="js">
+
+    <p>vagy:</p>
+    <textarea data-lang="js">
+console.log("Szia")
+    </textarea data-lang="js">
+
+    <p>Még akkor is expression, ha „csak” valami történik.</p>
+
+    <h3>Statement (utasítás)</h3>
+    <p>A statement (utasítás) utasítást ad, de nem feltétlenül ad vissza értéket.</p>
+
+    <textarea data-lang="js">
+let x = 5;
+    </textarea data-lang="js">
+
+    <p>Ez egy utasítás: létrehozunk egy változót.</p>
+
+    <p>
+      Fontos:
+      minden statement tartalmazhat expressionöket, de nem minden expression statement.
+    </p>
+
+    <h2>Kommentek</h2>
+    <p>
+      A kommentek olyan megjegyzések a kódban, amelyeket a JavaScript nem hajt végre.
+      Az embereknek szólnak, nem a gépnek.
+    </p>
+
+    <h3>Egysoros komment</h3>
+    <textarea data-lang="js">
+// Ez egy megjegyzés
+    </textarea data-lang="js">
+
+    <h3>Többsoros komment</h3>
+    <textarea data-lang="js">
+/*
+Ez több soros
+megjegyzés
+*/
+    </textarea data-lang="js">
+
+    <p>A kommentelés az érthető kód alapja.</p>
+
+    <h2>Értékek és típusok</h2>
+    <p>
+      A JavaScript világában minden érték. Egy szám, egy szöveg, egy igaz/hamis állítás – mind érték.
+      A JavaScript minden értékhez rendel egy típust, amely megmondja, hogy az adott értékkel mit lehet csinálni.
+    </p>
+
+    <h2>Primitive típusok</h2>
+    <p>A primitive típusok az egyszerű, tovább nem bontható értékek.</p>
+
+    <h3>number</h3>
+    <p>Számok:</p>
+    <textarea data-lang="js">
+10
+3.14
+-5
+    </textarea data-lang="js">
+    <p>
+      A JavaScriptben nincs külön egész és lebegőpontos szám, minden <strong>number</strong>.
+    </p>
+
+    <h3>string</h3>
+    <p>Szöveg:</p>
+    <textarea data-lang="js">
+"Hello"
+'Szia'
+`JavaScript`
+    </textarea data-lang="js">
+    <p>A string mindig idézőjelek között van.</p>
+
+    <h3>boolean</h3>
+    <p>Logikai érték:</p>
+    <textarea data-lang="js">
+true
+false
+    </textarea data-lang="js">
+    <p>Ezeket döntésekhez használjuk.</p>
+
+    <h3>bigint</h3>
+    <p>Nagyon nagy egész számok:</p>
+    <textarea data-lang="js">
+12345678901234567890n
+    </textarea data-lang="js">
+    <p>A végén az <strong>n</strong> jelzi, hogy bigint.</p>
+
+    <h2>Speciális primitive típusok</h2>
+    <p>Ezek nem „hagyományos” értékek, inkább állapotokat jelölnek.</p>
+
+    <h3>undefined</h3>
+    <p>Azt jelenti: „van ugyan valami, de még nincs értéke”.</p>
+    <textarea data-lang="js">
+let x;
+    </textarea data-lang="js">
+    <p>Itt <strong>x</strong> értéke <strong>undefined</strong>.</p>
+
+    <h3>null</h3>
+    <p>Tudatosan üres érték:</p>
+    <textarea data-lang="js">
+let y = null;
+    </textarea data-lang="js">
+    <p>Ez azt jelenti: „szándékosan nincs benne semmi”.</p>
+
+    <h3>symbol (csak említés szintjén)</h3>
+    <p>
+      A <strong>symbol</strong> egy speciális, egyedi azonosító típus.
+      Most még nem használjuk, csak tudjuk, hogy létezik.
+    </p>
+
+    <h2>Object és function</h2>
+    <p><strong>Minden, ami nem primitive, az Object.</strong></p>
+
+    <h3>Mi az az Object?</h3>
+    <p>Egy object kulcs–érték párok (property-k) gyűjteménye.</p>
+
+    <textarea data-lang="js">
+let person = {
+  name: "Anna",
+  age: 30
+};
+    </textarea data-lang="js">
+
+    <p>Ebben:</p>
+    <ul>
+      <li><strong>name</strong> és <strong>age</strong> property-k,</li>
+      <li><strong>"Anna"</strong> és <strong>30</strong> értékek.</li>
+    </ul>
+    <p>Egy property értéke bármilyen típus lehet.</p>
+
+    <h3>Függvény mint property → metódus</h3>
+    <p>
+      Ha egy object egyik property-je egy függvény, akkor azt metódusnak nevezzük.
+    </p>
+
+    <textarea data-lang="js">
+let person = {
+  name: "Anna",
+  greet: function () {
+    console.log("Szia!");
+  }
+};
+    </textarea data-lang="js">
+
+    <h2>Függvények – használati szinten</h2>
+    <p>A függvény egy újrahasználható művelet.</p>
+
+    <h3>Függvény meghívása</h3>
+    <p>Egy függvényt így hívunk meg:</p>
+
+    <textarea data-lang="js">
+console.log("Hello");
+    </textarea data-lang="js">
+
+    <p>Itt:</p>
+    <ul>
+      <li><strong>console.log</strong> a függvény neve,</li>
+      <li><strong>"Hello"</strong> az argumentum.</li>
+    </ul>
+
+    <h3>A console.log mint függvény</h3>
+    <p>
+      A <strong>console.log</strong> egy beépített függvény, amely kiír valamit a konzolra.
+      Ez lesz az egyik legfontosabb eszközünk a tanulás során.
+    </p>
+
+    <h3>Argumentum fogalma</h3>
+    <p>Az argumentum az az érték, amit átadunk a függvénynek.</p>
+
+    <textarea data-lang="js">
+console.log(42);
+console.log("Tanulok");
+    </textarea data-lang="js">
+
+    <p>Ugyanaz a függvény, különböző argumentumokkal.</p>
+
+    <h2>Összefoglalás</h2>
+    <p>Ebben a leckében megtanultuk, hogy:</p>
+    <ul>
+      <li>a JavaScript program értékekkel dolgozik,</li>
+      <li>az értékeknek típusuk van,</li>
+      <li>vannak primitive és speciális primitive típusok,</li>
+      <li>minden összetett adat Object,</li>
+      <li>a függvények központi szerepet játszanak,</li>
+      <li>már most használunk függvényeket, még ha nem is értjük őket teljesen.</li>
+    </ul>
+    <p>
+      Ez az alap, amire a következő leckékben minden további tudás épülni fog.
+    </p>
+  </main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</body>
+</html>

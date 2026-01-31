@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok – 2. lecke – Gyakorló feladatok</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+
+<body>
+  <header>
+    <h1>2. lecke – Gyakorló feladatok</h1>
+      <p>
+      Próbáld meg megoldani az alábbi feladatokat! Ha elakadtál kérheted egy LLM (nagy nyelvi modell, vagy "AI") 
+	segítségét, de ha csak lehet próbáld meg egyedül. 
+      </p>
+    <p>
+      A kódblokkok futtathatóak, ha helyesen kiegészíted őket. A hiányzó részeket <code>...TODO...</code> jelöli.
+      Javítsd ki, majd futtasd a blokkot, nézd meg a konzol kimenetet, majd javíts / egészíts ki addig, amíg a kimenet értelmes nem lesz.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Feladatok</h2>
+
+      <article>
+        <h3>1) Számológép </h3>
+        <p>
+	Számítsuk ki, mennyi az <code>ns</code> tömbben tárolt számok ...
+	<ul>
+		<li> szorzatát,</li>
+		<li> 7-tel való osztási maradékának összegét!</li>
+	</ul>
+        </p>
+
+        <textarea data-lang="js">
+
+const ns = [11, 45, 32, 22, 7]
+
+// számok szorzata
+szorzat = 1
+for (i = 0; i < ns.length; i++) {
+  console.log(ns[i], " * eddigi_szorzat" )
+  // ...TODO...
+}
+
+
+// számok 7-tel való osztási maradékának összege
+maradek_osszeg = 0
+for (i = 0; i < ns.length; i++) {
+  console.log("eddigi összeg +", ns[i], "héttel való maradéka")
+  // ...TODO...
+}
+
+
+// tesztek:
+console.log('szorzat:', szorzat!== 2439360 ? "HIBÁS" : "OK") 
+console.log('maradék:', maradek_osszeg !== 12 ? "HIBÁS" : "OK") 
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+	  A maradékos osztás jele: %. Ha valamit növelni akarsz használhatod a <code>összeg += növekmény</code> formát. Ugyanez szorzással is működik!
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>2) Javítsd a típushibát!</h3>
+        <p>
+          A kódunk beolvas egy értéket a felhasználótól ám valamiért nem számol jól! Módosítsd úgy, hogy a végeredmény helyes legyen.
+        </p>
+
+	<form>Érték: <input type="text" id="numinput" value="40"/></form>
+        <textarea data-lang="js">
+// mint látod a fenti input mezőbe a felhasználó beírt valamit.
+// lekérdezzük mit írt be (most 40)
+const input = document.getElementById("numinput").value
+
+// Számítsuk ki a biztonsági tényezővel növelt értéket:
+// ...TODO... alakítsd át úgy, hogy result 42 legyen 
+const result = input + 2
+
+console.log("Biztonsági tényezővel:", result)
+console.log("40-re az eredménynek 42-nek kéne lennie")
+// console.log("Hint: typeof result:", typeof result)
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+          A felhasználói bemenetek gyakran szövegként érkeznek!
+            Használd az explicit konverziót: <code>Number(...)</code>. </code>.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>3) Szigorú összehasonlítás: belépés ellenőrzés</h3>
+        <p>
+          Egészítsd ki a feltételt úgy, hogy csak akkor írja ki, hogy "Belépés OK", ha a név pontosan stimmel,
+          és a PIN is <strong>típushelyesen</strong> stimmel. Használj <code>===</code>-t és logikai operátorokat.
+        </p>
+
+        <textarea data-lang="js">
+function login(user, pin) {
+  const expectedUser = "admin"
+  const expectedPin = 1234
+
+  // ...TODO... csak akkor legyen true, ha mindkettő stimmel ÉS típushelyes
+  const authorized = ...TODO...
+
+  if (authorized) {
+    console.log("Belépés ENGEDÉLYEZVE!")
+  } else {
+    console.log("Belépés MEGTAGADVA!")
+  }
+}
+
+// Tesztek (ezeket nem kell módosítani)
+login("admin", 1234)   // Ezt az egyet szabad beengednie! 
+login("admin", "1234") // NEM OK (string!)
+login("Admin", 1234)   // NEM OK (hibás név)
+login("admin", 123)   // NEM OK (hibás kód)
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            Mind a kettőt explicit érdemes tesztelni: <code>user === expectedUser && pin === expectedPin</code>
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>4) Truthy / falsy és alapértelmezett érték</h3>
+        <p>
+          Egészítsd ki a kódot úgy, hogy ha a <code>value</code> falsy (pl. <code>0</code>, <code>""</code>, <code>null</code>),
+          akkor <code>42</code> legyen a végeredmény. Ha truthy, akkor az eredeti értéket használjuk.
+        </p>
+
+        <textarea data-lang="js">
+// ez legyen egy olyan függvény, aminek
+// ha nullát, null-t vagy üres stringet adsz meg, akkor 42-t ad vissza
+// egyébként viszont ugyanazt amit kapott!
+function withDefault42(value) {
+  // ...TODO... használd a || operátort alapértelmezésre
+  return calculated
+}
+
+
+// ellenőrzés
+
+function check(data, expected) {
+  const actual = withDefault42(data)
+  const ok = actual === expected
+  console.log((ok ? "OK " : "HIBA "), "visszaadott:", actual, "(várt:", expected + ")")
+}
+
+check( null, 42)
+check( "", 42)
+check( 0, 42)
+check( 100, 100)
+check( "hello", "hello")
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            Ilyesmire gondolj: <code>value || 42</code>. Figyeld meg: <code>0</code> falsy, ezért a vagy részt is értelmezi (42 lesz).
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>5) For ciklus: összegzés és számlálás</h3>
+        <p>
+          Cél: egészítsd ki a ciklust: számold ki az összeget és azt is, hány darab páros szám van.
+          Itt az a lényeg, hogy használd a <code>for...of</code> ciklust és az operátorokat.
+        </p>
+
+        <textarea data-lang="js">
+const nums = [9, 23, 22, 11, 7, 8, 10]
+
+let sum = 0
+let evenCount = 0
+
+for (const n of nums) {
+  // ...TODO... add hozzá n-t az összeghez 
+  ...TODO...
+
+  // ...TODO... ha n páros, növeld evenCount-ot 1-gyel
+  ...TODO...
+}
+
+// --------- ellenőrzés ------------
+function check(label, actual, expected) {
+  const ok = actual === expected
+  console.log((ok ? "OK " : "HIBA "), label, "=>", actual, "(várt:", expected + ")")
+}
+
+check("sum", sum, 90)
+check("evenCount", evenCount, 3)
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            Páros ellenőrzés: <code>n % 2 === 0</code>. Növelés: <code>evenCount++</code> vagy <code>evenCount += 1</code>.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>6) While ciklus: keress amíg meg nem találod</h3>
+        <p>
+          Ez a program egy listában keresi az első <code>"STOP"</code> elemet. 
+	  Vagyis ezt kéne csinálnia. Egészítsd ki a <code>while</code> feltételét
+          és a léptetést, hogy ne legyen végtelen ciklus és a végén a helyes indexet írja ki!
+        </p>
+
+        <textarea data-lang="js">
+const stream = ["OK", "OK", "OK", "STOP", "OK"]
+let i = 0
+
+// addig ismételj, amíg i kisebb a stream hosszánál ÉS az aktuális elem nem "STOP"
+while ( ...TODO...) {
+  console.log("vizsgálom:", stream[i])
+  // ...TODO... növeld meg i-t, különben végtelen ciklus lesz!!!
+}
+
+console.log("Megálltam itt:", i, "érték:", stream[i])
+
+console.log("index", i === 3 ? "igen ez a helyes": "biztos ez a jó index?")
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            A feltétel lehet pl: <code>i &lt; stream.length &amp;&amp; stream[i] !== "STOP"</code>.
+            A léptetés: <code>i++</code>.
+          </p>
+        </details>
+      </article>
+
+
+      <article>
+        <h3>7) While ciklus: keress amíg meg nem találod</h3>
+        <p>
+          Ez a program egy listában keresi az első <code>"STOP"</code> elemet. 
+	  Vagyis ezt kéne csinálnia. Egészítsd ki a <code>while</code> feltételét
+          és a léptetést, hogy ne legyen végtelen ciklus és a végén a helyes indexet írja ki!
+        </p>
+
+        <textarea data-lang="js">
+const stream = ["OK", "OK", "OK", "STOP", "OK"]
+let i = 0
+
+// addig ismételj, amíg i kisebb a stream hosszánál ÉS az aktuális elem nem "STOP"
+while ( ...TODO...) {
+  console.log("vizsgálom:", stream[i])
+  // ...TODO... növeld meg i-t, különben végtelen ciklus lesz!!!
+}
+
+console.log("Megálltam itt:", i, "érték:", stream[i])
+
+console.log("index", i === 3 ? "igen ez a helyes": "biztos ez a jó index?")
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            A feltétel lehet pl: <code>i &lt; stream.length &amp;&amp; stream[i] !== "STOP"</code>.
+            A léptetés: <code>i++</code>.
+          </p>
+        </details>
+      </article>
+    </section>
+
+    <section>
+      <h2>Extra (ha marad idő)</h2>
+      <p>
+        Ha kész vagy minddel, próbáld meg a fenti feladatokban a bemeneteket megváltoztatni (más számok, más tömb),
+        és nézd meg, hogy a kód általánosan is helyesen működik-e.
+      </p>
+    </section>
+  </main>
+
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

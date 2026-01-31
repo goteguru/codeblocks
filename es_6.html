@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok - 6. lecke</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+<body>
+  <main style="height: 90vh; overflow: scroll">
+	  <section>
+	    <h1>6. lecke - Aszinkron JavaScript és eventek</h1>
+	    <p>
+	      Ebben a leckében arról lesz szó, hogy a JavaScript miért és hogyan tud <strong>nem blokkoló</strong> módon működni.
+	      (Ami nem is olyan egyértelmű, ha tudjuk, hogy a böngészőben egyetlen processzormagon, egy szálon fut, hiába van tucatnyi processzormag a gépedben) .
+	      Megnézzük az aszinkron végrehajtás tipikus eseteit, a <code>Promise</code> modellt, az <code>async</code>/<code>await</code> szintaxist,
+	      valamint azt, hogyan kapcsolódik mindez az <strong>eventekhez</strong> és az <strong>event loop</strong> gondolatához.
+	    </p>
+	  </section>
+
+    <section>
+      <h2>1. Szinkron vs aszinkron</h2>
+      <p>
+        <strong>Szinkron</strong> végrehajtás esetén a program sorban halad: amíg egy művelet tart, addig a következő nem indul el.
+        <strong>Aszinkron</strong> működésnél bizonyos műveleteket "elindítunk", majd a program mehet tovább, akár újabb művelet 
+	is elindulhat nem kell várniuk egymásra. Előfordulhat, hogy ténylegesen párhuzamosan futnak, például több
+	külön processzormagon, de akkor is így hívjuk, ha fizikailag nem futnak "egyszerre" csak logikailag úgy kezeljük.
+      </p>
+      <p>
+      	JavaScript nem fut több processzormagon (legalábbis komoly bűvészkedés nélkül), tehát itt az Aszinkronitás
+	egy elvi fogalom, azt jelenti, hogy nem kell megvárnunk valaminek a befejeződését ahhoz, hogy tovább dolgozhassunk.
+      </p>
+      <p>
+        A problémák igazából akkor kezdődnek, ha a műveletnek eredménye is van, vagyis a befejezése után lesz,
+	és azzal valamit kezdeni kellene. Hogyan tudunk tovább dolgozni, ha még nincs meg az adott lépés eredménye? 
+	És honnan tudjuk, hogy már megvan? Ezeket a problémákat klasszikusan vagy 
+        <strong>callback</strong> vagy egy úgynevezett Promise (ígéret) modell segítségével kezeli a JavaScript.
+      </p>
+
+      <article>
+        <h3>1.1. Miért probléma a blokkolás?</h3>
+        <ul>
+          <li>
+            Böngészőben a felhasználói felületnek folyton reagálnia kell: ha minden művelet blokkolná a futást,
+            a lap lefagyna (úgy tűnne, hogy lefagyott), mert amíg arra várna, hogy mondjuk begépelj valamit, 
+	    addig nem működnének a gombok, nem reagálnának a menük és nem lehetne görgetni se.
+          </li>
+          <li>
+            Vannak lassú feladatok: hálózati kérés_attach (AJAX/fetch), fájlművelet (Node.js), időzítés, felhasználói események.
+	    Ha ezeket mindig kivárnánk, minden szörnyű lassúnak tűnne.
+          </li>
+          <li>
+            Az aszinkron modell célja: a program "folyjon tovább", és az eredmény később, rendezett módon érkezzen meg
+          </li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>1.2. Egy demonstrációs "kimenet" doboz</h3>
+        <p>
+          A következő példák mind ugyanazt a <code>#out</code> elemet fogják módosítani. (Bal oldalon találod).
+        </p>
+
+        <p>
+          A következő kód létrehoz két segédfüggvényt:
+          <code>setOut(text)</code> szöveget ír ki, <code>setOutStyle(text, color)</code> pedig szöveget és színt állít.
+          Ezt a kódblokkot mindenképpen futtasd le, különben a többi sem fog működni.
+        </p>
+
+        <textarea data-lang="js">
+function setOut(text) {
+  const el = document.querySelector("#footer")
+  if (!el) return
+  el.textContent = "Kimenet: " + text
+}
+
+function setOutStyle(text, color) {
+  const el = document.querySelector("#footer")
+  if (!el) return
+  el.textContent = "Kimenet: " + text
+  el.style.color = color
+}
+        </textarea>
+
+        <p>
+          Miért jó ez a minta?
+          Mert az aszinkron callbackekből is biztonságosan "ki tudunk írni" valamit úgy, hogy az a lapon látszódjon,
+          nem csak a fejlesztői konzolban.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Callback szemlélet és időzítés</h2>
+      <p>
+        A <strong>callback</strong> lényege: átadsz egy függvényt, amit a rendszer később hív meg.
+        Ilyen például a <code>setTimeout</code>, ami egy késleltetett futtatást kér.
+      </p>
+
+      <article>
+        <h3>2.1. setTimeout: "indítok valamit, ami később fut le"</h3>
+        <p>
+          A kód sorrendje félrevezető lehet: a <code>setTimeout</code> nem vár, hanem regisztrál egy feladatot a jövőre.
+          A program utána rögtön megy tovább.
+        </p>
+
+        <textarea data-lang="js">
+setOutStyle("Start (szinkron rész lefut)", "black")
+
+setTimeout(() => {
+  setOutStyle("Késleltetett callback fut (kb. 1000ms után)", "green")
+}, 1000)
+
+setOutStyle("A program ment tovább (nem várt a timeout-ra)", "blue")
+        </textarea>
+
+        <p>
+          Miért fontos ez?
+          Mert ha egy aszinkron művelet eredményére van szükséged, nem írhatod "alá" a feladatot úgy, mintha az már kész lenne.
+          A folytatást mindig a callbackbe (vagy Promise/await folytatásba) kell rakni.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.2. A klasszikus probléma: "még nincs kész"</h3>
+        <p>
+          Az alábbi példa direkt egy tipikus hibát modellez: van egy változó, amit "majd később" állítunk be,
+          de a szinkron kód azonnal felhasználja.
+        </p>
+
+        <textarea data-lang="js">
+let value = "még nincs kész"
+
+setTimeout(() => {
+  value = "most már kész"
+  setOutStyle("Callback: value = " + value, "green")
+}, 800) // 800 milliseconds
+
+setOutStyle("Azonnali olvasás: value = " + value, "red")
+        </textarea>
+
+        <p>
+          A probléma itt az, hogy az eredmény csak később jön létre, tehát nem szabad úgy kezelni, mintha
+	  már rendelkezésre állnak. Ebben a triviális esetben (direkt várunk) ez magától értetődő, de számtalan
+	  más alkalommal is előfordulhat. Bekérünk egy adatot de a felhasználó még nem adta meg,
+	  a hálózatról lekrétünk egy információt, de még nem érkezett meg, stb.
+          Ezen segít a Promise és az async/await: kifejezik a függőséget és "megjegyzik" a folytatást.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Promise: a jövendőbeli érték "objektuma"</h2>
+      <p>
+        A <code>Promise</code> egy olyan objektum, ami egy <strong>jövőbeli</strong> értéket reprezentál.
+        Három állapota van: <em>pending</em> (folyamatban), <em>fulfilled</em> (siker), <em>rejected</em> (hiba).
+      </p>
+
+      <article>
+        <h3>3.1. Promise létrehozása (szimulált aszinkron feladat)</h3>
+        <p>
+          Itt nem hálózatot hívunk (az sok környezeti tényezőtől függ), hanem egy késleltetett "műveletet" szimulálunk
+          <code>setTimeout</code>-tal, és Promise-szá csomagoljuk.
+        </p>
+
+        <textarea data-lang="js">
+const wait = ms =&gt; new Promise(resolve =&lt; {
+  setTimeout(() =&gt; resolve(ms), ms)
+})
+
+setOutStyle("Várakozás indul...", "black")
+
+wait(900).then(ms =&gt; {
+  setOutStyle("Promise teljesült: vártam " + ms + " ms-ot", "green")
+})
+        </textarea>
+
+        <p>
+          Miért jobb ez, mint egy sima callback függvény?
+          Mert a Promise egységesebb és többet tud: <code>then</code>-nel folytatható, láncolható,
+          és hibát is rendezett módon lehet kezelni.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.2. Promise láncolás: egymás után több lépés</h3>
+        <p>
+          Ha több aszinkron lépést szeretnél egymás után, akkor a <code>then</code> visszaadhat egy újabb Promise-t.
+          Így a következő <code>then</code> megvárja az előzőt.
+        </p>
+
+        <textarea data-lang="js">
+const step = (label, ms) => new Promise(resolve => {
+  setTimeout(() => resolve(label), ms)
+})
+
+setOutStyle("Lépések indulnak...", "black")
+
+step("1. lépés kész", 400)
+  .then(msg => {
+    setOutStyle(msg, "blue")
+    return step("2. lépés kész", 500)
+  })
+  .then(msg => {
+    setOutStyle(msg, "blue")
+    return step("3. lépés kész", 600)
+  })
+  .then(msg => {
+    setOutStyle(msg + " (vége)", "green")
+  })
+        </textarea>
+
+        <p>
+          A minta mögötti cél: a "folyamat" sorrendje olvasható marad, miközben tényleg csak akkor lépünk tovább,
+          ha az előző aszinkron feladat befejeződött.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.3. Promise hibakezelés: reject és catch</h3>
+        <p>
+          Az aszinkron hibakezelés nem ugyanaz, mint a szinkron <code>try/catch</code>.
+          Promise-nál a hiba egy <code>reject</code> (vagy egy dobott hiba a <code>then</code>-ben),
+          amit <code>catch</code>-sel fogunk meg.
+        </p>
+
+        <textarea data-lang="js">
+const risky = () => new Promise((resolve, reject) => {
+  // valami 50%-ban sikerül csak:
+  const ok = Math.random() > 0.5
+  setTimeout(() => {
+    if (ok) resolve("Sikerült")
+    else reject(new Error("Valami nem sikerült"))
+  }, 1600)
+})
+
+setOutStyle("Kockázatos művelet indul...", "black")
+
+risky()
+  .then(msg => setOutStyle("OK: " + msg, "green"))
+  .catch(err => setOutStyle("HIBA: " + err.message, "red"))
+        </textarea>
+
+        <p>
+          Miért jó ez?
+          Mert a hibák nem keverednek el a callbackekben, hanem ugyanúgy részei a vezérlésnek, mint a sikeres ág.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Async / await: Promise "szebb" szintaxissal</h2>
+      <p>
+        Az <code>async</code>/<code>await</code> nem új aszinkron mechanizmus, hanem a Promise-ok feletti,
+        olvashatóbb szintaxis. Az <code>await</code> csak <code>async</code> függvényen belül használható,
+        és "megállítja" az adott függvény futását addig, amíg a Promise be nem teljesül.
+      </p>
+
+      <article>
+        <h3>4.1. await egy szimulált művelettel</h3>
+
+        <textarea data-lang="js">
+const wait = ms => new Promise(resolve => {
+  setTimeout(() => resolve(ms), ms)
+})
+
+const run = async () => {
+  setOutStyle("async folyamat indul...", "black")
+
+  const a = await wait(1000)
+  setOutStyle("Első await kész: " + a + " ms", "blue")
+
+  const b = await wait(1000)
+  setOutStyle("Második await kész: " + b + " ms", "blue")
+
+  setOutStyle("Minden lépés kész", "green")
+}
+
+run()
+        </textarea>
+
+        <p>
+          Miért jó ez nekünk? Mert a kód úgy olvasható, mintha szinkron lenne (fentről lefelé), miközben a valóságban nem blokkolja
+          a böngészőt: az await alatt a futás visszaadja a vezérlést az event loopnak.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.2. Aszinkron hibakezelés async/await-tel</h3>
+
+        <textarea data-lang="js">
+const risky = () => new Promise((resolve, reject) => {
+  const ok = Math.random() > 0.5
+  setTimeout(() => {
+    if (ok) resolve("Sikerült")
+    else reject(new Error("Aszinkron hiba történt"))
+  }, 600)
+})
+
+const run = async () => {
+  setOutStyle("async hibakezelés indul...", "black")
+
+  try {
+    const msg = await risky()
+    setOutStyle("OK: " + msg, "green")
+  } catch (err) {
+    setOutStyle("HIBA: " + err.message, "red")
+  }
+}
+
+run()
+        </textarea>
+
+        <p>
+          A mögöttes cél: egységes hibakezelés "normál" vezérlési szerkezettel, miközben a háttérben továbbra is Promise-ok futnak.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Eventek részletesebben</h2>
+      <p>
+        Az <strong>event</strong> egy absztrakció: "valami történt" (kattintás, billentyű, űrlap beküldés, időzítés, hálózati válasz).
+        A JS-ben tipikus minta: feliratkozol (<code>addEventListener</code>), és megadsz egy callbacket, amit a böngésző meghív,
+        amikor az esemény bekövetkezik.
+      </p>
+
+      <article>
+        <h3>5.1. Egyszerű kattintás esemény</h3>
+        <p>
+          Hozunk létre egy gombot. Kattintásra változtatjuk a kimenet szövegét és színét.
+        </p>
+
+        <button type="button" id="btn">Kattints ide</button>
+
+        <textarea data-lang="js">
+const btn = document.querySelector("#btn")
+
+btn.addEventListener("click", () => {
+  setOutStyle("Kattintás event érkezett", "purple")
+})
+        </textarea>
+
+        <p>
+          Miért így csináljuk?
+          Mert a felhasználói események időpontját nem tudod előre. A programnak "készen kell állnia" reagálni.
+          Ez pontosan az aszinkron gondolkodás egyik legfontosabb formája.
+        </p>
+      </article>
+
+      <article>
+        <h3>5.2. Az event objektum: információ arról, "mi történt"</h3>
+        <p>
+          A callback általában kap egy paramétert: az <code>event</code> objektumot.
+          Ebből kiolvashatsz részleteket (például egérpozíciót, lenyomott gombot, cél elemet).
+        </p>
+
+        <textarea data-lang="js">
+const btn = document.querySelector("#btn")
+
+btn.addEventListener("click", event => {
+  const x = event.clientX
+  const y = event.clientY
+  setOutStyle("Kattintás: x=" + x + " y=" + y, "purple")
+})
+        </textarea>
+
+        <p>
+          Miért jó ez nekünk?
+          Mert a callback nem csak "jelet" kap, hanem kontextust (környezetet) is: így 
+	  nem csak azt tudjuk, hogy történt valami, hanem hozzáférünk ahhoz is, 
+	  hogy mi történt, miért, mi váltotta ki, stb. 
+        </p>
+      </article>
+
+      <article>
+        <h3>5.3. Esemény és aszinkron művelet kombinálása</h3>
+        <p>
+          Gyakori eset, hogy egy esemény indít egy aszinkron folyamatot (például adatlekérés, számolás, animáció).
+          Itt kattintásra elindítunk egy "töltést", majd később befejezzük.
+        </p>
+
+        <textarea data-lang="js">
+const wait = ms => new Promise(resolve => {
+  setTimeout(() => resolve(ms), ms)
+})
+
+const btn = document.querySelector("#btn")
+
+btn.addEventListener("click", async () => {
+  setOutStyle("Dolgozom... (kattintás indította)", "blue")
+  await wait(800)
+  setOutStyle("Kész vagyok (aszinkron művelet befejeződött)", "green")
+})
+        </textarea>
+
+        <p>
+          A mögöttes cél: a felhasználói élmény. Az UI azonnal reagál ("Dolgozom..."), és később frissül, amikor tényleg kész az eredmény.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>6. Event loop magas szinten</h2>
+      <p>
+        A JavaScript (böngészőben) alapvetően egy fő szálon fut: egyszerre egy kódrészlet fut a "stacken".
+        Az aszinkron műveletek a háttérben készülnek el, és amikor befejeződnek, a hozzájuk tartozó callback/folytatás
+        egy <strong>feladatsorba</strong> kerül. Az <strong>event loop</strong> feladata, hogy amikor a stack üres,
+        kivegye a következő feladatot és lefuttassa.
+      </p>
+
+      <article>
+        <h3>6.1. Miért érdekes ez a gyakorlatban?</h3>
+        <ul>
+          <li>
+            Megmagyarázza, miért "fut le előbb" sokszor a szinkron kód, még akkor is, ha előtte aszinkron műveletet indítottunk
+          </li>
+          <li>
+            Segít elkerülni azt az elvárást, hogy "alatta már biztos kész"
+          </li>
+          <li>
+            Rávilágít: a hosszú szinkron számolás blokkolja a UI-t, mert nem engedi, hogy az event loop új eventeket dolgozzon fel
+          </li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>6.2. Demonstráció: "előbb a szinkron, aztán az aszinkron"</h3>
+        <p>
+          Itt a <code>setTimeout(..., 0)</code> nem azt jelenti, hogy "azonnal", csak annyit, hogy a lehető leghamarabb,
+          de mégis csak akkor, amikor a szinkron rész már befejeződött.
+        </p>
+
+        <textarea data-lang="js">
+setOutStyle("1) Szinkron: ez fut le először", "black")
+
+setTimeout(() => {
+  setOutStyle("3) Timeout callback: ez később fut le", "green")
+}, 0)
+
+setOutStyle("2) Szinkron: ez még a callback előtt lefut", "blue")
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>7. Gyakorló feladatok</h2>
+
+      <article>
+        <h3>7.1. Feladat: visszaszámlálás, majd "Start"</h3>
+        <p>
+          Készíts egy aszinkron folyamatot, ami 3-tól visszaszámol másodpercenként (3, 2, 1), majd "Start".
+          Tipp: vagy láncolt <code>wait</code> + <code>then</code>, vagy <code>async</code>/<code>await</code> több await-tel.
+        </p>
+
+        <textarea data-lang="js">
+const wait = ms => new Promise(resolve => {
+  setTimeout(resolve, ms)
+})
+
+const countdown = async () => {
+  setOutStyle("3", "blue")
+  await wait(700)
+  setOutStyle("2", "blue")
+  await wait(700)
+  setOutStyle("1", "blue")
+  await wait(700)
+  setOutStyle("Start", "green")
+}
+
+countdown()
+        </textarea>
+      </article>
+
+      <article>
+        <h3>7.2. Feladat: gomb tiltása aszinkron művelet alatt</h3>
+        <p>
+          Kattintásra tiltsd le a gombot, jelezd a kimeneten, hogy dolgozol, majd 1 másodperc után engedélyezd vissza.
+          Ez tipikus UI minta: ne engedj dupla kattintásból párhuzamos folyamatot.
+        </p>
+
+        <textarea data-lang="js">
+const wait = ms => new Promise(resolve => {
+  setTimeout(resolve, ms)
+})
+
+const btn = document.querySelector("#btn")
+
+btn.addEventListener("click", async () => {
+  btn.disabled = true
+  setOutStyle("Fut a művelet, a gomb ideiglenesen tiltva", "blue")
+
+  await wait(1000)
+
+  btn.disabled = false
+  setOutStyle("Kész, a gomb újra aktív", "green")
+})
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>8. Összefoglalás</h2>
+      <ul>
+        <li>
+          Az aszinkron működés célja, hogy a program ne blokkoljon, miközben várakozós műveletek futnak
+        </li>
+        <li>
+          A callback egy alap minta (például eventeknél és időzítésnél), de nagyobb folyamatokra a Promise rendezettebb
+        </li>
+        <li>
+          A <code>Promise</code> láncolható, hibája <code>catch</code>-sel kezelhető
+        </li>
+        <li>
+          Az <code>async</code>/<code>await</code> ugyanazt a modellt adja, csak olvashatóbban, és <code>try/catch</code>-sel kezelhető hibákkal
+        </li>
+        <li>
+          Az eventek lényege: a rendszer "szól", te feliratkozol, és callbackkel reagálsz
+        </li>
+        <li>
+          Az event loop magas szinten megmagyarázza, miért fut le előbb a szinkron rész, és miért fontos kerülni a hosszú blokkoló kódot
+        </li>
+      </ul>
+    </section>
+  </main>
+  <footer id="footer" style="height: 10vh; background: var(--card-bg);font-size:2.2em; border-top: 1px solid var(--muted-fg); overflow: scroll">
+          Kimenet: ide fognak a példakódok írni!
+  </footer>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript modern minták – Destructuring, spread és rest</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+<body>
+  <header>
+    <h1>7. lecke – Modern JavaScript minták: destructuring, spread és rest (ellipsis)</h1>
+    <p>
+      Ebben a leckében olyan modern JavaScript mintákat nézünk meg, amelyekkel szinte minden valós kódbázisban
+      találkozni fogsz: <strong>destructuring</strong> (kibontás), a <strong>rest</strong> és <strong>spread</strong> operátor
+      (<code>...</code>), és az ezekre épülő "pattern-szerű" (mintázó) megoldások.
+      A cél nem az, hogy minden trükköt bemagolj, hanem hogy <em>felismerd</em>, <em>értsd</em>, és tudd, miért így írják:
+      olvashatóság, újrafelhasználhatóság, biztonságos alapértelmezések és immutábilis frissítések.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Kontextus: miért "minták" ezek?</h2>
+      <p>
+        A modern JavaScriptben gyakori cél, hogy a kód <strong>deklaratív</strong> legyen: inkább azt fejezze ki,
+        <em>mit szeretnénk</em>, és kevésbé azt, <em>hogyan lépkedünk végig mindenen</em>.
+        A destructuring és a <code>...</code> operátorok pont ezt támogatják:
+        lerövidítik a repetitív kódot (boilerplate), és segítenek a szándékot gyorsan kiolvasni.
+      </p>
+
+      <article>
+        <h3>1.1. Pattern matching mint szemlélet</h3>
+        <p>
+          A "pattern matching" itt nem egy önálló, teljes értékű nyelvi feature-t jelent (mint például más nyelvekben),
+          hanem egy <strong>mintázó</strong> gondolkodásmódot: struktúrák (objektumok/tömbök) <em>alakjára</em> építünk,
+          és a nekünk fontos részeket "kivesszük" belőlük.
+        </p>
+        <p>
+          Ha kódbázist olvasol, ez a két leggyakoribb kérdés:
+        </p>
+        <ul>
+          <li><strong>"Honnan jön ez a változó?"</strong> – destructuringból, nem <code>obj.valami</code>-ból</li>
+          <li><strong>"Miért nincs minden paraméter külön felsorolva?"</strong> – mert objektum paraméter + destructuring</li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Destructuring alapok</h2>
+      <p>
+        A destructuring lényege: egy tömbből vagy objektumból <strong>kibontjuk</strong> a szükséges értékeket változókba,
+        mégpedig rövid, olvasható szintaxissal.
+      </p>
+
+      <article>
+        <h3>2.1. Object destructuring (név szerinti kibontás)</h3>
+        <p>
+          Objektumnál a property neve számít, nem a sorrend. Ez hasznos, mert a kód "önmagát dokumentálja":
+          ha azt látod, hogy <code>name</code> és <code>email</code> kell, akkor a destructuring ezt azonnal láthatóvá teszi.
+        </p>
+
+        <textarea data-lang="js">
+const user = { id: 10, name: "Anna", email: "anna@example.com" }
+
+const { name, email } = user
+
+console.log(name)
+console.log(email)
+        </textarea>
+
+        <p>
+          <strong>Miért jobb így?</strong> Kevesebb ismétlés és kevesebb vizuális zaj:
+          nem kell mindenhova kiírni, hogy <code>user.name</code>, <code>user.email</code>.
+          Ráadásul a "mit használunk" a destructuring sorában egy helyen látszik.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.2. Default értékek (biztonságos alapértelmezés)</h3>
+        <p>
+          Sok adat külső forrásból jön (API, űrlap, adatbázis), és gyakran hiányos.
+          Default értékkel megmondhatjuk: "ha nincs meg, legyen ez".
+        </p>
+
+        <textarea data-lang="js">
+const config = { retries: 3 }
+
+const { retries = 1, timeoutMs = 2000 } = config
+
+console.log(retries)
+console.log(timeoutMs)
+        </textarea>
+
+        <p>
+          <strong>Miért jobb így?</strong> Elkerülhető a sok külön <code>if</code> ellenőrzés,
+          és a program stabilabban fut hiányos konfiguráció esetén is.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.3. Átnevezés destructuring közben</h3>
+        <p>
+          Gyakran a bejövő adat neve nem az, amit helyben szeretnénk használni (például mert túl általános,
+          vagy ütközik egy másik névvel). Ilyenkor átnevezünk.
+        </p>
+
+        <textarea data-lang="js">
+const user = { id: 10, name: "Anna" }
+
+const { id: userId, name: displayName } = user
+
+console.log(userId)
+console.log(displayName)
+        </textarea>
+
+        <p>
+          <strong>Miért jobb így?</strong> A lokális név pontosabb lehet (pl. <code>userId</code>),
+          és csökkenti a félreértést nagyobb függvényekben.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.4. Nested destructuring (beágyazott struktúrák)</h3>
+        <p>
+          Valós adatok gyakran többszintűek. Destructuringgal mélyebbről is kiemelhetünk mezőket,
+          de itt már fontos a mérték: ha túl bonyolult lesz, romolhat az olvashatóság.
+        </p>
+
+        <textarea data-lang="js">
+const order = {
+  id: "A-100",
+  customer: { name: "Béla", address: { city: "Budapest" } }
+}
+
+const { customer: { name, address: { city } } } = order
+
+console.log(name)
+console.log(city)
+        </textarea>
+
+        <p>
+          <strong>Miért használják mégis?</strong> Gyors hozzáférés a szükséges mezőkhöz, és gyakran
+          jól jön akkor, ha egy értéket többször használunk egy függvényen belül.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Destructuring függvényparaméterekben</h2>
+      <p>
+        Ez az egyik leggyakoribb modern minta: a függvény nem sok külön paramétert vár, hanem egyetlen
+        <strong>opció-objektumot</strong>. A függvény fejében destructuringgal kibontjuk, ami kell.
+        Ez "named parameters" érzetet ad JavaScriptben.
+      </p>
+
+      <article>
+        <h3>3.1. "Config object" minta</h3>
+        <textarea data-lang="js">
+function connect({ host, port = 5432, secure = true }) {
+  console.log("Host:", host)
+  console.log("Port:", port)
+  console.log("Secure:", secure)
+}
+
+connect({ host: "db.local" })
+        </textarea>
+
+        <p>
+          <strong>Miért jobb így, mint több paramétert megadni?</strong>
+        </p>
+        <ul>
+          <li>A hívásnál név szerint látszik, mit adunk át (<code>host</code>, <code>port</code>, <code>secure</code>)</li>
+          <li>Opcionális értékeknél nem kell "helykitöltő" paramétereket átadni</li>
+          <li>Később bővíthető: új property hozzáadható a hívások többségének módosítása nélkül</li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>3.2. Biztonságos alapértelmezés: hiányzó paraméter-objektum</h3>
+        <p>
+          Ha a függvényt néha paraméter nélkül is hívják, akkor a destructuring önmagában hibát dobna.
+          Erre gyakori megoldás, hogy a teljes paraméter kap egy default üres objektumot.
+        </p>
+
+        <textarea data-lang="js">
+function createUser({ name = "ismeretlen", role = "guest" } = {}) {
+  return { name, role }
+}
+
+console.log(createUser())
+console.log(createUser({ name: "Anna" }))
+        </textarea>
+
+        <p>
+          <strong>Miért csinálják így?</strong> Mert a függvény ettől robusztusabb:
+          nem hibázik akkor sem, ha a hívó fél nem adott át semmit, vagy csak részleges adatot.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Array destructuring (pozíció szerinti kibontás)</h2>
+      <p>
+        Tömböknél a sorrend számít. Ez sokszor kényelmes, különösen akkor, ha egy függvény "több dolgot" ad vissza
+        tömbben, vagy ha két értéket akarunk egyszerre kezelni.
+      </p>
+
+      <article>
+        <h3>4.1. Több visszatérési érték jelleg</h3>
+        <textarea data-lang="js">
+function minMax(values) {
+  const sorted = [...values].sort((a, b) => a - b)
+  return [sorted[0], sorted[sorted.length - 1]]
+}
+
+const [min, max] = minMax([7, 2, 9, 1])
+
+console.log(min)
+console.log(max)
+        </textarea>
+
+        <p>
+          <strong>Miért jó így csinálni?</strong> A hívó oldalon rögtön elnevezhetjük a pozíciókat (<code>min</code>, <code>max</code>),
+          így a kód beszédesebb, mintha <code>result[0]</code> és <code>result[1]</code> formában írnánk.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.2. Értékcsere ideiglenes változó nélkül</h3>
+        <textarea data-lang="js">
+let a = 10
+let b = 20
+
+;[a, b] = [b, a]
+
+console.log(a)
+console.log(b)
+        </textarea>
+
+        <p>
+          Szép. A legyen b és b legyen a. 
+        </p><p class="info">
+	  <strong>Na de mégis mit keres ott az a pontosvessző?</strong> 
+	  Nos, ez egy ritka kivétel: ha a sor <code>[</code>-tel kezdődik,
+          a JavaScript automatikus pontosvessző beszúrása (ASI) félreértheti a kódot. Azt hiheti, 
+	  hogy az új sor még az előzőhöz tartozik, az előző sor végének indexe. (Hiszen a tömböt nem csak így adjuk meg, de így is indexeljük!).
+	  Amikor az interpreter ezt látja: <code>x = y [a,b] = [b,a]</code> akkor azt úgy olvassa, 
+	  hogy x és y[a,b] is legyen egyenlő az [a,b] tömbbel. Ugyanis a <code>a=b=c</code> teljesen érvényes kód,
+	  azt jelenti, hogy a és b is legyen c. A kettő közé tehát kellene egy pontosvessző, hogy tudja,
+	  hogy ez itt két expression és nem egy. (Az teljesen mindegy, hogy egy sorban szerepelnek-e vagy sem).
+          Ilyenkor szokás egy "védő" pontosvesszőt tenni a sor elejére. A példákban nem használunk
+          sorvégi pontosvesszőt (így átláthatóbb a kód) cserébe az ilyen nem-triviális esetekben kicsit furcsán néz ki.
+	  Ha mindíg kitesszük, akkor nyilván nincs ilyen probléma.
+        </p>
+
+        <p>
+          <strong>Miért jó?</strong> Rövid, és a szándék teljesen egyértelmű: cseréld meg a két értéket.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Rest operátor (<code>...</code>) – "a maradék összegyűjtése"</h2>
+      <p>
+        A <strong>rest</strong> a destructuring egyik kiegészítése: megmondhatjuk, hogy "a többi menjen egy változóba".
+        Ez nagyon gyakori akkor, amikor egy objektumból kiemelünk pár fontos mezőt, és a többit egyben szeretnénk továbbvinni.
+      </p>
+
+      <article>
+        <h3>5.1. Rest objektumban: a "többi property"</h3>
+        <textarea data-lang="js">
+const user = { id: 10, name: "Anna", email: "anna@example.com", role: "admin" }
+
+const { id, ...profile } = user
+
+console.log(id)
+console.log(profile)
+        </textarea>
+
+        <p>
+          <strong>Miért jó?</strong> Gyakori igény, hogy egy azonosítót (vagy érzékeny mezőt) külön kezeljünk,
+          és a többi adatot "csomagban" adjuk tovább egy másik függvénynek, komponensnek, logikának.
+        </p>
+      </article>
+
+      <article>
+        <h3>5.2. Rest függvényparaméterben: variadikus függvények</h3>
+        <p>
+          A rest paraméterrel tetszőleges számú argumentumot fogadhatunk úgy, hogy egy tömbben kapjuk meg őket.
+          Ez a modern megoldás a régi <code>arguments</code> helyett.
+        </p>
+
+        <textarea data-lang="js">
+function sum(...numbers) {
+  return numbers.reduce((acc, n) => acc + n, 0)
+}
+
+console.log(sum(1, 2, 3))
+console.log(sum(10, 20))
+        </textarea>
+
+        <p>
+          <strong>Miért jobb, mint <code>arguments</code>?</strong> A rest egy valódi tömböt ad, így minden tömb metódus azonnal használható,
+          és a függvény szignatúrája is világos: "sok számot várok".
+        </p>
+        <p class="info">
+	A régi időkben, amikor még nem létezett <code>...</code> operátor, a függvény belsejében
+	egy "mágikus" <code>arguments</code> változó segítségével érhettük el az összes argumentumot.
+	Tehát ez is olyen implicit mágia, mint a <code>this</code>. Ne használjuk. Csak azért említjük,
+	hogy ha véletlenül valami ősi kódban ilyet találsz, akkor ezért van.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>6. Spread operátor (<code>...</code>) – "kibontás és összerakás"</h2>
+      <p>
+        A <strong>spread</strong> az ellenkező irány: egy tömböt vagy objektumot "szétszórunk" egy új struktúrába.
+        Modern kódban ez az alapja az <strong>immutábilis</strong> frissítéseknek: nem módosítjuk az eredetit,
+        hanem létrehozunk egy új példányt a kívánt változtatással.
+      </p>
+
+      <article>
+        <h3>6.1. Objektum másolása és bővítése</h3>
+        <textarea data-lang="js">
+const baseConfig = { retries: 2, timeoutMs: 2000 }
+
+const config = { ...baseConfig, timeoutMs: 5000, cache: true }
+
+console.log(baseConfig)
+console.log(config)
+        </textarea>
+
+        <p>
+          <strong>Miért jobb így, mint a módosítás?</strong>
+        </p>
+        <ul>
+          <li>Az eredeti objektum változatlan marad, kisebb az esély a mellékhatásokra</li>
+          <li>Átlátható: egy sorban látszik, mi az alap és mi az eltérés</li>
+          <li>Gyakori elvárás state-kezelésnél (például UI állapotoknál)</li>
+        </ul>
+
+        <p>
+          Fontos: a property-k felülírása a sorrenden múlik. Amit később írsz, az nyer.
+        </p>
+      </article>
+
+      <article>
+        <h3>6.2. Tömbök másolása és összefűzése</h3>
+        <textarea data-lang="js">
+const a = [1, 2, 3]
+const b = [4, 5]
+
+const merged = [...a, ...b]
+const withExtra = [...a, 99]
+
+console.log(merged)
+console.log(withExtra)
+        </textarea>
+
+        <p>
+          <strong>Miért jobb így, mint <code>push</code>?</strong> A <code>push</code> módosítja az eredeti tömböt.
+          A spread alapú megoldás új tömböt ad vissza, ezért kiszámíthatóbb, és kevésbé okoz rejtett mellékhatásokat.
+        </p>
+      </article>
+
+      <article>
+        <h3>6.3. Deep copy - shallow copy</h3>
+	<div class="info">
+        <p>Programozásban deep (mély) másolatnak hívják, ha a szerkezetnek minden szintjét lemásolod, 
+	tehát teljes másolatot készítesz. A tömbben lehet egy object, amiben van egy másik tömb, amiben egy halmaz, stb.</p>
+        <p>Ha csak a legfelső szintet másolod le akkor az alsóbb szintek közösek maradnak, azaz fizikailag ugyanazt 
+	a memóriaterületet használják. Ez a shallow (sekély) másolat.</p>
+	</div>
+        <p>
+          A spread csak <strong>sekély</strong> másolatot készít. Ha az objektumban/tömbben belső objektumok vannak,
+          azok továbbra is ugyanarra a belső referenciára mutathatnak.
+        </p>
+
+        <textarea data-lang="js">
+const original = { settings: { theme: "dark" } }
+const copy = { ...original }
+
+copy.settings.theme = "light"
+
+console.log(original.settings.theme)
+        </textarea>
+
+        <p>
+          <strong>Miért fontos ez?</strong> Mert különben azt hiheted, hogy "lemásoltad" és nyugodtan módosíthatod, mert 
+	  megmarad az eredeti adatod. Csakhogy valójában a belső objektumod közös és értékadáskor szépen felülírod 
+	  az esetleg értékes adatodat.
+	  Valós kódban erre tudatos kezelési stratégia kell
+          (például célzott, szintenkénti másolás).
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>7. Rest + spread együtt (minták)</h2>
+      <p>
+        Sokszor úgy találkozol ezzel, hogy "kibontok egy-két mezőt, a többit viszem tovább", majd "összerakom" egy új objektumba.
+        Ez adaptereknél, API-kérés összeállításnál, UI state frissítésnél tipikus. (Ha fogalmad nincs mik ezek, nem baj, 
+	itt csak az a lényeg, hogy nagyjából el tudd olvasni a kódot, hogy egészen pontosan miért van úgy, az kevéssé fontos).
+      </p>
+
+      <article>
+        <h3>7.1. Egy mező "kivétele" (property elhagyása)</h3>
+        <p>
+          Objektumból lehet mezőt törölni a <code>delete</code>-tel is, de az módosítja az eredetit.
+          Gyakori mintázat inkább: hozzunk létre egy új objektumot a maradékból.
+        </p>
+
+        <textarea data-lang="js">
+const user = { id: 10, name: "Anna", password: "secret", role: "admin" }
+
+const { password, ...safeUser } = user
+
+console.log(safeUser)
+        </textarea>
+        <p>
+          <strong>Mi a szösz történik itt?</strong> Az egyenlőség jel jobb oldalán
+	  egy objektum áll a következő property nevekkel: id,name,password,role .
+	  Az interpreter látja, hogy ezt az egyenlőségjel bal oldalán található
+	  <code>{ password, ...safeUser }</code> objektumnak kéne megfeleltetni,
+	  ami nem más mint a <code>{ password: password, ...safeUser }</code> rövid alakja.
+	  Tehát a password property értéke egy password nevű változóba kerül és "minden más"
+	  a safeUser objektumba.
+        </p>
+
+        <p>
+          <strong>Miért csinálják így?</strong> Mert így nem változik az eredeti objektum,
+          és egyértelmű a szándék: "a password nem kerülhet a safeUser objektumba".
+        </p>
+      </article>
+
+      <article>
+        <h3>7.2. "Régi + módosítás" (immutábilis frissítés)</h3>
+        <textarea data-lang="js">
+const state = { count: 4, lastUpdatedBy: "system" }
+
+const nextState = { ...state, count: state.count + 1, lastUpdatedBy: "user" }
+
+console.log(state)
+console.log(nextState)
+        </textarea>
+
+        <p>
+          <strong>Miért jobb így?</strong> Állapotkezelésnél az új objektum létrehozása segít abban,
+          hogy a változásokat könnyebb legyen követni, és a program részei ne véletlenül "ugyanazt" módosítsák.
+        </p>
+      </article>
+
+      <article>
+        <h3>7.3. Wrapper / adapter függvény (kiegészítés és továbbadás)</h3>
+        <p>
+          Gyakori, hogy egy függvény átvesz egy opció-objektumot, hozzátesz valamit, és úgy adja tovább.
+          Ezzel elrejthetjük a "kötelező" mezőket és egységesíthetjük a hívásokat.
+        </p>
+
+        <textarea data-lang="js">
+function request(url, options = {}) {
+  const defaults = { method: "GET", headers: { "Accept": "application/json" } }
+  const merged = { ...defaults, ...options }
+  return { url, options: merged }
+}
+
+console.log(request("/api/users"))
+console.log(request("/api/users", { method: "POST" }))
+        </textarea>
+
+        <p>
+          <strong>Mi a mögöttes cél?</strong> Egységes API: a hívónak csak azt kell megadnia, ami eltér.
+          A defaultok és a "józan alap" egy helyen van, így kevésbé szóródik szét a konfiguráció.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>8. Pattern-szerű olvasási tippek (best practice)</h2>
+      <article>
+        <h3>8.1. Ne legyen túl tömör: olvashatósági határ</h3>
+        <p>
+          Destructuringgal és <code>...</code>-al nagyon könnyű "túl okos" kódot írni.
+          Best practice, hogy ha a destructuring már több szint mély, vagy több soron át tart,
+          érdemes lehet lépésenkéntibb megoldást választani, hogy a következő fejlesztő is gyorsan értse.
+        </p>
+      </article>
+
+      <article>
+        <h3>8.2. Védd a bemenetet: hiányzó adatokkal számolj</h3>
+        <p>
+          Ha külső adatot bontasz, gondold át: lehet-e <code>undefined</code>, hiányzó property, vagy részleges struktúra.
+          Default értékek és a paraméter <code>= {}</code> minta segíthetnek abban, hogy a kód ne dobjon hibát
+          ártatlan helyzetekben.
+        </p>
+      </article>
+
+      <article>
+        <h3>8.3. Tudd, mikor módosítasz</h3>
+        <p>
+          A <code>push</code>, <code>pop</code>, direkt property-írás módosít. A spread/rest gyakran pont azért van,
+          hogy elkerüljék a módosítást. Ha ezt felismered, jobban megérted a kódbázis stílusát és a mögöttes okokat.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>9. Összefoglalás</h2>
+      <p>
+        Ebben a leckében azt gyakoroltuk, hogyan olvass és írj modern JavaScript mintákat:
+      </p>
+      <ul>
+        <li><strong>Destructuring</strong>: mezők kibontása röviden és beszédesen</li>
+        <li><strong>Rest</strong>: "a maradék" összegyűjtése tömbbe/objektumba</li>
+        <li><strong>Spread</strong>: immutábilis másolás, összeállítás, bővítés</li>
+        <li><strong>Best practice</strong>: olvashatóság, defaultok, mellékhatások csökkentése</li>
+      </ul>
+      <p>
+        Az a cél, hogy ha ilyen kóddal találkozol, az ne "varázslatnak" tűnjön, hanem felismerd
+	mit is szeretett volna modani a szerző.
+      </p>
+    </section>
+  </main>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

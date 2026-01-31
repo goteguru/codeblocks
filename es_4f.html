@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok – 4. lecke – Gyakorló feladatok</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+
+<body>
+  <header>
+    <h1>4. lecke – Object típusok - Gyakorló feladatok</h1>
+    <p>
+      Nézzünk néhány példát a tömbök (<code>Array</code>), objektumok (<code>Object</code>),
+      dátumok (<code>Date</code>), egyedi elemek (<code>Set</code>) és kulcs-érték tárolás (<code>Map</code>)
+      használatára! (Úgy mint eddig, <strong>...TODO...</strong> jelöli azt a helyet, ahol módosítanod kell a kódot.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Feladatok</h2>
+
+      <article>
+        <h3>1. Negatív számok eltávolítása</h3>
+        <p>
+	Szeretnénk eltávolítani egy tömből a negatív számokat. Ezt nagyon egyszerűen megtehetjük például
+	egy filter függvény használatával:
+        </p>
+<textarea data-lang="js">
+const data = [3, -1, 5, -7, -2, 9, 0, -4]
+const filtered = data.filter(x => x >= 0)
+console.log(filtered) // elvárt: [3, 5, 9, 0]
+</textarea>
+        <p>
+	A fenti kód viszont másolatot készít és nem az eredeti tömbből és nem helyben módosítja azt,
+	nekünk viszont (tegyük fel) hatalmas tömbjeink vannak emiatt nem szeretnénk másolatot belőlük.
+	Úgy döntöttünk, egy jó öreg ciklus segítségével végigmegyünk a tömb elemein és kitöröljük ami negatív.
+        </p>
+        <p>
+          A feladat: egészítsd ki a <code>removeNegatives</code> függvényt úgy, hogy a tömbből <strong>helyben</strong>
+          eltávolítsa a negatív számokat <code>splice</code> használatával.
+        </p>
+	<p>Segítségedre lehet a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice">splice dokumentáció</a>.
+	</p>
+
+        <textarea data-lang="js">
+function removeNegatives(arr) {
+  let i = 0
+
+  while (i &lt; arr.length) {
+	// ...TODO... 
+ 	// itt távolítsd el az aktuális elemet ha az negatív
+	// növeld i értékét ha nem az (megyünk a következő elemre)
+  }
+  return arr
+}
+
+const data = [3, -1, 5, -7, -2, 9, 0, -4]
+console.log(removeNegatives(data)) // elvárt: [3, 5, 9, 0]
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            <code>arr.splice(i, 1)</code> törli az i-edik elemet. Ha törölsz, <strong>ne növeld</strong> az <code>i</code>-t,
+            mert a következő elem pont az i-edik indexre csúszik!
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>2. Tömb másolása, hogy ne ugyanarra az objektumra mutasson</h3>
+        <p>
+          Módosítsd a kódot úgy, hogy a <code>backup</code> egy <strong>független</strong> másolat legyen,
+          és a <code>primary</code> módosítása ne változtassa a <code>backup</code> tartalmát!
+        </p>
+        <p>
+	Ha lefuttatod a jelenlegi kódot, láthatod, hogy most ez nincs így!
+        </p>
+
+        <textarea data-lang="js">
+const primary = ["alma", "körte", "barack"]
+
+// ...TODO... módosítsd ezt a sort úgy, hogy backup ne ugyanarra a tömbre mutasson
+const backup = primary
+
+// az egyiket módosítjuk
+primary.push("szilva")
+
+
+// ez nyilván módosult:
+console.log("primary:", primary) // ["alma","körte","barack","szilva"]
+// de ennek meg kéne maradnia a régi állapotban:
+console.log("backup:", backup)   // elvárt: ["alma","körte","barack"]
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            Használhatod a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice"><code>slice()</code> metódust</a> paraméter nélkül, vagy ahogy tanultuk, spreadet: <code>[...primary]</code>.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>3. Dinamikus property beállítása</h3>
+        <p>
+          Azt találtuk ki, hogy készítünk egy <code>setField</code> nevü függvényt, amely valamilyen 
+	  paraméterként kapott objektum tetszőleges property-jét be tudja állítani valamilyen értékre,
+	  de <strong>csak akkor</strong> ha az objektumnak még nincs olyan!
+        </p>
+        <p>
+	Mivel nekünk fura adataink is vannak (például kötőjeles, mint a "favorite-color"), úgy szeretnénk megoldani,
+	hogy ilyen esetben is működjön.
+        </p>
+
+        <textarea data-lang="js">
+
+function setField(obj, key, value) {
+  // ...TODO... állítsd be az obj megfelelő property-jét
+  // de csak még nincs ilyen!
+  return obj
+}
+
+const user = { name: "Kata", age: 22 }
+
+setField(user, "age", 33) // ez ne csináljon semmit (mert már van age)
+setField(user, "favorite-color", "blue") // ez vegye fel a kedvenc színt
+setField(user, "favorite-color", "red") // ez ismét nem csinál semmit
+
+console.log(user.age)                // 22
+console.log(user["favorite-color"])  // "blue"
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+	  Ilyenkor a <code>obj[key] = value</code> forma kell. A ponttal (<code>obj.key</code>) mindig a "key" nevű property-t éred el. Hogy létezik-e a property, meg tudod nézni így: <code>"propertyneve" in obj</code>
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>4. Dátumkülönbség</h3>
+        <p>
+          Egészítsd ki a <code>daysBetween</code> függvényt úgy, hogy két dátum között visszaadja a napok számát (egész szám).
+          Használj milliszekundumban mért különbséget.
+        </p>
+
+        <textarea data-lang="js">
+function daysBetween(a, b) {
+  const msA = a.getTime() // idő ms-ban
+  const msB = b.getTime()
+
+  // ...TODO... számold ki a különbséget napokban (abszolút érték), majd kerekíts lefelé
+}
+
+const d1 = new Date("2026-01-01T00:00:00Z")
+const d2 = new Date("2026-01-29T12:00:00Z")
+
+console.log(daysBetween(d1, d2)) // elvárt: 28
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            Egy nap: <code>24 * 60 * 60 * 1000</code> ms. Használhatod ezeket a függvényeket: <code>Math.abs(msB - msA)</code> és <code>Math.floor(...)</code>.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>5. Egyedi elemek kigyűjtése Set-tel</h3>
+        <p>
+          Definiáld a <code>uniqueWords</code> függvényt: kap egy szöveget, és visszaadja az egyedi szavak tömbjét
+          kisbetűsítve, írásjelek nélkül (csak betűk és számok maradjanak). A nehezebb rész már ki van töltve, neked
+          a Set-es részt kell megírni.
+        </p>
+
+        <textarea data-lang="js">
+function normalize(text) {
+  return text
+    .toLowerCase()	// kisbetűs
+    .replace(/[^\p{L}\p{N}\s]+/gu, " ")
+    .split(/\s+/) // darabol szóköznél -&gt; tömb
+    .filter(Boolean) // csak truthy értékek maradjanak
+}
+
+function uniqueWords(text) {
+  const words = normalize(text)
+
+  // ...TODO... készíts Set-et a words alapján, majd add vissza tömbként
+  return words
+}
+
+// zajos szöveg:
+const text = "Alma, körte! alma... KÖRTE? barack; barack."
+// szűrt, egyedi szavak:
+console.log(uniqueWords(text)) // elvárt (sorrend lehet eltérő): ["alma","körte","barack"]
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            <code>new Set(words)</code> és a visszaalakítás: <code>[...set]</code>.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>6. Gyakoriságszámlálás Map-pel</h3>
+        <p>
+          Módosítsd/egészítsd ki a <code>countBy</code> függvényt úgy, hogy Map-et használjon gyakoriság számolásra.
+          A cél: visszaadni egy Map-et, ahol a kulcs az elem, az érték pedig az előfordulások száma.
+        </p>
+
+        <textarea data-lang="js">
+function countBy(items) {
+  const counts = new Map()
+
+  for (const item of items) {
+    // ...TODO... ha már van ilyen kulcs, növeld; ha nincs, induljon 1-ről
+  }
+
+  return counts
+}
+
+const events = ["click", "move", "click", "scroll", "click", "move"]
+const counts = countBy(events)
+
+console.log(counts.get("click"))   // 3
+console.log(counts.get("move"))    // 2
+console.log(counts.get("scroll"))  // 1
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            Használd a <code>counts.has(item)</code>, <code>counts.get(item)</code>, <code>counts.set(item, value)</code> metódusokat.
+            pl.: <code>counts.set(item, (counts.get(item) ?? 0) + 1)</code>.
+          </p>
+        </details>
+      </article>
+    </section>
+
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="codeblocks.js"></script>
+</body>
+</html>

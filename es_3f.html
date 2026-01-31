@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok – 3. lecke – Gyakorló feladatok</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+
+<body>
+  <header>
+    <h1>3. lecke – Gyakorló feladatok (függvények, this, eventek, callback-ek, generator)</h1>
+    <p>
+      A feladatokban a kód nagy része készen van. Neked csak a <code>...TODO...</code> jelöléseknél kell
+      kiegészítened / módosítanod / definiálnod valamit.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Feladat – Visszatérési érték és vezérlés</h2>
+      <p>
+        Egészítsd ki a <code>calcTotal</code> függvényt úgy, hogy visszaadja a végösszeget:
+        az alapárhoz add hozzá az áfát, majd vond le a kedvezményt (százalék).
+      </p>
+
+      <textarea data-lang="js">
+// írje egy calcTotal függvényt, három paraméterrel:
+// nettó ár (pl. 10000)
+// áfa (pl. 0.27)
+// kedvezmény arány (pl. 0.10)
+
+// ...TODO... 
+// const gross = netPrice * (1 + vatRate) * (1 - discountRate)
+
+
+// és így lehessen használni (27% áfa és 10% kedvezmény esetén):
+console.log(calcTotal(10000, 0.27, 0.10)) // elvárt: 11430
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+	  A függvényt definiálhatod nyil-függvényként: <code>const calcTotal = (netPrice, vatRate, discountRate) =&gt; ...</code>
+	  vagy függvény objektumként: <code>const calcTotal = function(netPrice, vatRate, discountRate) { ... } </code>
+	  vagy simán függvénydefinícióként: <code>
+		  function calcTotal(netPrice, vatRate, discountRate) {
+			 ... 
+		  }
+	  </code>
+
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>2. Feladat – Írd át nyílfüggvényre (lambda)</h2>
+      <p>
+        Írd át a <code>formatName</code> függvényt arrow function-re úgy, hogy változatlanul működjön.
+        Ha lehet, használd az implicit return-t (tehát nem szerepel benne a return szó).
+      </p>
+
+      <textarea data-lang="js">
+const formatName = function (firstName, lastName) {
+  return lastName.toUpperCase() + ", " + firstName
+}
+
+// ...TODO... írd át a fenti function expression-t arrow function-re
+
+console.log(formatName("Anna", "Kiss")) // "KISS, Anna"
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          A cél valami ilyesmi szerkezet: <code>const formatName = (a, b) =&gt; ...</code>.
+          Ha kapcsos zárójelet használsz, kell a <code>return</code>. Ha egysoros, elhagyható.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>3. Feladat – Callback megírása</h2>
+      <p>
+        Definiálj egy callback függvényt, ami megkap egy számot és visszaadja a négyzetét.
+        Használd a kész <code>transform</code> függvényt úgy, hogy a listából négyzeteket kapj.
+      </p>
+
+      <textarea data-lang="js">
+// ez a függvény egy tetszőleges függvényt (callback)
+// alkalmaz egy list minden elemére!
+
+function transform(numbers, callback) {
+  const out = []
+  for (const n of numbers) {
+    out.push(callback(n))
+  }
+  return out
+}
+
+// ezek az alapadatok (mondjuk)
+const data = [2, 3, 4]
+
+// A transzform függvényt használhatnánk arra, hogy felkiáltójeleket
+// írjunk minden szám végére, csak definiálni kell egy "felkiáltójelezőt":
+function nem_elegans_fuggveny(x) {
+	return x + '!'
+}
+console.log(transform(data,nem_elegans_fuggveny))
+
+// ...TODO... definiáld a square callback-et
+// de te csináld elegánsan!
+// ha lehet használj nyilfüggvényt!
+
+const squares = transform(data, ...TODO...)
+console.log(squares) // [4, 9, 16]
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          A callback egy függvény, ami 1 paramétert kap (n) és visszaad valamit.
+	  Például: <code>n => n * n</code>.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>4. Feladat – this és metódusok</h2>
+      <p>
+        Javítsd meg a kódot úgy, hogy a <code>schedule</code> tényleg a felhasználó nevét írja ki.
+        Most a metódust "kivesszük" az objektumból, ezért elromlik a <code>this</code>.
+        Oldd meg úgy, hogy a <code>this</code> helyes maradjon.
+      </p>
+
+      <p>Ez a szép gomb tartozik a kódhoz: <button id="f4">Run</button></p>
+      <textarea data-lang="js">
+// ezt hagyd meg (csak azért kell, hogy mindig ide írjon)
+const logger = console.log
+
+// ez itt az objektumunk
+const user = {
+  name: "Béla",
+  greet: function () {
+    logger("Szia, " + this.name + "!")
+  }
+}
+
+// kivettük az objektumból a függvényt: elveszik a kapcsolat!
+// a függvényen belül a this már nem az objektum.
+const f = user.greet
+// ...TODO... módosítsd úgy, hogy helyesen "Szia, Béla!"-t írjon ki
+
+// hozzárendeljük a gomb megnyomásához az f függvényt.
+document.getElementById("f4").onclick = f
+undefined
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Olyan megoldást keress, ami "hozzáköti" a <code>this</code>-t a <code>user</code>-hez.
+          JavaScriptben erre tipikus eszköz a <code>bind</code>, vagy egy wrapper függvény:
+          <code>() =&gt; user.greet()</code>.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>5. Feladat – Eseménykezelés</h2>
+      <p>
+        Egészítsd ki a kódot úgy, hogy kattintásra növelje a számlálót, és frissítse a kiírást.
+        A HTML-t nem kell megírnod, csak a JavaScriptet. (Feltételezés: van <code></code> gomb és <code>#value</code> elem.)
+
+      </p>
+      <p>Ez itt a feladathoz tartozó gomb: <button id="incBtn">Növel</button> ez pedig az érték: <strong id="value">0</strong>
+      </p>
+      <textarea data-lang="js">
+// megszerezzük a html kódból a gombot és az érték helyét:
+const btn = document.querySelector("#incBtn")
+const value = document.querySelector("#value")
+
+// ez lesz a számlálónk:
+let count = 0
+
+// ez a függvény tudja megjeleníteni a count értékét a valueEl helyen.
+function render() {
+  value.textContent = String(count)
+}
+
+// írd meg az event_handler-t (eseménykezelőt) ami: 
+// 1. megnöveli a counter-t 1-el
+// 2. meghívja a render() függvényt (hogy frissüljön a kép)
+event_handler = () => {
+	// TODO...
+}
+
+// hozzárendeljük a gomb kattintásához az event_handler-t
+btn.addEventListener("click", event_handler)
+render()
+
+// ha jól írtad meg (és persze nem felejtetted el ezt a blokkot futtatni!)
+// a gomb nyomkodására számolnia kéne!
+
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Használd: <code>btn.addEventListener("click", () =&gt; { ... })</code>.
+          A számláló növelése: <code>count = count + 1</code> (vagy <code>count += 1</code>).
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>6. Feladat – Generator és yield</h2>
+      <p>
+        Egészítsd ki a generator függvényt úgy, hogy valamettől valameddig dobáljon egész számokat.
+	(inclusive, tehát az elejét és a végét beleértve).
+      </p>
+
+      <textarea data-lang="js">
+function* range(a,b) {
+  // ...TODO... dobáljon a..b-ig egész értékeket (yield)
+}
+
+//ellenőrzés
+const it = range(10,15)
+
+console.log(it.next().value) // 10
+console.log(it.next().value) // 11
+
+// vagy generálhat egyszerre sokat
+c = []
+for (const x of range(100,102)) c.push(x)
+console.log(c) // [100,101,102]
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Használj ciklust: <code>for (let i = 1; i &lt;= n; i += 1) { yield i }</code>.
+          A generator a <code>yield</code>-nél "megáll", és a következő <code>next()</code>-nél folytatja.
+        </p>
+      </details>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

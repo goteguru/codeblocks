@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok – 5. lecke – Gyakorló feladatok</title>
+  <script>"use strict";</script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+<body>
+  <header>
+    <h1>5. Gyakorló feladatok</h1>
+    <p>
+      Az alábbi feladatok a következő témakörökkel foglalkoznak: hibakezelés, strict mode, "modul" szemlélet, speciális objektum szintaxis,
+      prototype lánc. 
+    </p>
+    <p>
+      Ha úgy érzed, hogy nem 100%-ig érthető valamelyik blokk tartalma, az nem baj. Ez még egy jó darabig így lesz,
+      nem fogsz tudni mindig mindent azonnal megérteni az utolsó apró részletig. De ez nem is szükséges,
+      a cél csak annyi, hogy nagyjából el tudd olvasni a kódot (kb. mit csinál) a
+      feladatod pedig csak annyi, hogy elérd a feladatban kitűzött célt: módosíts valamit vagy egészíts ki a kódot.
+    </p>
+    <p>Persze ha kíváncsi vagy a pontos részletekre az csak előny. Másold a kódrészletet egy LLM-be és kérd meg, hogy magyarázza el
+    azt a részt amit nem értettél.</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1) Validálás</h2>
+      <p>
+        Egészítsd ki a <code>validateUser</code> függvényt úgy, hogy rossz bemenet esetén dobjon hibát:
+  ha nem objektumot kapott →  <code>TypeError</code>, hiányzó vagy üres <code>name</code> → <code>TypeError</code>,
+        ha az <code>age</code> nem szám vagy 0–120 tartományon kívül → <code>RangeError</code>.
+      </p>
+      <p>
+      Így a függvény használatakor mindig a "beszédes" hibát kapunk majd ha valamiért nem jó adatot adtunk át!
+      </p>
+
+      <textarea data-lang="js">
+function validUser(user) {
+  // ...TODO... típusellenőrzés (egyáltalán objektum-e?)
+  // ...TODO... name ellenőrzés (a név string, nem üres)
+  // ...TODO... age ellenőrzés (az age number, 0..120 közötti)
+
+  return true
+}
+
+const samples = [
+  { name: "Ada", age: 36 }, // ok
+  { name: "", age: 36 },  // hiányzik a név
+  { name: "Béla", age: 999 }, // hibás életkor
+  "ez nem is objektum"    
+]
+
+for (const s of samples) {
+  try {
+    validUser(s)
+    console.log("OK:", s)
+  } catch (err) {
+    console.log("HIBA:", err.name, "-", err.message, "| bemenet:", s)
+  }
+}
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          <code>typeof user !== "object" || user === null</code> jó alap. A <code>name</code>-hez:
+          <code>typeof user.name !== "string" || user.name.trim() === ""</code>.
+          Az <code>age</code>-hez: <code>typeof user.age !== "number" || Number.isNaN(user.age)</code>
+          plusz tartomány: <code>user.age &lt; 0 || user.age &gt; 120</code>.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>2) try/catch/finally</h2>
+      <p>
+        Az alábbi példában egy hálózatról kapott utasítás alapján szeretnénk
+        lépkedni egy NxN-es táblán. A táblán megtett minden lépést naplózzuk is, 
+        hogy később visszakereshető legyen mit csináltunk. A hibás parancsokat
+        megjelöljük egy felkiáltójellel.
+      </p>
+      <p>
+        Sajnos azonban valamiért a csak a hibás lépéseket rögzíti a napló!
+      </p>
+      <p>
+      Olvasd el a kódot. Keresd meg a hibát és a megadott helyen javítsd!
+      (ne feledd: a finally mindig lefut!)
+      </p>
+
+
+      <textarea data-lang="js">
+
+function changeBoard(board, x=0, y=0)  {
+  if (
+    0 &lt;= x &amp;&amp;
+    x &lt; board.size &amp;&amp;
+    0 &lt;= y &amp;&amp;
+    y &lt; board.size
+  ) return {...board,x,y}
+  throw new Error("Kiléptél: " + x + "," + y)
+}
+
+function step(b,cmd) {
+  const {x,y} = b
+  try {
+    switch (cmd) {
+      case 'L': return changeBoard(b,x-1,y)
+      case 'R': return changeBoard(b,x+1,y) 
+      case 'U': return changeBoard(b,x,y-1)
+      case 'D': return changeBoard(b,x,y+1)
+      default: throw new RangeError('Ismeretlen parancs: ' + cmd)
+    }
+  } catch (err) {
+    console.warn("HIBA:", err.message)
+    cmd = '!' + cmd // hibásnak jelöljük a parancsot
+  } 
+
+  // ...TODO...
+
+  b.log.push(cmd) // elmentjük a naplóba
+  return b // marad az eredeti tábla
+}
+
+
+board = { size: 10, x: 2, y: 2, log: [] } 
+
+for (command of readNetwork())   
+  board = step(board,command)
+
+board
+
+
+//------------Szimulált hálózat---------------------- 
+
+function* readNetwork() {
+ const simulatedInput = "UXUUFDLRDLLLRDDRR"
+ for (const c of simulatedInput) yield c
+}
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+        A probléma, hogy a switch-ben azonal visszatérünk (több helyen is)
+        így a függvény végére (ahol naplót frissítenénk) már sosem jutunk el!
+
+        </p>
+        <p>
+        Használd a <code>finally</code> szerkezetet, ami mindig lefut!
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>3) Strict mode</h2>
+      <p>
+      Készítettünk egy komplex szám összeadót, de valamiért nem számol jól!
+        Keresd meg a hibát és javítsd ki!
+        A feladat akkor jó, a végén a helyes összeget írja ki.
+      </p>
+      <p>
+      Hint: Sajnos nem használtuk a "strict mode"-ot, ezért nem vagyunk védve például a véletlen globális változók létrehozásától...
+      Lehet, hogy itt van a kutya elásva?
+      </p>
+
+      <textarea data-lang="js">
+
+function addComplex(a,b) {
+  r = a.r + b.r
+  i = a.i + b.i
+  return { r, i }
+}
+
+// r-el jelöljük a valós (real) és i-vel az imaginárius részt
+total = { r: 0, i: 0 } 
+
+const cnums = [{ r:-2, i: 4}, { r:2, i: -1}, { r:6, i: -2}]
+
+for (i=0; i&lt;cnums.length; i++) 
+  total = addComplex(total, cnums[i])
+
+// helyes eredmény: { r: 6, i: 1 }
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+        A for ciklusban is <code>i</code>-t használunk és az addComplex függvényben is. 
+        Önmagában ez egyik esetben sem baj, de ha jobban megnézed, egyik helyen 
+        sem használtunk se <code>let</code>, se <code>const</code> kulcsszót
+        tehát ezek globális változók. Sőt, nem is változók, hanem változó,
+        hiszen emiatt ez a kettő ugyanaz!
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>4) "Mini-modul-szimuláció" (IIFE)</h2>
+      <p>
+        Gondold végig mit is csinál a kód! A látszattal ellentétben a CounterModule
+  nem egy függvénydefiníció!
+      </p><p>
+        Definiáld a hiányzó részeket úgy, hogy a <code>CounterModule</code> elrejtse a belső állapotot.
+        A modul így lehessen használni (API): <code>inc()</code>, <code>dec()</code>, <code>get()</code>, <code>reset()</code>.
+      </p>
+
+      <textarea data-lang="js">
+const CounterModule = (() =&gt; {
+  let value = 0
+
+  function inc() {
+    // ...TODO... növeld value-t és add vissza az új értéket
+  }
+
+  function dec() {
+    // ...TODO... csökkentsd value-t és add vissza az új értéket
+  }
+
+  function get() {
+    // ...TODO... add vissza value aktuális értékét
+  }
+
+  function reset() {
+    // ...TODO... állítsd value-t 0-ra és add vissza 0-t
+  }
+
+  return { inc, dec, get, reset }
+})()
+
+
+// ennek kéne működnie:
+console.log(CounterModule.get()) // kiírom 
+console.log(CounterModule.inc()) // növelem
+console.log(CounterModule.inc()) // növelem
+console.log(CounterModule.dec()) // csökkentem
+console.log(CounterModule.reset()) // nullázom
+console.log(CounterModule.get()) // kiírom
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Itt a lényeg, hogy <code>value</code> ne legyen kívülről elérhető.
+          A függvényekben elég: <code>value = value + 1</code>, <code>value = value - 1</code>, stb.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>5) Computed property és destructuring</h2>
+      <p>
+        Egészítsd ki a <code>buildRecord</code> függvényt: a visszaadott objektumban legyen egy dinamikus kulcs
+        (<code>type + "_" + id</code>), aminek értéke egy objektum <code>{ name, score }</code>.
+        Használj destructuringot a paraméter objektumból.
+      </p>
+      <p>
+      Destructuring minta: <code>const { x, y } = {x:6, y:11}</code>.
+      </p>
+      <textarea data-lang="js">
+function buildRecord(input) {
+  // ...TODO... destructuring: szedd ki type, id, name, score
+  // ...TODO... készíts objektumot számított tulajdonsággal (computed property)
+
+  return result
+}
+
+console.log([
+  buildRecord({ type: "user", id: 7, name: "Mira", score: 98 }),
+  buildRecord({ type: "team", id: 3, name: "Blue", score: 41 }),
+])
+// valami ilyet kéne kapni:
+// [
+//  { "user_7": { "name": "Mira", "score": 98 } },
+//  { "team_3": { "name": "Blue", "score": 41 } }
+// ]
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Computed property: <code>const key = type + "_" + id</code>, majd <code>const result = { [key]: { name, score } }</code>.
+        </p>
+      </details>
+    </section>
+
+
+    <section>
+      <h2>Extra</h2>
+      <p>
+        Ha úgy érzed a feladatok túl eggyszerűek voltak, ellenőrizd, hogy mi történne más bemenetekkel!
+        Mi törénik ha furcsa bemenetet kap? (Például NaN-t kap konkrét szám helyett) 
+        Esetleg írj jobb hibaüzeneteket!
+      </p>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

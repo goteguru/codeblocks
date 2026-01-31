@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>7.2 Mire képes a böngésződ?</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+<body>
+  <main style="height: 90vh; overflow: scroll">
+	  <header>
+	    <h1>7.2 Mire képes a böngésződ?</h1>
+	    <p>
+	      Amikor böngészőben JavaScriptet írsz, két dolgot használsz egyszerre:
+	      a JavaScript nyelvet (ECMAScript), és a böngésző által biztosított Web Platform API-kat.
+	      Ezek az API-k adják a "képességeket", amikkel webalkalmazást tudsz építeni a böngésző sandbox (jail) keretein belül.
+	    </p>
+	    <p>
+	      A böngésződ szinte egy mini operációs rendszer. Nagyon sokmindent meg tudsz csinálni, de általában <strong>origin</strong>-hez (domain/protokoll/port),
+	      <strong>felhasználói engedélyhez</strong> és <strong>biztonsági szabályokhoz</strong> (például CORS, HTTPS, user gesture) kötötten.
+	    </p>
+	  </header>
+
+    <section>
+      <h2>1. DOM, UI és események</h2>
+      <p>
+        A DOM API-val a weboldal szerkezetét és tartalmát tudjuk kezelni (elemek létrehozása, módosítása, törlése).
+        Az eseményrendszerrel (eventek) pedig a felhasználói műveletekre (kattintás, billentyű, érintés, scroll)
+	reagálhatunk. Ezek adják az "interaktív weboldal" alapját.
+      </p>
+
+      <article>
+        <h3>1.1. DOM módosítás pár sorban</h3>
+        <p>
+          Ezzel gyorsan tudsz felületet frissíteni: például gombnyomásra szöveget változtatni, listát bővíteni,
+          vagy visszajelzést adni a felhasználónak.
+        </p>
+
+        <textarea data-lang="js">
+const box = document.createElement("div")
+box.textContent = "Helló, DOM"
+document.querySelector("footer").appendChild(box)
+
+box.addEventListener("click", () => {
+  box.textContent = "Rákattintottál"
+})
+        </textarea>
+        <textarea data-lang="js">
+function show(...args) {
+  console.log(...args)
+  const ftr = document.querySelector("footer")
+  ftr.textContent = args.map(s => JSON.stringify(s)).join("\n")
+}
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Hálózat és kommunikáció</h2>
+      <p>
+        A böngésző tud hálózati kéréseket indítani (adat letöltés/feltöltés), és valós idejű kapcsolatokat fenntartani.
+        Tipikus felhasználás: API-hívások, chat, élő frissítések, fájlfeltöltés, bejelentkezés, adatküldés.
+      </p>
+
+      <article>
+        <h3>2.1. HTTP kérés fetch()-sel</h3>
+        <p>
+          A <code>fetch</code> a modern alap eszköz HTTP kérésekhez.
+          Fontos: a más domainek felé menő kérésekhez gyakran CORS engedély kell a szerver oldalon.
+        </p>
+
+        <textarea data-lang="js">
+async function loadTodo() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/todos/1")
+  const data = await res.json()
+  show(data)
+}
+
+loadTodo()
+        </textarea>
+      </article>
+
+      <article>
+        <h3>2.2. Valós idejű csatornák (áttekintés)</h3>
+        <ul>
+          <li><strong>WebSocket</strong>: kétirányú, tartós kapcsolat szerverrel (chat, live dashboard).</li>
+          <li><strong>EventSource (SSE)</strong>: szerver → kliens egyirányú stream (értesítések, live feed).</li>
+          <li><strong>WebRTC</strong>: P2P hang/videó/adat (videóhívás, P2P adatcsatorna), tipikusan jelző szerverrel.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Perzisztens tárolás a böngészőben</h2>
+      <p>
+        A böngészőben többféle tárolási megoldás van. Ezekkel megőrizheted az állapotot lapfrissítés után is:
+        beállítások, cache-elt adatok, egyszerű "mini adatbázis" a kliensen.
+      </p>
+
+      <article>
+        <h3>3.1. localStorage (egyszerű kulcs-érték tároló)</h3>
+        <p>
+          Gyors és könnyű beállításokra (például téma, nyelv, felhasználói preferenciák).
+          Hátránya, hogy szinkron és nem adatbázis, csak egyszerű string kulcs-érték.
+        </p>
+
+        <textarea data-lang="js">
+localStorage.setItem("theme", "dark")
+        </textarea>
+	<p>Később pedig visszakérheted:</p>
+        <textarea data-lang="js">
+const theme = localStorage.getItem("theme")
+console.log(theme)
+        </textarea>
+	<p>Ha újratöltöd a lapot, vagy akár bezárod és a felső (setItem) kódot többé már nem futtatod le,
+	akkor is megmarad és emlékezni fog a témádra (vagy amit beállítottál)</p>
+      </article>
+
+      <article>
+        <h3>3.2. IndexedDB (kliens oldali adatbázis)</h3>
+        <p>
+          Nagyobb, strukturált adatokhoz (például offline tartalom, összetettebb rekordok).
+          Ez már "valódi" adatbázis jellegű API: táblák (object store), indexek, tranzakciók.
+	  (Erre most inkább nem adnék példát, mert elég összetett, de nem árt tudni, hogy van ilyen)
+        </p>
+      </article>
+
+      <article>
+        <h3>3.3. Cache Storage és Service Worker (offline működés)</h3>
+        <p>
+          Service Workerrel képes vagy hálózati válaszokat cache-elni, és offline is kiszolgálni őket.
+	  Vagy akár "háttérben futó" megoldásokat kialakítani.
+          Ez a PWA-k egyik alapja: gyorsabb betöltés és offline élmény.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Grafika: 2D, 3D és teljesítmény</h2>
+      <p>
+        Böngészőben nem csak "HTML szöveget" tudsz megjeleníteni.
+        Van 2D vászon (Canvas), vektoros grafika (SVG), és GPU-gyorsított 3D (WebGL, illetve modernebb irányban WebGPU).
+        Tipikus felhasználás: játékok, adatvizualizáció, interaktív animációk, képfeldolgozás.
+      </p>
+
+      <article>
+        <h3>4.1. Canvas 2D</h3>
+        <p>
+          A Canvas 2D jó gyors, egyszerű rajzolásra és animációra. Például minimál játékokhoz vagy vizualizációkhoz.
+	  Rajzoljunk egy téglalapot!
+        </p>
+
+        <textarea data-lang="js">
+const canvas = document.createElement("canvas")
+// ekkora "papírunk" van:
+canvas.width = 240
+canvas.height = 120
+// a papírt ide tesszük a láblécbe:
+document.querySelector("footer").appendChild(canvas)
+
+// most már rajzolhatunk rá amit akarunk
+const ctx = canvas.getContext("2d")
+ctx.fillRect(20, 20, 80, 50)
+ctx.lineWidth = 5
+ctx.strokeStyle = "red"
+ctx.strokeRect(10, 10, 80, 50)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>4.2. WebGL / WebGPU (áttekintés)</h3>
+        <p>
+          <strong>WebGL</strong> egy OpenGL ES jellegű API a böngészőben, GPU-val gyorsított 3D-hez.
+          <strong>WebGPU</strong> modernebb, alacsonyabb szintű és nagy teljesítményű GPU API, de támogatás böngészőnként eltérhet.
+          Tipikus felhasználás: 3D jelenetek, komoly vizualizációk, shader programok.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.3. WebAssembly (Wasm) és Workerek (áttekintés)</h3>
+        <ul>
+          <li><strong>WebAssembly</strong>: nagy teljesítményű modulok futtatása a böngészőben (pl. kódolás, fizika, képfeldolgozás).</li>
+          <li><strong>Web Workers</strong>: háttérben futó JS, hogy ne akadjon a felület (pl. nagy számítás, parsing, tömörítés).</li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Fájlok, vágólap, drag&amp;drop</h2>
+      <p>
+        A böngésző erősen védi a felhasználó fájljait, ezért a fájl-hozzáférés tipikusan
+        felhasználói interakcióval történik (fájl kiválasztás, drag&amp;drop).
+        Vágólap írás/olvasás is engedélyhez és felhasználói aktivitáshoz (user gesture) kötött.
+      </p>
+
+      <article>
+        <h3>5.1. Fájl kiválasztása és beolvasása (File API)</h3>
+        <p>
+          Ezt a képességet használhatjuk például CSV/JSON importhoz, képfeltöltéshez, dokumentumkezeléshez.
+        </p>
+
+        <textarea data-lang="js">
+const input = document.createElement("input")
+input.type = "file"
+const footer = document.querySelector("footer")
+footer.innerHTML = ""
+footer.appendChild(input)
+
+input.addEventListener("change", async () => {
+  const file = input.files[0]
+  if (!file) return
+
+  const text = await file.text()
+  show("Első 200 karakter:", text.slice(0, 200))
+})
+        </textarea>
+      </article>
+
+      <article>
+        <h3>5.2. Clipboard API</h3>
+        <p>
+          Hasznos például "Másolás" gombhoz, kódrészlet másoláshoz, tartalom gyors átvételéhez.
+          A működése (olvasás/írás) böngésző- és engedélyfüggő.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>6. Eszközök és szenzorok (engedélyköteles)</h2>
+      <p>
+        A legtöbb hardver közeli API (programozói interfész) csak akkor használható, ha a felhasználó kifejezetten engedélyezi azt.
+        Tipikus API példák: helyadat, kamera, mikrofon, képernyőmegosztás, Bluetooth eszköz.
+      </p>
+
+      <article>
+        <h3>6.1. Geolocation: helyadat lekérése</h3>
+        <p>
+          Például térképes alkalmazások, helyhez kötött funkciók (közeli pontok, régió alapú beállítások).
+        </p>
+
+        <textarea data-lang="js">
+navigator.geolocation.getCurrentPosition(
+  pos => show("lat/lng:", pos.coords.latitude, pos.coords.longitude),
+  err => show("Hiba:", err.message)
+)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>6.2. Kamera és mikrofon</h3>
+        <p>
+          A <code>getUserMedia</code> segítségével videó- és hangfolyam kérhető (video chat, felvétel, QR-szkennelés).
+          Mindig engedélyköteles, és jellemzően HTTPS kell hozzá.
+        </p>
+      </article>
+
+      <article>
+        <h3>6.3. Web Bluetooth / Web USB / Web Serial (áttekintés)</h3>
+        <p>
+          Speciális webappokhoz, különleges lehetőségek: például IoT eszköz konfiguráció, külső szenzorok, saját hardver vezérlése.
+          Erősen korlátozott, böngésző- és platformfüggő, és mindig user interakció/engedély szükséges.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>7. PWA: "weboldalból alkalmazás" élmény</h2>
+      <p>
+        A <strong>PWA (Progressive Web App)</strong> technológia segítségével egy weboldal sokkal "app-szerűbbé" válhat:
+        telepíthető lehet, ikonja lehet a kezdőképernyőn, offline tud működni, és gyorsabban tud indulni.
+        Ez mobilon lehet különösen hasznos.
+      </p>
+
+      <article>
+        <h3>7.1. Mitől lesz egy weboldal PWA jellegű?</h3>
+        <ul>
+          <li><strong>Web App Manifest</strong>: név, ikonok, indítási mód, színek.</li>
+          <li><strong>Service Worker</strong>: cache, offline, hálózati stratégia.</li>
+          <li><strong>HTTPS</strong>: biztonságos környezet (sok API ezt megköveteli).</li>
+        </ul>
+        <p>
+          Példa: ha jól van beállítva a manifest (ez egy json formátumú fájl) és a service worker, a telefon 
+	  felveheti futtatható "appként". Ilyenkor jobbára valami olyasmit ír ki,
+	  hogy "Hozzáadás a kezdőképernyőhöz".
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>8. A sandbox (jail)</h2>
+      <p>
+        A böngészőben sok képesség elérhető, de nem kapsz "szabad rendszerhozzáférést".
+        Ezen korlátozások célja a felhasználó védelme.
+      </p>
+      <ul>
+        <li>
+          <strong>Same-origin policy és CORS</strong>:
+          más domainek erőforrásaihoz csak szabályozottan férsz hozzá.
+        </li>
+        <li>
+          <strong>Engedélyköteles API-k</strong>:
+          kamera, mikrofon, helyadat, Bluetooth stb. csak felhasználói jóváhagyással.
+        </li>
+        <li>
+          <strong>Nincs általános TCP/UDP socket</strong>:
+          Van viszont WebSocket/WebRTC (folyamatos szerver-kliens kapcsolat, P2P adatkapcsolat).
+        </li>
+        <li>
+          <strong>Korlátozott fájlrendszer hozzáférés</strong>:
+          fájlműveletekhez felhasználói engedély kell, és a hozzáférés mindig korlátozott.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>9. Összefoglalás</h2>
+      <p>
+        A böngészőben JavaScriptből a Web Platform API-kon keresztül tudsz hálózati műveleteket végezni,
+        adatot tárolni, rajzolni, eszközökhöz hozzáférni (engedéllyel), offline működést megvalósítani.
+        A böngésző sok mindenre képes, de egy biztonsági modell határozza meg, hogy mikor és hogyan használhatók.
+      </p>
+    </section>
+  </main>
+  <footer id="footer" style="height: 10vh; background: var(--card-bg);font-size:2.2em; border-top: 1px solid var(--muted-fg); overflow: scroll">
+          Kimenet: Kimenet a példakódokna!
+  </footer>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>
