@@ -10,7 +10,7 @@
 </head>
 <body>
   <header>
-    <h1>9. lecke - Lokálisan futó JavaScript: Node.js alapok mérnököknek</h1>
+    <h1>9. lecke - Lokálisan futó JavaScript: Node.js</h1>
     <p>
       Eddig a JavaScriptet főleg böngészőben, "weboldali segédprogramként" láttuk. Ebben a leckében viszont átkapcsolunk
       egy másik nézőpontra: a JavaScript lehet <strong>lokálisan futó program</strong> is, ami fájlokat olvas/ír,
@@ -61,7 +61,12 @@
 // Mindkettőben működik:
 console.log(typeof globalThis) // "object"
 
-console.log("window" in globalThis) // böngészőben true, Node-ban false
+if ("window" in globalThis) // böngészőben true, Node-ban false
+	console.log("Böngészőben vagy")
+else if ("global" in globalThis) // Node-ban true
+	console.log("Node-ban vagy")
+else 
+	console.log("Fogalmam nincs hol vagy... :)")
       </textarea>
     </section>
 
