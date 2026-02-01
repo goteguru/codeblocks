@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript mint rendszer - 7. lecke</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+<body>
+  <header>
+    <h1>7. lecke - JavaScript mint rendszer: végrehajtási modell, closure, aszinkron minták</h1>
+    <p>
+      Ha gép segítségével írod a kódot, akkor is (vagy talán éppen akkor különösen),
+      érdemes ismerni a "nagy képet", azaz miképpen is dolgozik a programot értelmező
+      rendszer. Ha nem is szuper részletesen, csak úgy nagy általánosságban:
+      hogyan ütemez feladatokat, miért viselkednek úgy a referenciák,
+      az objektumok és az aszinkron műveletek, ahogy azt a gyakorlatban látjuk.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. JavaScript végrehajtási modell</h2>
+      <p>
+        A JavaScript-ben sok minden érthetőbbé válik, ha ismerünk néhány "technikai részletet".
+        Például, hogy kód alapvetően <strong>egy szálon</strong> fut (single-threaded),
+        viszont a böngésző vagy más környezet (pl. Node.js) tud a háttérben időzítést, I/O-t, hálózatot kezelni,
+        és a kész eredményeket visszaadja a JS-nek feldolgozásra.
+      </p>
+
+      <article>
+        <h3>1.1. Single-threaded (egy szál) - mit jelent ez valójában?</h3>
+        <p>
+          A "single-threaded" azt jelenti, hogy <strong>egy időpillanatban egyetlen JS kódrészlet fut</strong>.
+          Nincs olyan, hogy két függvény "ténylegesen egyszerre" fut ugyanabban a JS környezetben.
+          Ez jelentősen leegyszerűsíti a működést. Ha több dolog egyszerre hajt végre
+	  valamit akkor összezavarhatják egymás munkáját. Gondolj csak arra, mi történik,
+	  ha többen szerkesztenek egy fájlt és egymás munkájára rámentik az eredményt.
+	  Ha csak egy szál van, nincs ilyen "versenyhelyzet".
+        </p>
+
+        <p>
+          Ha lefuttatod az alábbi kódot, a "start" és "end" között a böngésző úgy tűnik mintha megakadt volna,
+          mert a JS éppen dolgozik, és közben nem tud más JS kódot futtatni (például UI eseményeket kezelni).
+	  Amíg fut, próbáld meg szerkeszteni a kódot! (Persze az, hogy meddig akad meg, erősen függ a géped teljesítményétől,
+	  ha erős géped van, lehet hogy így is gyorsan megkapod az eredményt. Ez esetben írj be egy nagyobb számot).
+        </p>
+	<p>
+	  Ha túl nagy számot írtál be, csukd be a lapot és nyisd újra! A többi lapodra nem lesz hatással 
+	  a lassú kód: láthatjuk, hogy a script egy szálon fut, de - legalábbis a modern böngészőkben - laponként külön. (Az egyik lap a másikra nincs hatással).
+        <textarea data-lang="js">
+function lassuFeladat() {
+  let sum = 0
+  for (let i = 0; i < 1000000000; i++) sum += i
+  return sum
+}
+
+console.log("start")
+console.log(lassuFeladat())
+console.log("end")
+        </textarea>
+
+      </article>
+
+      <article>
+        <h3>1.2. Call stack (hívási verem)</h3>
+        <p>
+          A <strong>call stack</strong> az a "lista", ahol a JavaScript nyilvántartja, hogy éppen
+          melyik függvény fut, és azt ki hívta meg (és azt ki hívta meg és így tovább).
+	  Minden függvényhívás "rákerül" a verem tetejére, és amikor visszatér, "leveszi" onnan.
+	  Ezért hívják "verem"-nek. (A veremből is azt veszed ki amit utoljára betettél).
+        </p>
+
+        <textarea data-lang="js">
+function a() {
+  console.log("a start")
+  b()
+  console.log("a end")
+}
+
+function b() {
+  console.log("   b start")
+  c()
+  console.log("   b end")
+}
+
+function c() {
+  console.log("        c fut")
+}
+a()</textarea>
+
+        <p>
+          Ha fejben követed a kódot, látható, hogy először <code>a</code> kerül a verembe, majd <code>b</code>, majd <code>c</code>,
+          aztán <code>c</code> visszatér, lekerül, majd <code>b</code>, majd <code>a</code>.
+        </p>
+        <p>
+	Amikor hiba történik a "traceback" ezt a hívási sort mutatja meg nekünk, pontosítva, hogy hol történt a hiba.
+        </p>
+        <p>
+	Sajnos azonban ez a szép modell csak egyszerű lineáris kódnál működik ilyen jól. Ha már eseményeink vannak,
+	Promise-ekkel dolgozunk (azaz aszinkron kóddal) akkor már sokkal nehezebb kibogozni, hogy pontosan mikor és mi hibázott.
+        </p>
+      </article>
+
+      <article>
+        <h3>1.3. Task queue és microtask queue</h3>
+        <p>
+          Aszinkron esetben a környezet feladatokat ütemez. Ezt a gyakorlatban úgy szokták megvalósítani, hogy
+	  létrehoznak egy ütemezési sort (képzelj el egy tömbszerűséget) és ha egy új aszinkron
+	  feladat van akkor azt nem futtatja le egyből, hanem csak berakja ebbe a sorba, majd visszatér.
+	  A böngészőben pedig van egy kódrész (egy ciklus) ami folyamatosan nézi ezt a sort és feldolgozza őket. 
+        </p>
+	<p>A böngészőkben két ilyen sor van:</p>
+        <ul>
+          <li><strong>task queue</strong> (macrotask): ide kerül a <code>setTimeout</code>, UI események, I/O callbackek</li>
+          <li><strong>microtask queue</strong>: ide kerülnek a Promise-ok (<code>.then</code>, <code>await</code> folytatásai)</li>
+        </ul>
+
+        <p>
+          A részletekbe talán nem érdemes belemenni, de ökölszabályként elmondhatjuk, hogy a parancsfeldolgozó
+	  először "kiüríti" a szinkron futást (call stack), 
+	  majd <strong>előbb</strong> lefuttatja a microtask-okat,
+	  és csak utána vesz ki egy elemet a task queue-ból.
+        </p>
+        <p>
+	Ha valami nagyon lassú dolgot csinálsz a függvényedben (vagy ne adj isten végtelen ciklust hozol létre) 
+	ezért tűnik úgy mintha "kifagyott" volna a böngésző. A call stack nagyon lassan (vagy soha nem)
+	tér vissza és addig bizony nem futnak a taskok és a microtaskok sem. 
+        </p>
+
+        <textarea data-lang="js">
+logger = console.log
+logger("A: szinkron start")
+
+// ez a Task Queue-ba kerül
+setTimeout(() => logger("D: setTimeout (task)"), 0)
+
+// ez viszont a MicroTask Queue-ba
+Promise.resolve()
+  .then(() => logger("C: Promise then (microtask)"))
+
+// ez pedig a normál (szinkron kód) stack vége.
+logger("B: szinkron end")
+        </textarea>
+
+        <p>
+          A böngésződben ez minden valószínűség szerint így látszik, még ha látszólag nem is így hívtuk meg őket: A, B, C, D.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Closure: "emlékező" függvények</h2>
+      <p>
+        A <strong>closure</strong> a JavaScript egyik legfontosabb (és gyakran félreértett) tulajdonsága:
+        egy függvény hozzáfér a <em>létrehozásakor</em> körülötte lévő változókhoz (lexikális környezet)
+        akkor is, ha később, "máshol" hívod meg.
+      </p>
+
+      <article>
+        <h3>2.1. Egyszerű példa: függvény, ami megjegyez egy értéket</h3>
+        <textarea data-lang="js">
+function szorzo(n) {
+  return function (x) {
+    return x * n
+  }
+}
+
+let duplazo = szorzo(2)
+let triplazo = szorzo(3)
+
+console.log(duplazo(10))  // 20
+console.log(triplazo(10)) // 30
+        </textarea>
+
+        <p>
+          Mint látod, a belső függvény "emlékszik" arra, hogy az <code>n</code> mennyi volt a létrehozáskor.
+	  Ez nem valami furcsaság, hanem ennek a nyelvnek a szerves része. Rendszeresen ki is használjuk.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.2. "Privát állapot" closure-rel</h3>
+        <p>
+          Closure-rel egyszerűen lehet például olyan állapotot készíteni, amit kívülről nem érsz el direktben,
+          mégis megmarad két hívás között.
+        </p>
+
+        <textarea data-lang="js">
+function szamlalo() {
+  let value = 0
+
+  return {
+    inc: () => (value = value + 1),
+    get: () => value
+  }
+}
+
+let c = szamlalo()
+c.inc()
+c.inc()
+console.log(c.get()) // 2
+        </textarea>
+
+        <p>
+          Oké, de mire jó ez? Nem csinálhattunk volna simán csak egy <code>value</code> változót amit növelgetünk?
+	  De, persze. Csak akkor az "globális" lett volnai, az egész kód látja, és bárhol véletlenül ezt
+	  a változót használjuk a kódban akkor simán felülírhatjuk. Ki tudja egy nagy kódbázisban hol mi van?
+          Így viszont garantált, hogy semmi ilyesmi nem fog történni, mert azon a függvényen kívül 
+	  sehonnan nem lehet elérni ezt az értéket. Mégis tartós állapotként viselkedik.
+        </p>
+
+        <p class="info">
+	Érdekesség: régi kódban láthatsz olyat, hogy <code>let</code> helyett a <code>var</code> kulcsszót használják. Ez esetben nincs blokk scope, ezért a closure mind ugyanarra a változóra mutat. Ha ezt is megértetted, többet tudsz mint sok programozó :-D <code>let</code>.
+        </p>
+      </article>
+
+        <textarea data-lang="js">
+logger = console.log
+
+// régi fajta (var) változós kód
+for (var i = 0; i < 3; i++) {
+  setTimeout(() => logger("var i =", i), 0)
+}
+
+// modern, csak a blokkban látott változókkal (let):
+for (let j = 0; j < 3; j++) {
+  setTimeout(() => logger("let j =", j), 0)
+}
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Egy kis tervezési szemlélet</h2>
+
+      <article>
+        <h3>3.1. State (állapot)</h3>
+        <p>
+          <strong>State</strong> alatt általában a "rendszer pillanatnyi állapotát" értjük:
+          milyen értékek vannak eltárolva, és ezek hogyan befolyásolják a működést.
+          Például egy számláló értéke, egy bejelentkezett felhasználó adatai, egy lista aktuális elemei.
+        </p>
+
+        <textarea data-lang="js">
+let kosar = ["alma", "kenyer"]
+
+function hozzaad(item) {
+  kosar.push(item)
+}
+
+hozzaad("tej")
+console.log(kosar)
+        </textarea>
+
+        <p>
+          Itt a <code>kosar</code> lenne a "state" vagyis a rendszer állapota.
+	  A kérdés mindig az: ki írhatja, ki olvashatja, és milyen szabályok szerint változhat.
+	  Egy nagyobb rendszernél nagyon hasznos, ha egyértelműen kimondjuk: a rendszerünk állapota
+	  egyetlen központi "state"-ben tárolódik, és hacsak lehet elkerüljük, hogy mindenféle
+	  apró kis "állapotok" legyenek szétszórva a rendszerben.
+        </p>
+        <p>
+	Minél összetettebb a rendszered, annál fontosabbá válik az állapot kezelése (state management).
+	Amíg csak egy ilyen kosarad van, talán nem tűnik fontosnak, de képzel el mekkora (és milyen bonyolult)
+	lehet egy olyan rendszer állapota, ahol számtalan felhasználó létezik, bejelentkezve vagy
+	sem, külön kosarakkal, elemzőkkel, jogokkal, adminisztrátorokkal, gyűjtött adatokkal, kimutatásokkal
+	amiknek meg kell maradniuk, könyveléssel vagy a könyvelőprogram referenciáival, stb stb.
+        </p>
+        <p>
+	Ráadásul mindezt valahogy úgy kéne kezelni, hogy a sok-sok fájlból álló rendszer egyik része
+	se tegyen keresztbe a másiknak, akkor se, ha történetesen egy másik ember írta.
+        </p>
+        <p>
+	Szerencsére mi ennél jóval egyszerűbb feladatokat akarunk megoldani, de
+	azért nem baj, ha mi is szem előtt tartjuk ezt az "állapot" dolgot.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.2. Imperatív vs funkcionális megközelítés</h3>
+        <p>
+          Imperatív stílusban azt mondjuk meg: "<em>hogyan</em> kell megcsinálni valamit lépésről lépésre".
+          Funkcionális stílusban viszont inkább azt, hogy "<em>mit</em> szeretnék kapni".
+        </p>
+	<p>Az imperatív stílus utasítások sora, a funkcionális pedig inkább transzformációk sora.</p>
+
+        <p><strong>Imperatív példa (ciklus, kézi gyűjtés)</strong></p>
+        <textarea data-lang="js">
+let nums = [1, 2, 3, 4, 5]
+let parosDuplak = []
+
+for (let n of nums) {
+  if (n % 2 === 0) {
+    parosDuplak.push(n * 2)
+  }
+}
+
+console.log(parosDuplak) // [4, 8]
+        </textarea>
+
+        <p><strong>Funkcionális példa (filter + map)</strong></p>
+        <textarea data-lang="js">
+let nums = [1, 2, 3, 4, 5]
+
+let parosDuplak = nums
+    .filter(n => n % 2 === 0)
+    .map(n => n * 2)
+
+console.log(parosDuplak) // [4, 8]
+        </textarea>
+
+        <p>
+	Miért "jobb" a funkcionális megoldás? Nos, először is nem biztos, hogy jobb. 
+	Sokszor például lassabb. Cserébe viszont egy megbízhatóbb és gyakran érthetőbb mentális modellt ad,
+	ha úgy gondolsz a folyamatra, mint transzformációk sorára. "Fogom ezt a <code>nums</code> listát, kiszűröm belőle
+	a nekem kellő (mondjuk páros) elemeket, aztán transzformálom őket (megszorzom kettővel).
+	A fenti kódban a szűrés <code>filter</code>, a leképezés pedig a <code>map</code>.
+	Mindkettő egy lambda függvényt kap paraméterként, ami konkrétan megmondja, hogy
+	hogyan kell csinálni azt a transzformációt (szűrést vagy leképezést).
+        </p>
+        <p>
+	A modern EcmaScript kódban elég gyakran lehet az ilyen funkcionális megközelítéssel
+	találkozni, ezért érdemes valamennyire ismerni őket.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.3. Pure function (tiszta függvény)</h3>
+        <p>
+          A <strong>pure function</strong> olyan függvény, amely:
+        </p>
+        <ul>
+          <li>csak a bemenetétől függ (ugyanarra a bemenetre mindig ugyanazt adja)</li>
+          <li>nincs mellékhatása (nem módosít külső állapotot, nem ír ki, nem kérdez le időt, nem kommunikál a hálózaton)</li>
+        </ul>
+
+        <textarea data-lang="js">
+function nettoBrutto(netto, afaKulcs) {
+  return netto * (1 + afaKulcs)
+}
+
+console.log(nettoBrutto(100, 0.27))
+        </textarea>
+
+        <p>
+	  Ez egy pure függvény. A kimenete semmi mástól nem függ, mint a kapott paramétertől.
+	  Akárhányszor meghívhatod, akármilyen kacifántos módon, ha ugyanazt adod át, 
+	  ugyanazt kapod. Hogy, miért jó ez nekünk? Könnyű tesztelni,
+	  könnyű újrafelhasználni, és ritkán okoz "meglepetést".
+        </p>
+      </article>
+
+      <article>
+        <h3>3.4. Side effect (mellékhatás)</h3>
+        <p>
+          A <strong>side effect</strong> az, amikor egy függvény valami "külső" dolgot megváltoztat:
+          globális változót módosít, DOM-ot ír, fájlt ír, hálózaton kommunikál, logol, időt olvas, stb.
+          Nyilván néha muszáj ilyet is csinálni, de fontos tudni, hogy a programod melyik része
+	  tehet ilyet. 
+        </p>
+
+        <textarea data-lang="js">
+let total = 0
+
+function addToTotal(x) {
+  total = total + x
+}
+
+addToTotal(10)
+addToTotal(5)
+addToTotal(10)
+
+console.log(total)
+        </textarea>
+
+        <p>
+	  Ez például nem tiszta (pure) kód. Ha más ugyanazzal a paraméterrel hívod meg, akkor nem feltétlen 
+	  kapod ugyanazt! Hogy miért gond ez?</p>
+	<p>Hát egyrészt gondolom világos, hogy lényegesen nehezebb
+	  valami olyat tesztelni, ami néha ezt ad vissza néha meg azt. Ha valami A-ra mindig B-t mond, 
+	  akkor csak meg kell néznünk, hogy egyébként A-ra B-e az elvárt válasz vagy sem, és ha igen, akkor 
+	  a függvény (erre a bemenetre) tuti jó.
+	  Ennél a kódnál viszont ha átadunk neki mondjuk 40-et, amire visszaad mondjuk 70-et, akkor az most jó vagy sem?
+  	</p>
+	<p>
+	  Ráadásul, képzeljük el, hogy van egy másik függvény is, legyen mondjuk resetTotal, ami nullázza 
+	  az összeget (vagy még számtalan másik ami valami mást csinál vele).  Na most meg már az se mindegy,
+	  hogy milyen sorrendben hívjuk őket. Ha az addToTotal szerepel egy kódrészletben, közben
+	  mondjuk egy aszinkron kódban (nem is itt) lefut egy resetTotal, akkor egyszer csak teljesen mást 
+	  ad vissza ez a függvény mint eddig, attól függően, hogy az az aszinkron kód véletlenül hamarabb vagy később
+	  futott-e le. Kész is a "race-condition", kereshetjük a hibát napestig. 
+        </p>
+	<p>
+	Ezért aztán sokszor praktikusabb, ha inkább "pure" formában írod meg, visszaadod az értéket, 
+	aztán majd a hívásnál eldöntöd, hogy eltárolod-e vagy sem, törlöd-e vagy sem.
+	</p>
+
+        <textarea data-lang="js">
+// ez egy pure függvény:
+function add(total, x) {
+  return total + x
+}
+
+let total = 0
+total = add(total, 10)
+total = add(total, 5)
+
+console.log(total)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>3.5. Mutability (módosíthatóság)</h3>
+        <p>
+          A <strong>mutable</strong> paraméter vagy függvény azt jelenti: "ugyanazt az objektumot módosítom".
+          Ez gyors és egyszerű, de nehezebb követni, és könnyebb véletlenül hibázni a megosztott állapot miatt.
+        </p>
+
+        <p><strong>Mutable példa (helyben módosít)</strong></p>
+        <textarea data-lang="js">
+let user = { name: "Anna", score: 10 }
+
+function incScore(u) {
+  u.score = u.score + 1
+  return u
+}
+
+incScore(user)
+console.log(user)
+        </textarea>
+	<p>
+	Az incScore függvényünk fogta az <code>user</code> objektumot és módosította (mutate).
+	</p>
+
+        <p><strong>Immutable jellegű példa (új objektumot ad)</strong></p>
+        <textarea data-lang="js">
+let user = { name: "Anna", score: 10 }
+
+function incScore(u) {
+  return { ...u, score: u.score + 1 }
+}
+
+let user2 = incScore(user)
+
+console.log(user)  // eredeti
+console.log(user2) // új
+        </textarea>
+
+        <p>
+	Ez a variáns viszon békén hagyja az eredetit és inkább visszaad egy újat, 
+	amiben a kívánt változtatás már megtörtént. Nyilván, ha az objektumod
+	hatalmas (mondjuk sok megás), akkor nem éppen szerencsés folyton
+	másolatokat készíteni belőle, de egyéb esetben, különösen ha sok helyen
+	nyúlsz az adathoz, átláthatóbb így csinálni.
+	</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Objektumok viselkedése</h2>
+
+      <article>
+        <h3>4.1. Reference típusok</h3>
+        <p>
+          Objektumoknál (így a tömböknél, függvényeknél is) a változó nem magát az adathalmazt tárolja, hanem
+          egy <strong>hivatkozást</strong> (reference) rá. Ezért lehetséges, hogy két változó "ugyanarra" az objektumra mutat.
+        </p>
+
+        <textarea data-lang="js">
+let a = { x: 1 }
+let b = a
+
+b.x = 99
+
+console.log(a.x) // 99
+console.log(b.x) // 99
+        </textarea>
+	<p>Itt <code>a</code> és <code>b</code> igazából ugyanaz az adat, csak két külön néven hivatkozunk rá.</p>
+      </article>
+
+      <article>
+        <h3>4.2. Objektumok azonossága (Object identity)</h3>
+        <p>
+          Két külön létrehozott objektum akkor sem egyenlő, ha "ugyanazok az adatok" vannak bennük,
+          mert a hivatkozásuk (identity) más. Ez nem minden nyelvben van így, de az EcmaScriptben igen.
+        </p>
+
+        <textarea data-lang="js">
+let p1 = { x: 1, y: 2 }
+let p2 = { x: 1, y: 2 }
+
+console.log(p1 === p2) // false
+console.log(p1 == p2) // false
+
+let p3 = p1
+console.log(p1 === p3) // true
+        </textarea>
+
+        <p>
+	Ezért az objektumok esetében az egyenlőség igazából azt jelenti, hogy konkrétan
+	ugyanarról példányról van-e szó a memóriában és nem azt, hogy "egyenértékűek"-e.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.3. Mutáció vs új objektum</h3>
+        <p>
+	Már többször volt róla szó, de itt is érdemes megemlíteni, hogy a 
+	külnösen módosításnál lesz fontos, hogy ugyanarról a példányról van-e szó
+	vagy egy másolatról.
+        </p>
+
+        <textarea data-lang="js">
+let obj = { a: 1, b: 2 }
+
+// mutáció (ugyanaz az objektum)
+obj.b = 200
+
+// új objektum
+let obj2 = { ...obj, b: 300 }
+
+console.log(obj)
+console.log(obj2)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>4.4. Sekély vs mély másolat</h3>
+        <p>
+          A <strong>sekély (shallow) másolat</strong> csak a "felső szintet" másolja, a beágyazott objektumok referenciái megmaradnak.
+          A <strong>mély (deep) másolat</strong> rekurzívan mindent lemásol, így nincs megosztott belső referencia.
+        </p>
+
+        <p><strong>Sekély másolat csapda</strong></p>
+        <textarea data-lang="js">
+let original = {
+  name: "Project",
+  meta: { version: 1 }
+}
+
+let shallow = { ...original }
+
+shallow.meta.version = 2
+
+console.log(original.meta.version) // 2 (másolat, de mégis megváltozott!)
+console.log(shallow.meta.version)  // 2
+        </textarea>
+
+        <p>
+          Itt a <code>meta</code> objektum közös maradt, mert a spread csak a felső szintet másolta.
+	  Tehát csak egy sekély másolat volt.
+        </p>
+
+        <p>Mély másolatra léteznek külön könyvtárak, de álljon itt egy egyszerű, (bár korlátozott képességű) trükk</p>
+        <textarea data-lang="js">
+let original = {
+  name: "Project",
+  meta: { version: 1 }
+}
+
+// mély másolat:
+let deep = JSON.parse(JSON.stringify(original))
+deep.meta.version = 3
+
+console.log(original.meta.version) // 1
+console.log(deep.meta.version)     // 3
+        </textarea>
+
+        <p>
+          A probléma ezzel a megoldássl, hogy a JSON a speciális objektumokat nem ismeri (például Date, Map, Set, függvények, undefined, körkörös hivatkozás),
+	  emiatt ezek elvesznének. De egyszerű objektumok esetén megoldás lehet .
+        </p>
+      </article>
+    </section>
+
+
+    <section>
+      <h2>6. Összefoglalás</h2>
+      <ul>
+        <li>
+          <strong>single-threaded</strong>: egy időben egy JS kód fut, a környezet ütemez és visszaad feladatokat.
+        </li>
+        <li>
+          A <strong>call stack</strong>:  épp hol tart a futás, és mi hívott mit.
+        </li>
+        <li>
+          Aszinkron esetben két sor van: <strong>task queue</strong> és <strong>microtask queue</strong>. A microtaskok (Promise/await) előbb futnak.
+        </li>
+        <li>
+          A <strong>closure</strong> miatt a függvények "emlékeznek" a létrehozáskori környezetükre (lehetőség, de csapda is egyben).
+        </li>
+        <li>
+          Tervezésnél hasznos fogalmak: <strong>state</strong>, pure function, side effect, mutable vs immutable.
+        </li>
+        <li>
+          Objektumoknál két fontos fogalom: <strong>reference</strong> és az <strong>identity</strong>. Ha ezt érted, a "meglepő" dolgok többé már nem is meglepőek.
+        </li>
+      </ul>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>
