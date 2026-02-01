@@ -85,9 +85,9 @@ function setOutStyle(text, color) {
         </textarea>
 
         <p>
-          Miért jó ez a minta?
+          Miért jó ez?
           Mert az aszinkron callbackekből is biztonságosan "ki tudunk írni" valamit úgy, hogy az a lapon látszódjon,
-          nem csak a fejlesztői konzolban.
+          nem csak a fejlesztői konzolban. Akkor is látni fogod, ha közben odább görgetsz.
         </p>
       </article>
     </section>
@@ -102,8 +102,11 @@ function setOutStyle(text, color) {
       <article>
         <h3>2.1. setTimeout: "indítok valamit, ami később fut le"</h3>
         <p>
-          A kód sorrendje félrevezető lehet: a <code>setTimeout</code> nem vár, hanem regisztrál egy feladatot a jövőre.
+          A kód sorrendje félrevezető lehet: a <code>setTimeout</code> nem vár, hanem regisztrál egy feladatot ami majd egyszer, a jövőben fut le.
           A program utána rögtön megy tovább.
+        </p>
+        <p>
+	(Persze regsztrálhatunk folyamatot a nagyon-nagyon közeli jövőbe is.)
         </p>
 
         <textarea data-lang="js">

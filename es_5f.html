@@ -79,12 +79,19 @@ for (const s of samples) {
       <h2>2) try/catch/finally</h2>
       <p>
         Az alábbi példában egy hálózatról kapott utasítás alapján szeretnénk
-        lépkedni egy NxN-es táblán. A táblán megtett minden lépést naplózzuk is, 
-        hogy később visszakereshető legyen mit csináltunk. A hibás parancsokat
-        megjelöljük egy felkiáltójellel.
+	lépkedni egy N*N-es táblán. A parancsok betűk sorozata U=up, D=down, L=left, R=right.
       </p>
+      <ul>
+      <li>A táblán megtett minden lépést naplózzuk is, 
+        hogy később visszakereshető legyen mit csináltunk.</li>
+	<li>A hibás parancsokat
+        megjelöljük egy felkiáltójellel.</li>
+      </ul>
       <p>
-        Sajnos azonban valamiért a csak a hibás lépéseket rögzíti a napló!
+      A programot elkészítettük, működik is,
+        sajnos azonban valamiért a csak a hibás lépéseket rögzíti a napló!
+	Azt szeretnénk, hogy a naplóban az összes lépés szerepeljen
+	(hibás és jó) csak a hibásak legyenek megjelölve felkiáltójellel.
       </p>
       <p>
       Olvasd el a kódot. Keresd meg a hibát és a megadott helyen javítsd!
@@ -101,7 +108,7 @@ function changeBoard(board, x=0, y=0)  {
     0 &lt;= y &amp;&amp;
     y &lt; board.size
   ) return {...board,x,y}
-  throw new Error("Kiléptél: " + x + "," + y)
+  throw new Error(`Leestél a tábláról! (${x}, ${y})`)
 }
 
 function step(b,cmd) {
@@ -125,14 +132,12 @@ function step(b,cmd) {
   return b // marad az eredeti tábla
 }
 
-
+// ez a rendszer állapota:
+// táblaméret, aktuális hely és a napló
 board = { size: 10, x: 2, y: 2, log: [] } 
 
 for (command of readNetwork())   
   board = step(board,command)
-
-board
-
 
 //------------Szimulált hálózat---------------------- 
 
@@ -140,12 +145,13 @@ function* readNetwork() {
  const simulatedInput = "UXUUFDLRDLLLRDDRR"
  for (const c of simulatedInput) yield c
 }
+board
       </textarea>
 
       <details>
         <summary>Hint</summary>
         <p>
-        A probléma, hogy a switch-ben azonal visszatérünk (több helyen is)
+        A probléma az, hogy a switch-ben azonal visszatérünk (több helyen is)
         így a függvény végére (ahol naplót frissítenénk) már sosem jutunk el!
 
         </p>
@@ -163,7 +169,8 @@ function* readNetwork() {
         A feladat akkor jó, a végén a helyes összeget írja ki.
       </p>
       <p>
-      Hint: Sajnos nem használtuk a "strict mode"-ot, ezért nem vagyunk védve például a véletlen globális változók létrehozásától...
+      Hint: Sajnos nem használtuk a "strict mode"-ot, mert ezekben a kódblokkoban
+      nem működik, ezért nem vagyunk védve például a véletlen globális változók létrehozásától...
       Lehet, hogy itt van a kutya elásva?
       </p>
 
@@ -228,6 +235,7 @@ const CounterModule = (() =&gt; {
     // ...TODO... állítsd value-t 0-ra és add vissza 0-t
   }
 
+  // visszadjuk az "API"-t (metódusokat tartalmazó objektumot)
   return { inc, dec, get, reset }
 })()
 

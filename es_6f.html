@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok - 6. lecke - Gyakorló feladatok</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+
+<body>
+  <header>
+    <h1>6. lecke - Aszinkron JavaScript és eventek - gyakorló feladatok</h1>
+    <p>
+      5 feladat. A kódblokkok nagy része előre kitöltött, neked csak a <strong>...TODO...</strong> részeket kell kiegészítened / átírnod / definiálnod.
+      Aszinkron callbackekben a naplózáshoz használd a <code>logger</code> függvényt (a <code>console.log</code> "mentett" verzióját).
+    </p>
+  </header>
+
+  <main>
+    <section aria-labelledby="playground-title">
+      <h2 id="playground-title">Közös "játszótér" elemek</h2>
+
+      <article>
+        <h3>Vizuális visszajelzések</h3>
+        <p>
+	Ennek a feladatsornak a HTML forrásában definiáltunk néhány segédfüggvényt amelyeket a megoldásokhoz
+	használhatunk. 
+          A feladatok ezekre az elemekre fognak hivatkozni: állapot szöveg, egy "doboz" színváltással, egy lista és egy beviteli mező.
+        </p>
+        <ul>
+          <li><code>testFetch()</code>: async függvény ami három kódszot ad vissza (hálózat szimuláció)</li>
+          <li><code>sleep(t)</code>: async függvény ami <code>t</code> millisec ideig vár és csak aztán folytatódik.</li>
+        </ul>
+        <p class="info">Ahol azt látod, hogy elmentjük a console.log függvényt és azt használjuk a 
+        napló kiírásához (<code>const logger = console.log</code>) az azért van, 
+        mert normál <code>console.log</code> tényleg a konzolra ír, a kódblokkban érvényes console.log 
+        viszont a kódblokk alatti mezőbe. Ha nem mentjük el egy változóba (simán csak a console.log-ot használod)
+        akkor az eredeti fut le és csak a konzolon (F12) fogod látni a kiírt üzenetet.</p>
+
+        <p>Példa:</p>
+        <textarea data-lang="js">
+// elmentjük az ebbe a kódblokkba író naplózófüggvényt
+const logger = console.log
+
+async function test(){
+  // lekérünk valamit a "hálózatról" és megvárjuk az eredményt:
+  const result = await testFetch()
+  logger("Test1:", result)
+
+  await sleep(500) // kicsit várunk
+  // persze csinálhatjuk egy sorban is:
+  logger("Test2:", await testFetch())
+}
+
+// elindítjuk:
+test()
+        </textarea>
+      </article>
+    </section>
+
+    <section aria-labelledby="task1-title">
+      <h2 id="task1-title">1. Visszaszámlálás gombbal és UI frissítéssel</h2>
+      <p>
+        Kattintásra induljon egy 3→2→1 visszaszámlálás (500ms-onként), közben a gomb legyen tiltva,
+        a végén "Start!" legyen az állapot és a gomb legyen újra aktív.
+      </p>
+      <p>A gomb id-je <code>btnStart</code>. (A kódnak ez a része már készen van). 
+      Arra is ügyelj, hogy mivel ez egy async kód, amikor használod az async függvényeket
+      (pl <code>sleep()</code>) akkor meg kell várni az eredményüket (<code>await</code>)
+      különben a végrehajtás rögvest szalad tovább!
+      </p> 
+      <div>
+        <button type="button" id="btnStart" style="font-size: 1.5rem">Start</button>
+      </div>
+
+      <textarea data-lang="js">
+const btnStart = document.querySelector("#btnStart")
+const logger = console.log
+btnStart.disabled = false // ha esetleg véletlenül kikapcsoltad volna
+
+btnStart.onclick = async () => {
+  // igy tudod kikapcsolni a gombot: btnStart.disabled = true
+  logger("Visszaszámlálás indul...")
+  await sleep(500)
+
+  // ...TODO... írd ki sorban: 3, 2, 1 (500ms-onként)
+
+  logger("Raaaaaajt!...")
+  // ...TODO... a végén ne felejts el btnStart.disabled-et visszaállítani
+}
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Használd az <code>await sleep(700)</code> mintát. A legegyszerűbb:
+          <code>logger("3")</code> → <code>await sleep(700)</code> → <code>logger("2")</code> → ...
+          Végül <code>btnStart.disabled = false (hogy megint kattintható legyen a gomb)</code>.
+        </p>
+      </details>
+    </section>
+
+    <section aria-labelledby="task2-title">
+      <h2 id="task2-title">2. Promise.all: több aszinkron művelet párhuzamosan</h2>
+      <p>
+        A kód négy "hálózati lekérést" szimulál. Módosítsd úgy, hogy <strong>párhuzamosan</strong> induljanak, és csak akkor frissítsen UI-t (írja ki),
+        ha mind a négy elkészült. A végeredményt naplózd a <code>logger</code>-rel.
+      </p>
+      <p>
+      A kód már jelenleg is működik, azt csinálja amit kell, csak így elég lassú.
+      Mivel a négy lekérés összesen 2000ms, két teljes másodpercet kell várnunk
+      a válaszra (hiszen mindegyiket külön megvárjuk). 
+      </p>
+      <p>
+      A hálózati lekérések (ez a szimulált is), párhuzamosan is tudnak futni,
+      így csak kb. 600ms-et kellen várnunk, amíg a leglassabb is megérkezik! A megoldás egyszerű: 
+      ne várd meg <code>await</code> segítségével mindegyiket külön,
+      csak indítsd el, mentsd el a Promiseket (így párhuzamosan futnak) 
+      és várd meg egyben az eredményüket a <code>Promise.all()</code> segítségével.
+      </p>
+      <p>A <code>Promise.all(promises)</code> maga is Promise-t ad vissza, tehát azt
+      viszont meg kell várnod. <code>promises</code> paraméter simán csak 
+      egy lista amiben Promise objektumok vannak.
+      <p class="info">Jó, nyilván átírhatnád a szimulációban a számokat kisebbre, de az csalás.:)
+      A valódi fetch lekérésnél nem tudod befolyásolni, hogy mennyi idő amíg letölti a dolgokat...
+      </p>
+      <div>
+        <button type="button" id="btnLoad" style="font-size: 1.5rem">Load</button>
+      </div>
+      <textarea data-lang="js">
+const logger = console.log
+const btnLoad = document.querySelector("#btnLoad")
+
+btnLoad.onclick = async function () {
+  logger("Betöltés...")
+  const a = await testFetch(400) // ~400ms alatt jön meg a válasz
+  const b = await testFetch(550) // ~550ms alatt jön meg a válasz
+  const c = await testFetch(450)
+  const d = await testFetch(600)
+
+  // ...TODO... várd meg mindhármat egyszerre (Promise.all)
+
+  logger("Kész:", results)
+})
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          A <code>testFetch</code> Promise-t ad vissza, az await pedig "kiveszi" belőle az eredményt.
+          Egyszerűen ne vedd ki az eredményt (kitörlöd az await-et) akkor Promise marad.
+          A promise-eket pedig összevárod így:
+          <code>const results = await Promise.all([a, b, stb])</code>.
+        </p>
+      </details>
+    </section>
+
+    <section aria-labelledby="task3-title">
+      <h2 id="task3-title">3. Async hibakezelés és finally</h2>
+      <p>
+      Nézd meg a kód elejét. Mint látod, a <code>riskyOperation</code> egy olyan függvény ami
+      vár egy kicsit, majd 70%-ban visszaadja, hogy "Siker", de 30%-ban hibát dob.
+      </p>
+      <p>
+      A RiskyRun gomb kattintás-kezelőjét úgy írtuk meg, hogy ezt a kockázatos
+      függvényt hívja.
+      </p>
+      <p>
+      Ha lefuttatod a kódot (hogy a gomb egyáltalán csináljon valamit)
+      tapasztalhatod, hogy a gomb veszett nyomkodásával általában kiírja, hogy "siker"
+      egy idő után (vagy elsőre) viszont a gomb nem ad vissza semmit, hanem egyszerűen beragad!
+      (ha beragadt, egyszerűen csak futtasd újra a kódot és visszaáll).
+      </p>
+      <p>Találd ki, hogy miért ragad be a gomb és javítsd meg a kódot,
+      hogy ne ragadjon be (mindig fusson le a btnRisky.disabled=false) és hiba 
+      esetén is adjon visszajelzést (pl.: "nem sikerült").
+      </p>
+      <p>Hint: Ha kinyitod a konzolt (F12), láthatod mi történik amikor beragad!</p>
+
+      <button type="button" id="btnRisky" style="font-size: 1.5rem">RiskyRun</button>
+      <textarea data-lang="js">
+const logger = console.log
+const riskyOperation = async () =&gt; {
+  sleep(700)
+  if (Math.random() &gt; 0.3) return "Siker"
+  else throw new Error("Hiba történt")
+}
+
+const btnRisky = document.querySelector("#btnRisky")
+btnRisky.disabled = false
+btnRisky.onclick = async function () {
+  btnRisky.disabled = true
+  //...TODO...
+  const result = await riskyOperation() 
+  logger(result)
+  btnRisky.disabled = false
+}
+console.log("Gomb élesítve!")
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+        Miért ragad be a gomb? Nos, amíg fut a kód kikapcsoljuk a gombot,
+        a végén pedig vissza. Ez eddig jó. Igen ám, de a <code>riskyOperation</code>
+        hibát is tud dobni, és ha azt dob akkor abban a sorban hiba keletkezik
+        és a további sorok már nem is futnak le (ide érve a gomb visszakapcsolását).
+        </p>
+        <p>
+        Megoldás: Használj try/catch blokkot ami elfogja a hibát, és a finally
+        részben mindenképp helyreállítja a gombot!
+        </p>
+      </details>
+    </section>
+
+    <section aria-labelledby="task5-title">
+      <h2 id="task4-title">4. Debounce: az esemény ne fusson túl gyakran</h2>
+      <p>
+      Azt találtuk ki, hogy a mezőbe írt szöveget (lásd a feladat vége felé)
+      azonnal feldolgozzuk, így nem kell hozzár "ok" gomb vagy ilyesmi.
+      Ezt könnyen meg tudjuk tenni a <code>oninput</code> event segítségével.
+      </p>
+      <p>
+      Sajnos azonban az a szolgáltatás amivel feldolgozzuk a szöveget nagyon
+      költséges (pl egy LLM-nek küldjük), ezért nem szeretnénk, ha minden egyes betűnél lefutna.
+      Sokkal jobb lenne, ha egy kicsit várna, és mondjuk ha 1 másodpercig nem ír
+      semmit a felhasználó, akkor úgy vesszük, hogy befejezte (és csak ilyenkor futtatjuk
+      a költséges műveletet).
+      </p>
+      <p>
+      A szuper költséges feldolgozást most a <code>costlyOperation</code> függvény szimbolizálja.
+      </p>
+      <p class="info">
+        Ezt egyébként <code>debounce</code>-nak hívják (sok keretrendszerben van is rá célfüggvény). 
+        Annyit kell hozzá tudni, hogy ha elindítunk egy időzítőt a <code>setTimeout</code> hívással,
+        akkor az visszaad egy "azonosítót" aminek a segítségével le tudjuk állítani 
+        az időzítőt a <code>clearTimeout</code> hívással még mielőtt ténylegesen lefutna.
+      </p>
+      <p>
+      A neten találtuk (vagy megirattuk AI-al) a <code>debounceAsync</code> függvényt, ami fel tudja
+      vértezni az async függvényünket ilyen képességekkel. Úgy működik, hogy paraméterként
+      át kell adni neki az eredeti függvényt és egy maximum (debounce) időtartamot ameddig még
+      nem futtatja le. Amit visszakapsz, az ugyanúgy egy függvény, ugyanazt is csinálja mint amit 
+      átadtál csak ha többször futtatod, a korábbit megszakítja. 
+      Másold be a kódba és használd. 
+      </p>
+      <textarea data-lang="js" data-readOnly>
+const debounceAsync = (fn, ms) => {
+  let id
+  return (...args) => new Promise(
+    (resolve, reject) => {
+      clearTimeout(id)
+      id = setTimeout(async () => {
+        try { resolve(await fn(...args)) }
+        catch (e) { reject(e) }
+      }, ms);
+    })
+} </textarea>
+      <p>Akkor jó, ha gyorsan gépelve nem kapsz eredményt, de ha picit vársz, akkor igen.
+      Tehát ha viszonylag tempósan begépeled, hogy "kakadu" akkor 16 egységet fizetsz és nem 80-nál is többet.</p>
+      <textarea data-lang="js">
+const logger = console.log
+const input = document.querySelector("#nameInput")
+let totalPrice = 0
+
+// TFH: ez egy nagyon nagyon sok erőforrásba kerülő hívás:
+async function costlyOperation(data) {
+  await sleep(400)
+  totalPrice += data.length + 10
+  return `${data.length} (you pay: ${totalPrice})`
+}
+
+// ...TODO... másold ide majd használd a debounceAsync függvényt, 400ms-sel
+
+input.oninput = async () =&gt; {
+  const r = await costlyOperation(input.value)
+  logger("eredmény: ", r)
+}
+logger("szövegmező élesítve!")
+      </textarea>
+      Bemenet: <input id="nameInput" placeholder="Gépelj ide valamit" size="40">
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+        Létre kell hoznod az új függvényt: 
+          <code>const debouncedCostlyOp = debounce(costlyOperation, 400)</code>
+          és az eventben ezt használni.
+        </p>
+      </details>
+    </section>
+
+    <section aria-labelledby="finish-title">
+      <h2 id="finish-title">Tippek a hibakereséshez</h2>
+      <ul>
+        <li>Az async hívások hibái nem feltétlen látszanak a kódblokkban. Kapcsold be a konzolt és ott látni fogod (F12 vagy ctrl+shift+i)</li>
+      </ul>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+<script language="javascript">
+
+async function sleep (ms) {
+	return new Promise(resolve => {
+  		setTimeout(resolve, ms)
+	})
+}
+
+const testFetch = async (t) => {
+  if (!t) t = Math.random(500)+500
+  await	sleep(t)
+	  
+  const words = [ "Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf",
+  "Hotel", "India", "Juliet", "Kilo", "Lima", "Mike", "November", "Oscar",
+  "Papa", "Quebec", "Romeo", "Sierra", "Tango", "Uniform", "Victor", "Whisky",
+  "X-ray", "Yankee", "Zulu" ]
+  const randWord = () => words[Math.floor(Math.random() * words.length)]
+  return randWord() + " " + randWord() + " " + randWord()
+}
+
+</script>
+</html>
