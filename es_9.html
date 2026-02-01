@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok - 9. lecke</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+<body>
+  <header>
+    <h1>9. lecke - Lokálisan futó JavaScript: Node.js alapok mérnököknek</h1>
+    <p>
+      Eddig a JavaScriptet főleg böngészőben, "weboldali segédprogramként" láttuk. Ebben a leckében viszont átkapcsolunk
+      egy másik nézőpontra: a JavaScript lehet <strong>lokálisan futó program</strong> is, ami fájlokat olvas/ír,
+      parancssorból paraméterezhető, vagy akár más programokat vezérel.
+    </p>
+    <p>
+      Ezeket a lehetőségeket a Node.js, egy böngésző nélküli JavaScript "interpreterW (JIT compiler), amely a chrome v8 motorjára épít. 
+      Bár a node.js eredeti célja az volt, hogy a szerver oldali funkciókat is JavaScript nyelven lehessen megírni, 
+      bármi másra is használhatjuk. Ebben a leckében a fókusz nem is ezen lesz, hanem a <strong>mérnöki feladatok automatizálásán</strong> ,
+      azaz hogyan lehet fájlokat előfeldolgozi, menteni, tömegesen átnevezni, jelentéstx létrehozni, illetve 
+      hogyan használhatjuk a JavaScriptet"ragasztónyelvként" integrációs feladatokban.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Hol fut a Node.js, és miben más, mint a böngésző?</h2>
+      <p>
+        A <strong>Node.js</strong> egy JavaScript futtatókörnyezet (runtime), amely nem a böngészőben, hanem
+        az operációs rendszereden fut. A legfontosabb különbség, hogy ebben az esetben közvetlenül indítasz el
+	egy JavaScript <strong>processzt</strong> valahogy így: <code>node valami.mjs</code>.
+      </p>
+
+      <p>
+        Amitől ez mérnöki szemmel érdekes lehet: Node-ban nem "felhasználói eseményekre" reagálsz, hanem inkább
+        <strong>adatokkal és fájlokkal</strong> kapcsolatos "technikai eseményekre", illetve <strong>folyamatokra</strong>.
+      </p>
+
+      <ul>
+        <li>
+          <strong>Ami itt nincs</strong>: DOM, <code>window</code>, <code>document</code>, böngésző-specifikus API-k.
+        </li>
+        <li>
+          <strong>Ami viszont van</strong>: fájlrendszer, process információk, külső programindítás, hálózat alacsonyabb szinten.
+        </li>
+      </ul>
+
+      <p>
+        A böngészőben a globális objektum neve jellemzően <code>window</code>. Node-ban ennek megfelelője a <code>global</code>.
+        Ha viszont nem szeretnél kétféle kódot írni, használhatod a <code>globalThis</code> objektumot:
+        ezt pont azért vezették be, hogy mindkét környezetben ugyanazzal a névvel elérhető legyen a globális névtér.
+      </p>
+
+      <textarea data-lang="js">
+// Böngészőben: window létezik, Node-ban nem
+// Node-ban: global létezik, böngészőben nem
+
+// Mindkettőben működik:
+console.log(typeof globalThis) // "object"
+
+console.log("window" in globalThis) // böngészőben true, Node-ban false
+      </textarea>
+    </section>
+
+    <section>
+      <h2>2. A Node program szerkezete: script → folyamat</h2>
+      <p>
+        A Node-ra gondolhatsz úgy mint egy "kis eszközre": elindítod (átadva neki az elvégzendő utasításokat, a programot),
+	elvégzi a feladatát, majd kilép. Így egyszerűen beépíthető nagyobb automatizálási láncokba (úgynevezett pipeline-okba).
+      </p>
+
+      <p>
+        Néhány programnyelvben jó pár sornyi kódra van szükség, hogy bármit is csináljon.
+	Itt ez nem így van. A legkisebb értelmes Node program akár egy soros is lehet:
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: hello.mjs
+console.log("Szia! Ez Node-ban simán lefutna")
+      </textarea>
+      <p>
+      Ha ezt kimásolod egy fájlba, (mondjuk hello.mjs) átadod a node parancsnak (node hello.mjs),
+      akkor már csinálja is. 
+      </p>
+      
+      <p>
+      Mint látod, nem sok változott: ugyanúgy tudunk a console.log-ra írni, csak most az eredmény
+      nem a böngészőben, hanem a terminál ablakában jelenik meg.
+      </p>
+
+      <p>
+        Fontos apróság: Node-ban a fájlok és útvonalak kezelése külön témakör (lásd később <code>path</code>),
+	a kimenetnél oda kell figyelnünk a soremelés karakterekre, a "csak összefűzöm stringként"
+	megoldás lokálisan működik, de hosszú távon platformfüggő hibákat szülhet. (Sajnos az operációs
+	rendszerek nem egyforma sorvég jeleket használnak, sőt néha még a kódolás sem ugyanaz).
+      </p>
+    </section>
+
+    <section>
+      <h2>3. Modulrendszer Node-ban: ES module</h2>
+      <p>
+        A modern, jövőbiztos Node kód alapja az <strong>ES module</strong> (ESM): ugyanaz az <code>import</code>/<code>export</code>,
+        amit már böngészőben is használtunk. Node-ban ezt két módon tudod használni:
+      </p>
+      <ul>
+        <li><code>.mjs</code> kiterjesztést adsz minden fájlodnak</li>
+        <li>vagy a projekt <code>package.json</code> fájljában beállítod: <code>"type": "module"</code></li>
+      </ul>
+      <p>
+      Ez a package.json fontos fájl! A node ebben tartja a configurációját. Később még lesz róla szó.
+      </p>
+
+      <p>
+        Az alábbi példa két fájlból áll. A kódot itt nem tudjuk futtatni böngészőből, de a struktúra és a szintaxis a lényeg.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: math.mjs
+export function areaOfCircle(r) {
+  return Math.PI * r * r
+}
+
+export function clamp(x, min, max) {
+  return Math.max(min, Math.min(max, x))
+}
+      </textarea>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: main.mjs
+import { areaOfCircle, clamp } from "./math.mjs"
+
+let r = 3
+let area = areaOfCircle(r)
+
+console.log("Terület:", area)
+console.log("Clamp példa:", clamp(120, 0, 100))
+      </textarea>
+
+      <article>
+        <h3>3.1. CommonJS (a régi módszer, kódolvasáshoz)</h3>
+        <p>
+          Régi Node projektekben találkozhats egy másféle jelöléssel: a CommonJS modullal.
+	  Ez a <code>require</code>, <code>module.exports</code> kulcsszavakat használja.
+          Új kódot ma már általában nem ebben írunk, viszont <strong>kódolvasáshoz</strong> fontos, hogy felismerd.
+        </p>
+
+        <textarea data-lang="js" data-readonly>
+// legacy minta (CommonJS) - régi projektekben gyakran előfordul 
+const fs = require("fs")
+
+module.exports = function readText(filePath) {
+  return fs.readFileSync(filePath, "utf8")
+}
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Core modulok: a "szerszámosláda"</h2>
+      <p>
+        Node-nál az egyik legnagyobb különbség a böngészőhöz képest, hogy rengeteg alapfunkciót készen megkapsz
+        <strong>beépített (core) modulokkal</strong>. Ezekhez nem kell külső csomag, csak importálod őket.
+      </p>
+      <p>
+      Persze, ha ez nem elég, olyan sok letölthető node modulból választhatsz, hogy győzd végigolvasni!
+      </p>
+
+      <article>
+        <h3>4.1. Fájlrendszer: <code>fs</code></h3>
+	<p>A Node alapvetően async logikát követ. Akkor is ha fizikailag nem használ több processzor magot,
+	logikailag úgy képzeljük, hogy a hosszabb időt igénybe vevő folyamatok (például egy fájl olvasása)
+	aszinkron módon történik (tehát közben csinálhatunk mást). </p>
+	<p>
+	Mi már tudjuk, hogy az ilyen aszinkron működést kétféle megközelítéssel is kezelhetjük: vagy átadunk
+	egy callback függvényt (amit meg kell hívni, amikor elkészült az adat) vagy használjuk
+	a modernebb Promise alapú logikát. A Node-ban általában választhatunk, melyiket szeretnénk.
+	</p>
+        <p>
+          A <code>fs</code> modul a mindennapi automatizálás egyik alappillére. Tipikus feladat például egy JSON export
+          beolvasása, módosítása, majd visszaírása.
+        </p>
+
+        <textarea data-lang="js" data-readonly>
+// fájl: transform-json.mjs
+import { readFile, writeFile } from "node:fs/promises"
+
+let inputPath = "input.json"
+let outputPath = "output.json"
+
+let text = await readFile(inputPath, "utf8")
+let data = JSON.parse(text)
+
+// Példa: minden elem kap egy timestamp-et
+let enriched = data.map(x => ({ ...x, processedAt: new Date().toISOString() }))
+
+let outText = JSON.stringify(enriched, null, 2)
+await writeFile(outputPath, outText, "utf8")
+
+console.log("Kész:", outputPath)
+        </textarea>
+
+        <p class="info">
+          Itt a <code>node:fs/promises</code> import azt jelzi, hogy a Promise-alapú API-t használjuk.
+          Ez tisztább, átláthatóbb kódot eredményez mint a callback stílus.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.2. Útvonalkezelés: <code>path</code></h3>
+        <p>
+          Útvonalakat (mappák/fájlok) stringként összerakni csábító, de platformfüggő problémákat okozhat. A <code>path</code> modul
+          pont azt segít elkerülni, hogy Linux/Mac/Windows között ugrálva lehetőleg ne romoljon el a programod.
+        </p>
+
+        <textarea data-lang="js" data-readonly>
+// fájl: paths.mjs
+import path from "node:path"
+
+let folder = "exports"
+let file = "report.json"
+
+// platformfüggetlen
+let fullPath = path.join(folder, file)
+
+console.log(fullPath)
+        </textarea>
+        <p>
+	Így akkor majd ha windows-on fut, backslash-t használ (mert a windows valamiért azt szereti)
+	ha meg linux/Mac rendszeren akkor per-jelet.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.3. Process információk: <code>process</code></h3>
+        <p>
+          A <code>process</code> objektum a futó program "környezete": argumentumok, munkakönyvtár, környezeti változók.
+          CLI eszközöknél ez a "vezérlőpult" amivel a programodat konfigurálni, paraméterezni tudod.
+        </p>
+
+        <textarea data-lang="js" data-readonly>
+// fájl: args.mjs
+console.log("Argumentumok:", process.argv)
+console.log("Munkakönyvtár:", process.cwd())
+
+// Példa: környezeti változó
+let mode = process.env.MODE || "dev"
+console.log("MODE:", mode)
+        </textarea>
+        <p>
+	Mentsd el ezt a mini programot egy fájlba és próbáld meg meghívni így: <code>node args.mjs alfa beta gamma 100</code>.
+	(Az alfa beta gamma 100 lennének most a paraméterek)
+        </p>
+        <p>
+	Figyeld meg, hogy az argumentumok közt szerepel maga a node, a program amit futtatsz, majd minden további szó 
+	amit átadtál.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. CLI szemlélet: paraméterezhető scriptek</h2>
+      <p>
+        A Node nagyon hasznos tud lenni, ha a scriptjeid parancssorból paraméterezhetők. Így egyetlen kódot többféle inputra,
+        többféle üzemmódban is le tudsz futtatni (sőt, akár más eszközökből például fájlkezelőből, asztali programból is meghívható).
+      </p>
+
+      <p>
+        Valahogy így kéne használni (az első "hasznos" argumentum a script neve után jön):
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: cli-min.mjs
+// levágjuk a node és a script nevét
+let args = process.argv.slice(2)
+
+let inputPath = args[0] || "input.json"
+let outputPath = args[1] || "output.json"
+
+console.log("Bemenet:", inputPath)
+console.log("Kimenet:", outputPath)
+      </textarea>
+
+      <p>
+        Általában érdemes bevezetni kapcsolókat is. Például bevezethetnénk egy
+	<code>--dry-run</code> módot, amit ha megadunk, akkor a program ténylegesen nem ír a fájlba, csak megmondja, mit csinálna.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: cli-flags.mjs
+let args = process.argv.slice(2)
+let dryRun = args.includes("--dry-run")
+
+if (dryRun) {
+  console.log("Dry-run: nem írok fájlt, csak szimulálok")
+} else {
+  console.log("Éles mód: végrehajtom a műveletet")
+}
+      </textarea>
+    </section>
+
+    <section>
+      <h2>6. Külső programok indítása: <code>child_process</code></h2>
+      <p>
+        Mérnöki automatizálásnál sokszor nem az cél, hogy Node-ból megoldj mindent, hiszen vannak céleszközeink.
+	Van statikai számító program, van CAD vagy elemző program. A kérdés inkább az,
+        hogy <strong>tudom-e irányítani</strong> a meglévő eszközeimet: konvertereket, parancssori toolokat, build lépéseket,
+        vagy akár CAD/GIS környezethez tartozó segédprogramokat.
+      </p>
+
+      <p>
+        Az alábbi példa elindít egy parancsot, majd megnézi a visszatérési kódot. A parancs itt most a Node saját 
+	programja (<code>process.execPath</code>) lesz, így mindegy milyen operációs rendszeren futtatod, 
+	és mi van telepítve nálad, node nyilván fel van telepítve ha el tudtad indítani :
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: run-command.mjs
+import { spawn } from "node:child_process"
+
+let child = spawn(process.execPath, ["-v"], { stdio: "pipe" })
+
+let stdout = ""
+let stderr = ""
+
+child.stdout.on("data", chunk => {
+  stdout += chunk.toString()
+})
+
+child.stderr.on("data", chunk => {
+  stderr += chunk.toString()
+})
+
+child.on("close", code => {
+  console.log("Kilépési kód:", code)
+
+  if (code === 0) {
+    console.log("Kimenet:", stdout.trim())
+  } else {
+    console.log("Hiba kimenet:", stderr.trim())
+  }
+})
+      </textarea>
+      <p >
+      Ez egyben jó példa a callback stílusú eseményvezérlésre. (Sajnos ennek a child_process modulnak
+      nincs Promise alapú változata). Láthatod, hogy minden "technikai eseményhez" megadtunk
+      egy kezelő-függvényt: ha adat jön a kimenetre (írnia a terminálra) akkor csináld ezt,
+      ha adat jön a hiba-csatornára akkor meg csináld azt.
+      </p>
+
+      <p class="info">
+        A kilépési kód (<code>code</code>) általában 0 siker esetén, és nem 0 hiba esetén.
+	Ez egy klasszikus "Unix" konvenció, ami azért a Windows világában is elég elterjedt.
+	Így (ha a program írója követte ezt) könnyen meg tudod állapítani, hogy sikerült-e az amit akartál,
+	vagy a processz amit elindítottál volna feldobta a talpát és hibával leállt.
+      </p>
+    </section>
+
+    <section>
+      <h2>7. Konfiguráció és környezet</h2>
+      <p>
+        Automatizáló scripteknél gyorsan kísértés, hogy "csak most egyszer" beleírod a fájlnevet, könyvtárat, URL-t,
+        vagy valami token-szerű értéket. Ez rövid távon kényelmes, hosszú távon viszont csunyán visszaüt.
+      </p>
+      <p>
+      Az integrációs scripteket pont azért írod mert automatizálni akarsz valamit. Általában nem egyszer,
+      hanem sokszor. Lehet, hogy holnap már kicsi másképp. Egy másik fájlon. Más kezdeti feltétellel. 
+      Más kimenettel. Stb. 
+      </p>
+
+      <p>
+        A helyes minta általában a következő: 
+      </p>
+      <ul>
+        <li>alapértelmezett érték a kódban (hogy könnyű legyen elindítani)</li>
+        <li>amit felülírhatsz parancssori argumentumból (<code>process.argv</code>)</li>
+        <li>vagy környezeti változóból (<code>process.env</code>) vett értékkel</li>
+      </ul>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: config.mjs
+let baseDir = process.env.BASE_DIR || "exports"
+let mode = process.env.MODE || "dev"
+
+console.log("BASE_DIR:", baseDir)
+console.log("MODE:", mode)
+      </textarea>
+    </section>
+
+    <section>
+      <h2>8. Mérnöki felhasználási lehetőségek</h2>
+      <p>
+      Mire tudod használni a Node-ot? Nagyon sokmindenre. Gyakorlatilag bármire, 
+      mivel ez egy általános célú nyelv. De azért álljon itt néhány példa:
+      </p>
+      <ul>
+        <li><strong>Fájlfeldolgozás</strong>: CSV/JSON exportok tisztítása, normalizálása, átalakítása</li>
+        <li><strong>Tömeges műveletek</strong>: fájlok átnevezése, mappastruktúrák rendezése</li>
+        <li><strong>Orchestration</strong>: külső eszközök összefűzése (futtatás → ellenőrzés → feldolgozás → másik rendszer futás)</li>
+        <li><strong>Riport előkészítés</strong>: adatösszesítés, köztes állományok generálása</li>
+      </ul>
+
+      <p>
+        A JavaScript ebben a környezetben egy könnyen írható, jól olvasható, gyors iterációjú
+        automatizálási nyelv, ami sokféle rendszer között tud kapcsolatot teremteni.
+      </p>
+    </section>
+    <section>
+	    <a href="https://nodejs.org/docs/latest/api/" target="_blank" rel="noreferrer">Node Documentation</a>
+    </section>
+  </main>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>
