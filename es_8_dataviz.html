@@ -12,45 +12,20 @@
 
 <body>
   <header>
-    <h1>7.3 lecke – Egyszerű adatvizualizáció EcmaScript tudással</h1>
+    <h1>7.3 lecke – Egyszerű adatvizualizáció</h1>
     <p>
-      Ebben a leckében azt nézzük meg, hogyan lehet adatokból gyorsan és érthetően ábrát csinálni JavaScriptből.
-      Először egy "bemelegítő" konzolos oszlopdiagramot csinálunk (csak szöveg), majd három elterjedt könyvtárat
-      mutatunk meg: <strong>Chart.js</strong>, <strong>Google Charts</strong> és <strong>D3.js</strong>.
+      Ebben a leckében azt nézzük meg, hogyan lehet adatokból gyorsan és érthetően ábrát csinálni JavaScript segítségével.
+      Először készítünk egy szuper egyszerű konzolos oszlopdiagramot, majd három elterjedt könyvtárat
+      nézünk meg: <strong>Chart.js</strong>, <strong>Google Charts</strong> és <strong>D3.js</strong>.
     </p>
     <p>
-      A cél nem az, hogy egy-egy könyvtárat "megtanuljunk" (az külön tanfolyam lenne), hanem hogy
-      lásd a gondolkodási mintát: <em>adat → ábra</em>, és hogy tudd, hol érdemes könyvtárat használni.
+      A cél nem igazán az, hogy egy könyvtárat "megtanuljunk" (az külön tanfolyam lenne), hanem hogy
+      képet kapja a gondolkodási mintáról, és hogy tudd, mikor érdemes könyvtárat használni.
+      Persze ha tetszenek a könyvtárak, akkor érdemes mélyebben is megismerkedni velük!
     </p>
   </header>
 
   <main>
-    <section>
-      <h2>0. Előkészítés: a demó felület</h2>
-      <p>
-        A futtatható példák erre az oldalra rajzolnak. Ha egy kódot többször futtatsz, érdemes
-        "takarítani" előtte, különben egymásra rajzolhat vagy duplán hozzáadhat elemeket.
-      </p>
-
-      <textarea data-lang="js">
-/*
-Segédfüggvények a demókhoz: töröljük a korábbi rajzot, hogy az új futtatás tiszta legyen.
-Ezeket nem kell megjegyezni, csak praktikusak a példák újrafuttatásához.
-*/
-
-function resetChartJsCanvas() {
-}
-
-function resetGoogleChart() {
-}
-
-function resetD3() {
-}
-
-console.log("Demó felület készen áll")
-      </textarea>
-    </section>
-
     <section>
       <h2>1. Bemelegítés: "grafikon" a konzolon</h2>
       <p>
@@ -72,15 +47,22 @@ for (let value of data) {
 }
         </textarea>
         <p>
-          Ezt a mintát azért szeretjük, mert azonnal látszik a kapcsolat: <code>value</code> nagyobb → hosszabb oszlop.
-          Nincs tengely, nincs skála, de az alapötlet már megvan.
+	  Lám, ilyen egyszerűen is lehet grafikont készíteni :) 
+          Ez egy hasznos minta, mert azonnal látszik a kapcsolat:
+	  a kód leképezi az adatot valami mássá (grafikonná)
+	  tehát tulajdonképpen egy transzformáció. 
+	  Nagyobb érték → hosszabb oszlop. 
+        </p>
+        <p>
+	Ha újra lefuttatjuk frissül az ábra is. (írd át az adatokat
+	és futtasd le újra).
         </p>
       </article>
 
       <article>
         <h3>1.2. Skálázás: ha az adatok túl nagyok</h3>
         <p>
-          A valódi adatok gyakran nem férnek ki "karakterben". Ilyenkor skálázunk:
+          A valódi adatok gyakran nem férnek ki "karakterben" mérve, mert túl hosszú lenne az oszlop. Ilyenkor skálázunk:
           a legnagyobb érték kapja a maximális oszlophosszt, a többi arányosan rövidebb.
         </p>
 
@@ -106,13 +88,13 @@ for (let value of data) {
       <article>
         <h3>1.3. Miért nem csinálunk mindent "kézzel"?</h3>
         <ul>
-          <li>ha kell <strong>tengely</strong>, <strong>skála</strong>, <strong>felirat</strong>, gyorsan elszaporodnak a részletek</li>
-          <li>ha kell <strong>interakció</strong> (hover, tooltip), még több kód</li>
-          <li>ha kell <strong>testreszabás</strong> és <strong>reszponzív</strong> működés, a "kézi" megoldás hamar drágává válik</li>
+          <li>ha kell <strong>tengely</strong>, <strong>skála</strong>, <strong>felirat</strong>, a szép rövid kódunk igen gyorsan komplikálttá válik</li>
+	  <li>ha <strong>interakció</strong> kell (hover, tooltip) →  még több kód</li>
+          <li>ha <strong>testreszabás</strong> is kell, netán <strong>reszponzív</strong> működés a kód már sok sok oldal lesz.</li>
         </ul>
         <p>
           Itt jönnek a képbe a könyvtárak: a rutinfeladatot (tengely, skála, tooltip) megoldják helyetted,
-          neked pedig az adatok és az ábra típusa marad.
+          neked pedig végre csak az adatok és az ábra stílusának kialakítására kell figyelned.
         </p>
       </article>
     </section>
@@ -120,8 +102,8 @@ for (let value of data) {
     <section>
       <h2>2. Chart.js</h2>
       <p>
-        A Chart.js egy népszerű, könnyen használható könyvtár, ami a legtöbb alap diagramtípusra (bar, line, pie)
-        gyors megoldást ad. A tipikus workflow: adatok + címkék + egy konfigurációs objektum.
+        A Chart.js egy népszerű, könnyen használható könyvtár, ami a legtöbb alap diagramtípus esetén (bar, line, pie)
+        gyors megoldást ad a kezünkbe. A tipikus workflow: adatok betöltése, címkék meghatározása, konfigurációs objektum készítése.
       </p>
 
       <article>
@@ -129,7 +111,7 @@ for (let value of data) {
         <ul>
           <li>gyors sikerélmény, kevés kód</li>
           <li>jó alapértelmezések (tengelyek, feliratok, tooltip)</li>
-          <li>Canvas alapú, "egyben" renderel</li>
+          <li>Canvas alapú (bár ez nem feltétlen előny)</li>
         </ul>
       </article>
 
@@ -137,6 +119,7 @@ for (let value of data) {
         <h3>2.2. Minimál példa: oszlopdiagram 12 adattal</h3>
         <p>
           A kód lefutása után a fenti <code>&lt;canvas&gt;</code>-ra rajzol. Újrafuttatás előtt takarítunk.
+	  A <code>canvas</code> egy HTML DOM elem ami kifejezetten arra való, hogy rajzolhass rá.
         </p>
 
       <figure>

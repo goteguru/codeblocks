@@ -484,24 +484,25 @@ console.log(request("/api/users", { method: "POST" }))
         <h3>8.1. Ne legyen túl tömör: olvashatósági határ</h3>
         <p>
           Destructuringgal és <code>...</code>-al nagyon könnyű "túl okos" kódot írni.
-          Best practice, hogy ha a destructuring már több szint mély, vagy több soron át tart,
-          érdemes lehet lépésenkéntibb megoldást választani, hogy a következő fejlesztő is gyorsan értse.
+          Best practice, hogy ha a destructuring már több szint mély lenne, vagy több soron át tart,
+          érdemesebb lépésenkénti megoldást választani, hogy más is könnyen megértse.
         </p>
       </article>
 
       <article>
         <h3>8.2. Védd a bemenetet: hiányzó adatokkal számolj</h3>
         <p>
-          Ha külső adatot bontasz, gondold át: lehet-e <code>undefined</code>, hiányzó property, vagy részleges struktúra.
+          Amikor külső adatot bontasz fel, mindig gondold át: lehet-e <code>undefined</code>,
+	  hiányzó property, vagy részleges struktúra benne.
           Default értékek és a paraméter <code>= {}</code> minta segíthetnek abban, hogy a kód ne dobjon hibát
-          ártatlan helyzetekben.
+          ilyen esetekben.
         </p>
       </article>
 
       <article>
         <h3>8.3. Tudd, mikor módosítasz</h3>
         <p>
-          A <code>push</code>, <code>pop</code>, direkt property-írás módosít. A spread/rest gyakran pont azért van,
+          A <code>push</code>, <code>pop</code> módosít. A spread/rest gyakran pont azért van,
           hogy elkerüljék a módosítást. Ha ezt felismered, jobban megérted a kódbázis stílusát és a mögöttes okokat.
         </p>
       </article>
@@ -509,18 +510,16 @@ console.log(request("/api/users", { method: "POST" }))
 
     <section>
       <h2>9. Összefoglalás</h2>
-      <p>
-        Ebben a leckében azt gyakoroltuk, hogyan olvass és írj modern JavaScript mintákat:
-      </p>
       <ul>
-        <li><strong>Destructuring</strong>: mezők kibontása röviden és beszédesen</li>
+        <li><strong>Destructuring</strong>: mezők kibontása röviden és érthetően</li>
         <li><strong>Rest</strong>: "a maradék" összegyűjtése tömbbe/objektumba</li>
         <li><strong>Spread</strong>: immutábilis másolás, összeállítás, bővítés</li>
         <li><strong>Best practice</strong>: olvashatóság, defaultok, mellékhatások csökkentése</li>
       </ul>
       <p>
-        Az a cél, hogy ha ilyen kóddal találkozol, az ne "varázslatnak" tűnjön, hanem felismerd
-	mit is szeretett volna modani a szerző.
+        Biztos többször el kell olvasni, hogy jobban megérts (illetve más kódját végiggondolni)
+	Itt most annyi a cél, hogy ha ilyen kóddal találkozol, az ne tűnjön teljesen "varázslatnak",
+	hanem nagyjából felismerd mit is szeretett volna modani a szerző.
       </p>
     </section>
   </main>
