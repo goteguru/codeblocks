@@ -57,7 +57,7 @@
 
     try {
       const s = safeStringify(value);
-      // If stringify returns undefined (it can for some values), fallback
+      // fallback if stringify returns undefined 
       return s === undefined ? String(value) : s;
     } catch (_e) {
       try {
@@ -138,16 +138,17 @@
         result = (0, eval)(code);
       }
 
-      if (result !== undefined) {
+      if (result !== undefined) 
         writeLine(formatValue(result));
-      }
+
     } catch (e) {
       setErrorState(true);
       const msg = e && e.message ? e.message : String(e);
-      writeLine("Error: " + msg);
-      //if (e && e.stack) {
-      //  writeLine(e.stack);
-      //}
+      const prefix = (e && e.lineNumber) ? `Error in line ${e.lineNumber}` : "Error";
+      writeLine(prefix + ": " + msg);
+      if (e && !e.lineNumber && e.stack) {
+        writeLine(e.stack.split("\n").slice(1,2).join('').split(":").slice(2,4).join(":"));
+      }
     } finally {
       restoreConsole();
     }
