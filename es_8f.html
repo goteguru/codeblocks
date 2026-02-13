@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>8.2 Gyakorló – Adatvizualizáció (Chart.js + GeoChart)</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+
+  <style>
+    :root{
+      --bg: #ffffff;
+      --fg: #111827;
+      --muted: #6b7280;
+      --card: #f3f4f6;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --hint: #0f172a10;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg: #0b1020;
+        --fg: #e5e7eb;
+        --muted: #9ca3af;
+        --card: #121a33;
+        --border: #243055;
+        --accent: #60a5fa;
+        --hint: #ffffff0f;
+      }
+    }
+    body{ background: var(--bg); color: var(--fg); }
+    header, main{ max-width: 980px; margin: 0 auto; padding: 16px; }
+    header h1{ margin: 8px 0 6px; }
+    header p{ color: var(--muted); margin: 0 0 8px; }
+    .task{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin: 14px 0 18px;
+    }
+    .task h3{ margin: 0 0 6px; }
+    .meta{ color: var(--muted); margin: 6px 0 10px; }
+    .goal{
+      border-left: 3px solid var(--accent);
+      padding-left: 10px;
+      margin: 8px 0 10px;
+    }
+    details{
+      background: var(--hint);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      margin-top: 10px;
+    }
+    details summary{
+      cursor: pointer;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .demo{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .demoRow{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .demoBox{
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    canvas{ width: 100%; height: 280px; }
+    .small{ font-size: 0.95rem; color: var(--muted); }
+    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+          background: #00000010; padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border); }
+    @media (prefers-color-scheme: dark){
+      .kbd{ background: #ffffff10; }
+    }
+    a{ color: var(--accent); }
+  </style>
+</head>
+
+<body>
+<script>
+function destroyIfExists(key) {
+  if (!window.__charts) window.__charts = {};
+  if (window.__charts[key]) {
+    window.__charts[key].destroy();
+    window.__charts[key] = null;
+  }
+}
+function saveChart(key, chart) {
+   window.__charts[key] = chart;
+}
+</script>
+  <header>
+    <h1>8.2 Gyakorló – Adatvizualizáció (Chart.js + GeoChart)</h1>
+    <p>
+      Ebben a gyakorló leckében <strong>nem</strong> a grafikonrajzolást tanuljuk "kézzel", hanem azt, hogyan illesztünk
+      adatokat egy elterjedt vizualizációs könyvtárhoz, és hogyan módosítunk meglévő példakódot.
+    </p>
+    <p class="small">
+      Tipp: a kódblokkok futtathatók. Ha elrontasz valamit, frissítsd az oldalt, vagy futtasd újra az eredeti blokkot.
+      A <span class="kbd">TODO</span> részeket neked kell megcsinálni.
+    </p>
+  </header>
+
+  <main>
+    <section class="task">
+      <h3>0. Bemelegítés – "console grafikon" (ASCII oszlopok)</h3>
+      <p class="meta">
+        Cél: lásd, hogy a "grafikon" valójában <em>adat → reprezentáció</em>. Itt most a reprezentáció szöveg.
+      </p>
+
+      <div class="goal">
+        <strong>Elvárt eredmény:</strong> a konzolon 12 sor "oszlop" jelenjen meg, és a leghosszabb legyen kb. 30 karakter.
+      </div>
+
+      <textarea data-lang="js">
+/*
+Feladat:
+- Adott a "data" tömb (12 adatpont).
+- Írj ki a konzolra "█" karakterekből oszlopokat.
+- TODO: skálázd úgy, hogy a maximum érték kb. 30 széles legyen.
+
+Hint: max érték: Math.max(...data)
+Hint: skála: value / max * 30
+*/
+
+const data = [12, 35, 28, 44, 9, 18, 52, 41, 33, 25, 15, 48]
+
+// TODO: számold ki a max értéket
+const max = 0
+
+// TODO: állítsd be, mennyi legyen a max oszlopszélesség karakterben
+const targetWidth = 30
+
+for (const value of data) {
+  // TODO: számold ki a skálázott szélességet (egész számra kerekítve)
+  const width = 0
+
+  console.log("█".repeat(width))
+}
+      </textarea>
+
+      <details>
+        <summary>Hint (kattints ide ha segítség kellene)</summary>
+        <div class="small">
+          <p>Lehetséges megoldásváz:</p>
+          <pre><code>const max = Math.max(...data);
+const width = Math.round((value / max) * targetWidth);</code></pre>
+          <p>Ha zavar a 0 hosszúság, használhatsz minimumot: <code>Math.max(1, width)</code>.</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="task">
+      <h3>1. Chart.js – Bar chart alap bekötés (labels + data)</h3>
+      <p class="meta">
+        Cél: egy minimál oszlopdiagram Chart.js-ben. Itt az a lényeg, hogy a tömbök a megfelelő helyre kerüljenek.
+        Dokumentáció: <a href="https://www.chartjs.org/docs/latest/charts/bar.html" target="_blank" rel="noopener">Bar chart</a>
+      </p>
+
+      <div class="demoRow">
+        <div class="demoBox">
+          <canvas id="chart_task1"></canvas>
+          <div class="small">Vászon: <code>#chart_task1</code></div>
+        </div>
+      </div>
+
+      <div class="goal">
+        <strong>Elvárt eredmény:</strong> 12 darab oszlop látszódjon, a hónapok feliratával.
+      </div>
+
+      <textarea data-lang="js">
+/*
+Feladat:
+- A "months" és "sales" tömb adott.
+- TODO: kösd be őket az ábrába a Chart.js config-jában:
+  - labels: months
+  - datasets[0].data: sales
+
+Szükséges property nevek (így akarja majd elérni őket):
+- config.data.labels
+- config.data.datasets[0].data
+*/
+
+// ezzel nem kell foglalkozni, csak azért csináltuk,
+// hogy törölje a grafikont
+destroyIfExists("task1")
+
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const sales  = [12, 19, 7, 15, 22, 18, 25, 21, 17, 13, 9, 16]
+
+const ctx = document.getElementById("chart_task1").getContext("2d")
+
+const config = {
+  type: "bar",
+  data: {
+    // TODO: labels: ?
+    labels: [],
+    datasets: [{
+      label: "Eladások (db)",
+      // TODO: data: ?
+      data: [],
+    }]
+  },
+}
+
+saveChart("task1", new Chart(ctx, config)) // ezzel sem kell.
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <div class="small">
+          <pre><code>data: {
+  labels: months,
+  datasets: [{
+    label: "Eladások (db)",
+    data: sales,
+  }]
+}</code></pre>
+        </div>
+      </details>
+    </section>
+
+    <section class="task">
+      <h3>2. Chart.js – Tengely beállítás (beginAtZero)</h3>
+      <p class="meta">
+        Cél: a függőleges tengely 0-ról induljon.
+        Dokumentáció: <a href="https://www.chartjs.org/docs/latest/axes/cartesian/linear.html" target="_blank" rel="noopener">Axes</a>
+      </p>
+
+      <div class="demoRow">
+        <div class="demoBox">
+          <canvas id="chart_task2"></canvas>
+          <div class="small">Vászon: <code>#chart_task2</code></div>
+        </div>
+      </div>
+
+      <div class="goal">
+        <strong>Elvárt eredmény:</strong> az y-tengely alja 0 legyen (ne az adatok minimuma körül).
+      </div>
+
+      <textarea data-lang="js">
+/*
+Feladat:
+- A chart működik, de az y-tengely sajnos 105-ről indul.
+- TODO: állítsd át, hogy inkább 0-tól kezdődjön
+
+Hogy ne kelljen a kézikönyvet nézegetni, a beállítást így hívják:
+options.scales.y.beginAtZero
+*/
+
+destroyIfExists("task2");
+
+const labels = ["A", "B", "C", "D", "E", "F"];
+const values = [120, 135, 128, 144, 109, 118];
+
+const ctx = document.getElementById("chart_task2").getContext("2d");
+
+const config = {
+  type: "bar",
+  data: {
+    labels,
+    datasets: [{ label: "Minta értékek", data: values }]
+  },
+// TODO: valahol itt kellene...
+};
+
+saveChart("task2", new Chart(ctx, config));
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <div class="small">
+          <pre><code>options: {
+  scales: {
+    y: { beginAtZero: true }
+  }
+}</code></pre>
+        </div>
+      </details>
+    </section>
+
+    <section class="task">
+      <h3>3. Chart.js – Cím megjelenítése</h3>
+      <p class="meta">
+        Cél: adj címet a diagramnak. Chart.js-ben sok "plugin"-t használhatsz, ami valamilyen extrát ad a grafikonodhoz.
+	Ilyen például a title (címsor) is. A kívánt plugin-okat a plugins property-ben tudod megadni.
+        Dokumentáció: <a href="https://www.chartjs.org/docs/latest/configuration/title.html" target="_blank" rel="noopener">Title</a>
+      </p>
+
+      <div class="demoRow">
+        <div class="demoBox">
+          <canvas id="chart_task3"></canvas>
+          <div class="small">Vászon: <code>#chart_task3</code></div>
+        </div>
+      </div>
+
+      <div class="goal">
+        <strong>Elvárt eredmény:</strong> a grafikon tetején legyen egy cím ("Hőmérséklet - heti átlag").
+        Figyelj rá, hogy be kell kapcsolnod a megjelenítést is, hogy ténylegesen látszódjon.
+      </div>
+
+      <textarea data-lang="js">
+/*
+Feladat:
+- TODO: kapcsold be a címet a plugins.title beállítással.
+
+Szükséges property nevek:
+- options.plugins
+- options.plugins.title
+- options.plugins.title.display
+- options.plugins.title.text
+*/
+
+destroyIfExists("task3");
+
+const days = ["H", "K", "Sze", "Cs", "P", "Szo", "V"];
+const temps = [2, 3, 5, 4, 1, 0, -1];
+
+const ctx = document.getElementById("chart_task3").getContext("2d");
+const titleText =  "Hőmérséklet - heti átlag" // ezt szeretnénk címnek
+
+const config = {
+  type: "line",
+  data: {
+    labels: days,
+    datasets: [{
+      label: "°C",
+      data: temps,
+      tension: 0.25
+    }]
+  },
+  options: {
+    // TODO: itt kellene valahol...
+    plugins: {
+      title: {  text: "Hőmérséklet – heti átlag" }
+    }
+  }
+};
+
+saveChart("task3", new Chart(ctx, config));
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <div class="small">
+          <pre><code>options: {
+  plugins: {
+    title: {
+      display: true,
+      text: "Hőmérséklet – heti átlag"
+    }
+  }
+}</code></pre>
+        </div>
+      </details>
+    </section>
+
+    <section class="task">
+      <h3>4. Chart.js – Dinamikus frissítés (chart.update)</h3>
+      <p class="meta">
+        Cél: gombnyomásra változzon az adat, és frissüljön a grafikon.
+        Dokumentáció: <a href="https://www.chartjs.org/docs/latest/developers/updates.html" target="_blank" rel="noopener">Updating Charts</a>
+      </p>
+
+      <div class="demo">
+        <div class="demoBox">
+          <button id="btn_task4" style="padding: 0.5em 1em;">Új adatok</button>
+          <span class="small"> (nyisd meg a konzolt is, ha szeretnéd)</span>
+        </div>
+        <div class="demoBox">
+          <canvas id="chart_task4"></canvas>
+          <div class="small">Vászon: <code>#chart_task4</code></div>
+        </div>
+      </div>
+
+      <div class="goal">
+        <strong>Elvárt eredmény:</strong> a gomb megnyomásakor az oszlopok értékei változzanak (és láthatóan frissüljön a grafikon).
+      </div>
+
+      <textarea data-lang="js">
+/*
+Feladat:
+- Létrehoztunk egy Chart példányt: chart
+- TODO: a gombnyomáskor:
+  1) generálj új adatokat (pl. véletlenszerűen, random 0..50)
+  2) írd be a chart.data.datasets[0].data-ba
+  3) hívd meg: chart.update()
+
+Szükséges elemek:
+- document.getElementById("btn_task4").addEventListener("click", ...)
+- chart.data.datasets[0].data = ...
+- chart.update()
+*/
+
+destroyIfExists("task4");
+
+const labels = ["A", "B", "C", "D", "E", "F", "G", "H"];
+
+function randomData(n) {
+  return Array.from({ length: n }, () => Math.floor(Math.random() * 51));
+}
+
+const ctx = document.getElementById("chart_task4").getContext("2d");
+
+const chart = new Chart(ctx, {
+  type: "bar",
+  data: {
+    labels,
+    datasets: [{
+      label: "Random érték",
+      data: randomData(labels.length),
+    }]
+  },
+  options: {
+    scales: { y: { beginAtZero: true } }
+  }
+});
+
+saveChart("task4", chart);
+
+// ez a gombunk
+const btn = document.getElementById("btn_task4");
+
+btn.addEventListener("click", () => {
+  // 1) TODO: új adat 
+  // chart.data.datasets[0].data = ...
+
+  // 3) TODO: frissítés (chart.update())
+});
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <div class="small">
+          <pre><code>btn.addEventListener("click", () =&gt; {
+  const next = randomData(labels.length);
+  chart.data.datasets[0].data = next;
+  chart.update();
+});</code></pre>
+        </div>
+      </details>
+    </section>
+
+    <section class="task">
+      <h3>5. Érdekesség – Google GeoChart (nem Chart.js)</h3>
+      <p class="meta">
+        Cél: lásd, milyen "speciális" ábrákat kapunk könyvtárból, amit kézzel megírni nem reális.
+        Dokumentáció: <a href="https://developers.google.com/chart/interactive/docs/gallery/geochart" target="_blank" rel="noopener">GeoChart</a>
+      </p>
+
+      <div class="demoRow">
+        <div class="demoBox">
+          <div id="geochart_task5" style="width: 100%; height: 360px;"></div>
+          <div class="small">Konténer: <code>#geochart_task5</code></div>
+        </div>
+      </div>
+
+      <div class="goal">
+        <strong>Elvárt eredmény:</strong> Európa néhány országa kiszínezve jelenjen meg a hozzájuk tartozó érték alapján.
+      </div>
+
+      <textarea data-lang="js">
+/*
+Feladat:
+- A Google Charts loader már be van töltve (lásd a lap alján).
+- Adott a data (ország + érték) és egy options objektum.
+- TODO:
+  1) Hozd létre a chart példányt:
+     new google.visualization.GeoChart(targetElement)
+  2) Rajzold ki:
+     chart.draw(data, options)
+
+Szükséges függvények / osztályok:
+- google.charts.load
+- google.charts.setOnLoadCallback
+- google.visualization.arrayToDataTable
+- google.visualization.GeoChart
+*/
+
+function drawGeo() {
+  const data = google.visualization.arrayToDataTable([
+    ["Country", "Value"],
+    ["Hungary",  7],
+    ["Austria",  10],
+    ["Slovakia", 5],
+    ["Romania",  9],
+    ["Germany",  15],
+    ["France",   13],
+    ["Italy",    12],
+    ["Spain",    11],
+  ]);
+
+  const options = {
+    region: "150", // Europe
+    colorAxis: { minValue: 0, maxValue: 15 },
+    legend: "none"
+  };
+
+  // TODO: chart példány létrehozása és kirajzolás
+}
+
+google.charts.load("current", { packages: ["geochart"] });
+google.charts.setOnLoadCallback(drawGeo);
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <div class="small">
+          <pre><code>const chart = new google.visualization.GeoChart(
+  document.getElementById("geochart_task5")
+);
+chart.draw(data, options);</code></pre>
+        </div>
+      </details>
+    </section>
+
+  </main>
+
+  <!-- Könyvtárak (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+
+  <!-- CodeMirror + futtató -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="codeblocks.js"></script>
+</body>
+</html>
