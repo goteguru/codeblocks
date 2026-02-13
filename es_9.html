@@ -17,11 +17,11 @@
       parancssorból paraméterezhető, vagy akár más programokat vezérel.
     </p>
     <p>
-      Ezeket a lehetőségeket a Node.js, egy böngésző nélküli JavaScript "interpreterW (JIT compiler), amely a chrome v8 motorjára épít. 
+      Ezeket a lehetőségeket a Node.js, egy böngésző nélküli JavaScript "interpreter" (JIT compiler), amely a chrome v8 motorjára épít. 
       Bár a node.js eredeti célja az volt, hogy a szerver oldali funkciókat is JavaScript nyelven lehessen megírni, 
-      bármi másra is használhatjuk. Ebben a leckében a fókusz nem is ezen lesz, hanem a <strong>mérnöki feladatok automatizálásán</strong> ,
-      azaz hogyan lehet fájlokat előfeldolgozi, menteni, tömegesen átnevezni, jelentéstx létrehozni, illetve 
-      hogyan használhatjuk a JavaScriptet"ragasztónyelvként" integrációs feladatokban.
+      bármi másra is használhatjuk. Ebben a leckében a fókusz nem is a szerveríráson lesz, hanem a <strong>mérnöki feladatok automatizálásán</strong> ,
+      azaz hogyan lehet fájlokat előfeldolgozi, menteni, tömegesen átnevezni, jelentést létrehozni, illetve 
+      hogyan használhatjuk a JavaScriptet "ragasztónyelvként" integrációs feladatokban.
     </p>
   </header>
 
@@ -41,10 +41,10 @@
 
       <ul>
         <li>
-          <strong>Ami itt nincs</strong>: DOM, <code>window</code>, <code>document</code>, böngésző-specifikus API-k.
+          <strong>Nem lesz</strong>: DOM, <code>window</code>, <code>document</code>, böngésző-specifikus API-k.
         </li>
         <li>
-          <strong>Ami viszont van</strong>: fájlrendszer, process információk, külső programindítás, hálózat alacsonyabb szinten.
+          <strong>Cserébe viszont van</strong>: fájlrendszer, process információk, külső programindítás, hálózat alacsonyabb szinten.
         </li>
       </ul>
 
@@ -71,20 +71,22 @@ else
     </section>
 
     <section>
-      <h2>2. A Node program szerkezete: script → folyamat</h2>
+      <h2>2. A Node program szerkezete</h2>
       <p>
-        A Node-ra gondolhatsz úgy mint egy "kis eszközre": elindítod (átadva neki az elvégzendő utasításokat, a programot),
-  elvégzi a feladatát, majd kilép. Így egyszerűen beépíthető nagyobb automatizálási láncokba (úgynevezett pipeline-okba).
-      </p>
+        Gondolhatsz úgy a node-ra, mint egy kis "céleszközre": elindítod (átadva neki az elvégzendő utasításokat, a programot),
+  elvégzi a feladatát, majd kilép. Egy ilyen eszköz (vagy eszközökk!) egyszerűen beépíthetők nagyobb automatizálási láncokba (úgynevezett pipeline-okba).
+  Például: a tervezőprogram egy specifikus könyvtárba ment, egy másik segédprogram az adatokon lefuttat egy statikai ellenőrzést, ha az sikeres,
+  a automatikusan készül egy előnézet, ami egy sablon kitöltése után tömörítve kiküldésre kerül emailben bizonyos címzetteknek stb.
+        </p>
 
       <p>
-        Néhány programnyelvben jó pár sornyi kódra van szükség, hogy bármit is csináljon.
+        A Node nem szószátyár. Néhány programnyelvben jó pár sornyi kódra van szükség, hogy bármit is csináljon.
   Itt ez nem így van. A legkisebb értelmes Node program akár egy soros is lehet:
       </p>
 
       <textarea data-lang="js" data-readonly>
 // fájl: hello.mjs
-console.log("Szia! Ez Node-ban simán lefutna")
+console.log("Szia! Ez Node.js-ben ez egy kész program!")
       </textarea>
       <p>
       Ha ezt kimásolod egy fájlba, (mondjuk hello.mjs) átadod a node parancsnak (node hello.mjs),
@@ -92,14 +94,21 @@ console.log("Szia! Ez Node-ban simán lefutna")
       </p>
       
       <p>
-      Mint látod, nem sok változott: ugyanúgy tudunk a console.log-ra írni, csak most az eredmény
+      Mint látod, a böngészőhöz képest nem sok változott: ugyanúgy tudunk a console.log-ra írni, csak most az eredmény
       nem a böngészőben, hanem a terminál ablakában jelenik meg.
       </p>
 
       <p>
-        Fontos apróság: Node-ban a fájlok és útvonalak kezelése külön témakör (lásd később <code>path</code>),
-  a kimenetnél oda kell figyelnünk a soremelés karakterekre, a "csak összefűzöm stringként"
-  megoldás lokálisan működik, de hosszú távon platformfüggő hibákat szülhet. (Sajnos az operációs
+      A programot (különösen ha nagyobb) nem muszáj egyetlen fájlban elhelyezni. A programod betölthet 
+      további modulokat, olyanokat amiket te magad készítesz, olyanokat amelyeket mások írtak, 
+      vagy olyanokat amelyek magába az alaprendszerbe vannak építve.
+      </p>
+
+      <p class="info">
+        Fontos apróság: a Node-ban a fájlok és útvonalak kezelése érdekes témakör (lásd később:<code>path</code>).
+  A böngészőben nem volt ilyen problémánk, mert egy "platformon" (a böngészőn) dolgoztunk, itt viszont
+  oda kell figyelnünk a soremelés és útvonalelválasztó karakterekre. A "gyorsan összefűzöm stringként"
+  megoldás rövid távon a saját gépeden jól működik, de hosszabb távon platformfüggő hibákat eredményezhet. (Sajnos az operációs
   rendszerek nem egyforma sorvég jeleket használnak, sőt néha még a kódolás sem ugyanaz).
       </p>
     </section>
@@ -120,6 +129,7 @@ console.log("Szia! Ez Node-ban simán lefutna")
 
       <p>
         Az alábbi példa két fájlból áll. A kódot itt nem tudjuk futtatni böngészőből, de a struktúra és a szintaxis a lényeg.
+	Az első fájl a modul:
       </p>
 
       <textarea data-lang="js" data-readonly>
@@ -133,6 +143,9 @@ export function clamp(x, min, max) {
 }
       </textarea>
 
+      <p>
+Ez a második fájl pedig a modult felhasználó program (tradícionálisan main.mjs):
+      </p>
       <textarea data-lang="js" data-readonly>
 // fájl: main.mjs
 import { areaOfCircle, clamp } from "./math.mjs"
@@ -143,17 +156,21 @@ let area = areaOfCircle(r)
 console.log("Terület:", area)
 console.log("Clamp példa:", clamp(120, 0, 100))
       </textarea>
+      <p>
+      Akárcsak a böngészőben, egyszerűen importáltuk a nekünk szükséges elemeket a másik fájlból. 
+      Ugyanúgy mint eddig, csak olyan dolgot importálhatunk, amit a modul <code>export</code> kulcsszóval megjelölt.
+      </p>
 
       <article>
-        <h3>3.1. CommonJS (a régi módszer, kódolvasáshoz)</h3>
+        <h3>3.1. CommonJS modulrendszer</h3>
         <p>
-          Régi Node projektekben találkozhats egy másféle jelöléssel: a CommonJS modullal.
+          Régi Node projektekben találkozhatsz egy másféle jelöléssel is: ez a CommonJS.
     Ez a <code>require</code>, <code>module.exports</code> kulcsszavakat használja.
           Új kódot ma már általában nem ebben írunk, viszont <strong>kódolvasáshoz</strong> fontos, hogy felismerd.
         </p>
 
         <textarea data-lang="js" data-readonly>
-// legacy minta (CommonJS) - régi projektekben gyakran előfordul 
+// legacy minta (CommonJS) - régi projektekben találkozhatsz vele:
 const fs = require("fs")
 
 module.exports = function readText(filePath) {
@@ -164,10 +181,10 @@ module.exports = function readText(filePath) {
     </section>
 
     <section>
-      <h2>4. Core modulok: a "szerszámosláda"</h2>
+      <h2>4. Node szerszámosládája: a core modulok</h2>
       <p>
-        Node-nál az egyik legnagyobb különbség a böngészőhöz képest, hogy rengeteg alapfunkciót készen megkapsz
-        <strong>beépített (core) modulokkal</strong>. Ezekhez nem kell külső csomag, csak importálod őket.
+        Node és a böngésző között az egyik legszembetűnőbb különbség, hogy rengeteg alapfunkciót készen megkapsz a
+        <strong>beépített (core) modulok által</strong>. A core modulokhoz nem kell külső csomag, elég csak importálni őket.
       </p>
       <p>
       Persze, ha ez nem elég, olyan sok letölthető node modulból választhatsz, hogy győzd végigolvasni!
@@ -175,13 +192,13 @@ module.exports = function readText(filePath) {
 
       <article>
         <h3>4.1. Fájlrendszer: <code>fs</code></h3>
-  <p>A Node alapvetően async logikát követ. Akkor is ha fizikailag nem használ több processzor magot,
+  <p>A Node alapvetően async logikát követ. Akkor is ha fizikailag nem használ több processzormagot,
   logikailag úgy képzeljük, hogy a hosszabb időt igénybe vevő folyamatok (például egy fájl olvasása)
   aszinkron módon történik (tehát közben csinálhatunk mást). </p>
   <p>
   Mi már tudjuk, hogy az ilyen aszinkron működést kétféle megközelítéssel is kezelhetjük: vagy átadunk
   egy callback függvényt (amit meg kell hívni, amikor elkészült az adat) vagy használjuk
-  a modernebb Promise alapú logikát. A Node-ban általában választhatunk, melyiket szeretnénk.
+  a modernebb Promise alapú logikát. A Node alatt általában választhatunk, melyiket szeretnénk.
   </p>
         <p>
           A <code>fs</code> modul a mindennapi automatizálás egyik alappillére. Tipikus feladat például egy JSON export
@@ -309,7 +326,7 @@ if (dryRun) {
     <section>
       <h2>6. Külső programok indítása: <code>child_process</code></h2>
       <p>
-        Mérnöki automatizálásnál sokszor nem az cél, hogy Node-ból megoldj mindent, hiszen vannak céleszközeink.
+        Mérnöki automatizálásnál sokszor nem az cél, hogy Node segítségével oldj meg mindent, hiszen vannak céleszközeink.
   Van statikai számító program, van CAD vagy elemző program. A kérdés inkább az,
         hogy <strong>tudom-e irányítani</strong> a meglévő eszközeimet: konvertereket, parancssori toolokat, build lépéseket,
         vagy akár CAD/GIS környezethez tartozó segédprogramokat.
@@ -463,7 +480,7 @@ console.log("MODE:", mode)
       </p>
 
       <p>
-        Node-ban gyakran <strong>projektekben gondolkodunk</strong>,
+        A Node használata során gyakran <strong>projektekben gondolkodunk</strong>,
         és ebben a gondolkodásban a <code>package.json</code> a legfontosabb strukturáló elem.
       </p>
     </section>
