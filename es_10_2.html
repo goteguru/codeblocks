@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok – 10.2 lecke</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+<body>
+  <header>
+    <h1>10.2 – Teljes munkafolyamat gyakorlat</h1>
+    <p>
+      Ebben a gyakorlatban felépítünk egy mini rendszert, ami a <code>./inbox</code> mappába bedobott CSV fájlokra reagál automatikusan.
+      Az ide helyezett CSV fájlt beolvassa, (opcionálisan) elküldi elemzésre egy LLM-nek, majd a végén készít belőle egy <code>.xlsx</code> riportot.
+      Végül a feldolgozott CSV-t áthelyezi a <code>./processed</code> mappába, hogy ne dolgozza fel még egyszer és lássuk, hogy elkészült.
+    </p>
+    <p class="info">
+      A kód itt is <code>&lt;textarea&gt;</code> blokkokban lesz, de neked kell a rendszert felépíteni <strong>lokális Node.js alatt</strong>.
+      Tehát a lépéseket a saját gépeden fogod megcsinálni.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>0. Előkészítés (egyszer kell megcsinálni)</h2>
+
+      <h3>0.1. Projekt mappa és függőségek</h3>
+      <p>
+        Hozz létre egy projekt mappát, inicializáld npm-mel, és telepítsd a csomagokat. Utána készíts két mappát:
+        <code>inbox</code> (ide dobod be a CSV-ket) és <code>processed</code> (ide tesszük át a feldolgozottakat).
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// Terminál (a projekt mappájában):
+
+mkdir node-workflow-demo
+cd node-workflow-demo
+
+npm init -y
+npm install commander chokidar csv-parse xlsx axios execa
+
+mkdir inbox processed
+      </textarea>
+
+      <p>
+        Készíts egy mintafájlt, amit később bedobsz az <code>inbox</code> mappába:
+      </p>
+
+      <p>Minta fájl: sample.csv  (ez lehet majd bedobni a ./inbox mappába)</p>
+      <textarea data-lang="js" data-readonly>
+name,value
+A,10
+B,42
+C,7
+      </textarea>
+
+      <h3>0.2. LLM API kulcs (opcionális, de ajánlott)</h3>
+      <p>
+        A 3. lépésben HTTP-n hívunk meg egy LLM-et. Ehhez általában API kulcs kell.
+        A kulcsot <strong>ne</strong> írd bele a forráskódba; környezeti változóként add át.
+      </p>
+
+      <p>
+        Ha nincs ilyen kulcsod (gondolom nincs) akkor az alábbi módon szerezhetesz egyet:
+      </p>
+      <ol>
+        <li>Belépsz az API platformra (pl OpenAI, google), létrehozol (vagy kiválasztasz) egy projektet, majd készítesz egy új <em>Secret API key</em>-t.</li>
+        <li>A kulcsot egyszer látod teljes formában – mentsd el biztonságos helyre.</li>
+        <li>Beállítod környezeti változóként (például <code>OPENAI_API_KEY</code> néven).</li>
+      </ol>
+
+      <textarea data-lang="js" data-readonly>
+// macOS / Linux (zsh/bash):
+export OPENAI_API_KEY="ide_jon_a_kulcsod"
+
+// Windows PowerShell:
+setx OPENAI_API_KEY "ide_jon_a_kulcsod"
+
+// Új terminál ablakban ellenőrzés:
+echo $OPENAI_API_KEY     # macOS/Linux
+echo %OPENAI_API_KEY%    # Windows cmd
+      </textarea>
+
+      <p class="info">
+        Ha nincs kulcsod vagy nem akarsz regisztrálni: a 3. lépést kihagyhatod. Ilyenkor "LLM helyett" egy mock (kamu :)) függvény ad vissza elemzést.
+      </p>
+    </section>
+    <section>
+      <h2>LLM API kulcs generálása </h2>
+
+      <p>
+        Az alábbi szolgáltatók mind kínálnak programozható LLM API-t.
+        A példák OpenAI-kompatibilis chat végpontot használnak, de több rendszer is hasonló struktúrát követ.
+      </p>
+
+      <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+          <tr>
+      <th>Szolgáltató</th>
+      <th>API kulcs generálás</th>
+      <th>Megjegyzés</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+      <td>OpenAI</td>
+      <td>
+        <a href="https://platform.openai.com/api-keys" target="_blank">
+          https://platform.openai.com/api-keys
+        </a>
+      </td>
+      <td>
+        GPT modellek (OpenAI API). Környezeti változó: <code>OPENAI_API_KEY</code>
+      </td>
+          </tr>
+
+          <tr>
+      <td>Google Gemini (AI Studio)</td>
+      <td>
+        <a href="https://aistudio.google.com/app/apikey" target="_blank">
+          https://aistudio.google.com/app/apikey
+        </a>
+      </td>
+      <td>
+        Gemini modellek. Általában <code>GEMINI_API_KEY</code> vagy <code>GOOGLE_API_KEY</code>
+      </td>
+          </tr>
+
+          <tr>
+      <td>Anthropic (Claude)</td>
+      <td>
+        <a href="https://console.anthropic.com/settings/keys" target="_blank">
+          https://console.anthropic.com/settings/keys
+        </a>
+      </td>
+      <td>
+        Claude modellek. Környezeti változó: <code>ANTHROPIC_API_KEY</code>
+      </td>
+          </tr>
+
+          <tr>
+      <td>Mistral AI</td>
+      <td>
+        <a href="https://console.mistral.ai/api-keys" target="_blank">
+          https://console.mistral.ai/api-keys
+        </a>
+      </td>
+      <td>
+        Mistral modellek. Gyakran OpenAI-kompatibilis endpoint.
+      </td>
+          </tr>
+
+          <tr>
+      <td>Together AI</td>
+      <td>
+        <a href="https://api.together.xyz/settings/api-keys" target="_blank">
+          https://api.together.xyz/settings/api-keys
+        </a>
+      </td>
+      <td>
+        Több open-source modell, OpenAI-kompatibilis végpont.
+      </td>
+          </tr>
+
+          <tr>
+      <td>Cohere</td>
+      <td>
+        <a href="https://dashboard.cohere.com/api-keys" target="_blank">
+          https://dashboard.cohere.com/api-keys
+        </a>
+      </td>
+      <td>
+        Saját chat és generatív modellek.
+      </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="info">
+        Megjegyzés: A 10.2 példakód OpenAI-kompatibilis chat végpontot használ 
+        (<code>/v1/chat/completions</code>). Több szolgáltató is támogat hasonló 
+        struktúrát; ilyenkor jellemzően csak a <code>BASE_URL</code>, a modellnév 
+        és az API kulcs neve változik.
+      </p>
+    </section>
+
+    <section>
+      <h2>1. lépés – commander</h2>
+      <p>
+        Kezdjük egy minimál CLI-vel (command line interface). Figyeljük a mappát de (egyelőre) nem olvasunk fájlt, csak
+        átveszünk paramétereket, viszont kiírjuk, hogy mit fog majd csinálni a program.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: main.mjs
+import { Command } from "commander"
+
+const program = new Command()
+
+program
+  .name("workflow-demo")
+  .description("CSV → (LLM) → XLSX workflow demo")
+  .option("-i, --inbox <path>", "figyelt mappa", "./inbox")
+  .option("-p, --processed <path>", "feldolgozott mappa", "./processed")
+  .option("-o, --output <path>", "kimeneti riport", "./report.xlsx")
+  .option("--no-llm", "LLM lépés kihagyása (mock / offline mód)")
+  .parse(process.argv)
+
+const opts = program.opts()
+
+console.log("Figyelt mappa:", opts.inbox)
+console.log("Processed mappa:", opts.processed)
+console.log("Riport fájl:", opts.output)
+console.log("LLM mód:", opts.llm ? "BE" : "KI (mock/offline)")
+console.log("Készen állok, de még nem figyelek és nem dolgozok fel semmit.")
+      </textarea>
+
+      <p>Futtatás:</p>
+      <textarea data-lang="js" data-readonly>
+// Terminál:
+node main.mjs --help
+node main.mjs
+node main.mjs --no-llm
+      </textarea>
+      <p>
+      Ha működik jöhet a következő lépés!
+      </p>
+    </section>
+
+    <section>
+      <h2>2. lépés – chokidar + CSV olvasás: reagálunk az inbox új fájljaira</h2>
+      <p>
+        Ha új <code>.csv</code> fájl érkezik, beolvassuk,
+        és kiírjuk a fájlnevet, valamint a CSV fejlécét (oszlopnevek).
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: main.mjs  (a korábbi helyett ezt írd be)
+import { Command } from "commander"
+import chokidar from "chokidar"
+import { readFile } from "node:fs/promises"
+import { parse } from "csv-parse/sync"
+import path from "node:path"
+
+const program = new Command()
+
+program
+  .name("workflow-demo")
+  .option("-i, --inbox <path>", "figyelt mappa", "./inbox")
+  .parse(process.argv)
+
+const opts = program.opts()
+
+console.log("Figyelem ezt a mappát:", opts.inbox)
+
+const watcher = chokidar.watch(opts.inbox, { ignoreInitial: true })
+
+watcher.on("add", async (filePath) => {
+  if (!filePath.toLowerCase().endsWith(".csv")) return
+
+  try {
+    const baseName = path.basename(filePath)
+    const text = await readFile(filePath, "utf8")
+
+    const rows = parse(text, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true
+    })
+
+    const headers = rows.length > 0 ? Object.keys(rows[0]) : []
+    console.log("Új CSV:", baseName)
+    console.log("Fejléc:", headers.join(", "))
+
+  } catch (err) {
+    console.error("Hiba CSV feldolgozás közben:", err.message)
+  }
+})
+
+watcher.on("error", (err) => console.error("Watcher hiba:", err.message))
+      </textarea>
+
+      <p>Próbáld ki:</p>
+      <textarea data-lang="js" data-readonly>
+// 1) Terminálban:
+node main.mjs
+
+// 2) Másold be a sample.csv-t az inbox mappába.
+//    A terminálban meg kell jelennie a fájlnévnek és a fejlécnek.
+      </textarea>
+    </section>
+
+    <section>
+      <h2>3. lépés – LLM integráció (axios)</h2>
+      <p>
+        Most hozzáadunk egy függvényt, ami a CSV adatokból készít egy rövid összefoglalót/elemzést egy LLM segítségével.
+        Ez a rész opcionális: ha nincs kulcsod, vagy nem szeretnél ezzel foglalkozni, akkor <code>--no-llm</code> kapcsolóval
+        futtasd a programot, így LLM helyett csak egy mock (nem valós) elemzést használ.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: main.mjs  (a korábbi helyett ezt írd be)
+import { Command } from "commander"
+import chokidar from "chokidar"
+import { readFile } from "node:fs/promises"
+import { parse } from "csv-parse/sync"
+import path from "node:path"
+import axios from "axios"
+
+const program = new Command()
+
+program
+  .name("workflow-demo")
+  .option("-i, --inbox <path>", "figyelt mappa", "./inbox")
+  .option("--no-llm", "LLM lépés kihagyása (mock/offline mód)")
+  .parse(process.argv)
+
+const opts = program.opts()
+
+async function analyzeWithLLM(rows) {
+  // Offline/mock elemzés: nem hív API-t
+  const headers = rows.length > 0 ? Object.keys(rows[0]) : []
+  return {
+    kind: "mock",
+    summary: `Mock elemzés: ${rows.length} sor, oszlopok: ${headers.join(", ")}`
+  }
+}
+
+async function analyzeWithOpenAI(rows) {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    return {
+      kind: "mock",
+      summary: "Nincs OPENAI_API_KEY beállítva, ezért mock elemzés futott."
+    }
+  }
+
+  const prompt = [
+    "Elemezd röviden a táblázatot.",
+    "Adj 2-3 bullet pointot: mit látsz, van-e gyanús adat, és milyen riport mezők lennének hasznosak.",
+    "",
+    "Az adatok (JSON tömb):",
+    JSON.stringify(rows.slice(0, 20)) // csak minta: ne küldj túl nagy adatot!
+  ].join("\\n")
+
+  const res = await axios.post(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      model: "gpt-4.1-mini",
+      messages: [
+        { role: "system", content: "Válaszolj magyarul, tömören, bullet pontokban." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.2
+    },
+    {
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      timeout: 30_000
+    }
+  )
+
+  const text = res.data?.choices?.[0]?.message?.content || "(nincs válasz)"
+  return { kind: "llm", summary: text }
+}
+
+console.log("Figyelem ezt a mappát:", opts.inbox)
+console.log("LLM mód:", opts.llm ? "BE (ha van kulcs)" : "KI (mock/offline)")
+
+const watcher = chokidar.watch(opts.inbox, { ignoreInitial: true })
+
+watcher.on("add", async (filePath) => {
+  if (!filePath.toLowerCase().endsWith(".csv")) return
+
+  try {
+    const baseName = path.basename(filePath)
+    const text = await readFile(filePath, "utf8")
+    const rows = parse(text, { columns: true, skip_empty_lines: true, trim: true })
+
+    console.log("\\nÚj CSV:", baseName)
+    console.log("Sorok:", rows.length)
+
+    const analysis = opts.llm
+      ? await analyzeWithOpenAI(rows)
+      : await analyzeWithLLM(rows)
+
+    console.log("Elemzés típusa:", analysis.kind)
+    console.log("Elemzés:", analysis.summary)
+
+  } catch (err) {
+    console.error("Hiba:", err.message)
+  }
+})
+      </textarea>
+
+      <p class="info">
+        Ha nem akarsz LLM-et használni: <code>node main.mjs --no-llm</code>. Ha van kulcsod: állítsd be <code>OPENAI_API_KEY</code>-ként, és futtasd simán.
+      </p>
+    </section>
+
+    <section>
+      <h2>4. lépés – XLSX riport + feldolgozott fájl áthelyezése</h2>
+      <p>
+        Végül készítünk egy egyszerű Excel riportot, majd a feldolgozott CSV-t áthelyezzük a <code>processed</code> mappába,
+        hogy ne dolgozzuk fel még egyszer.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: main.mjs  (a korábbi helyett ezt írd be)
+import { Command } from "commander"
+import chokidar from "chokidar"
+import { readFile, mkdir, rename } from "node:fs/promises"
+import { parse } from "csv-parse/sync"
+import path from "node:path"
+import axios from "axios"
+import * as XLSX from "xlsx"
+// import { execa } from "execa" // opcionális: külső program indításra (lásd lejjebb)
+
+const program = new Command()
+
+program
+  .name("workflow-demo")
+  .option("-i, --inbox <path>", "figyelt mappa", "./inbox")
+  .option("-p, --processed <path>", "feldolgozott mappa", "./processed")
+  .option("-o, --output <path>", "kimeneti riport", "./report.xlsx")
+  .option("--no-llm", "LLM lépés kihagyása (mock/offline mód)")
+  .parse(process.argv)
+
+const opts = program.opts()
+
+async function analyzeWithLLM(rows) {
+  const headers = rows.length > 0 ? Object.keys(rows[0]) : []
+  return {
+    kind: "mock",
+    summary: `Mock elemzés: ${rows.length} sor, oszlopok: ${headers.join(", ")}`
+  }
+}
+
+async function analyzeWithOpenAI(rows) {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    return { kind: "mock", summary: "Nincs OPENAI_API_KEY beállítva, ezért mock elemzés futott." }
+  }
+
+  const prompt = [
+    "Elemezd röviden a táblázatot.",
+    "Adj 2-3 bullet pointot magyarul.",
+    "",
+    "Mintasorok (JSON):",
+    JSON.stringify(rows.slice(0, 20))
+  ].join("\\n")
+
+  const res = await axios.post(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      model: "gpt-4.1-mini",
+      messages: [
+        { role: "system", content: "Válaszolj magyarul, tömören, bullet pontokban." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.2
+    },
+    {
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      timeout: 30_000
+    }
+  )
+
+  const text = res.data?.choices?.[0]?.message?.content || "(nincs válasz)"
+  return { kind: "llm", summary: text }
+}
+
+function writeReport(reportPath, item) {
+  const wb = XLSX.utils.book_new()
+
+  const summaryRows = [
+    {
+      file: item.file,
+      rowCount: item.rowCount,
+      analysisKind: item.analysisKind,
+      analysis: item.analysis
+    }
+  ]
+  const wsSummary = XLSX.utils.json_to_sheet(summaryRows)
+  XLSX.utils.book_append_sheet(wb, wsSummary, "Summary")
+
+  const wsData = XLSX.utils.json_to_sheet(item.rows)
+  XLSX.utils.book_append_sheet(wb, wsData, "Data")
+
+  XLSX.writeFile(wb, reportPath)
+}
+
+console.log("Figyelem:", opts.inbox)
+console.log("Processed:", opts.processed)
+console.log("Output:", opts.output)
+console.log("LLM mód:", opts.llm ? "BE (ha van kulcs)" : "KI (mock/offline)")
+
+await mkdir(opts.processed, { recursive: true })
+
+const watcher = chokidar.watch(opts.inbox, { ignoreInitial: true })
+
+watcher.on("add", async (filePath) => {
+  if (!filePath.toLowerCase().endsWith(".csv")) return
+
+  try {
+    const baseName = path.basename(filePath)
+    const text = await readFile(filePath, "utf8")
+    const rows = parse(text, { columns: true, skip_empty_lines: true, trim: true })
+
+    console.log("\\nÚj CSV:", baseName, " (sorok:", rows.length, ")")
+
+    const analysis = opts.llm
+      ? await analyzeWithOpenAI(rows)
+      : await analyzeWithLLM(rows)
+
+    writeReport(opts.output, {
+      file: baseName,
+      rowCount: rows.length,
+      analysisKind: analysis.kind,
+      analysis: analysis.summary,
+      rows
+    })
+    console.log("Riport elkészült:", opts.output)
+
+    // Opcionális: megnyitás Excel/LibreOffice-szal (csak minta!)
+    // Nem futtatjuk automatikusan, mert nem tudjuk mi van telepítve.
+    // ha van ilyen programod, kiveheted a megjegyzéseket előle
+    //
+    // Windows:
+    // await execa("cmd", ["/c", "start", "", opts.output])
+    //
+    // macOS:
+    // await execa("open", [opts.output])
+    //
+    // Linux:
+    // await execa("xdg-open", [opts.output])
+
+    const targetPath = path.join(opts.processed, baseName)
+    await rename(filePath, targetPath)
+    console.log("Áthelyezve:", targetPath)
+
+  } catch (err) {
+    console.error("Hiba:", err.message)
+  }
+})
+      </textarea>
+
+      <p>Teszt:</p>
+      <textarea data-lang="js" data-readonly>
+// Terminál:
+node main.mjs --no-llm
+
+// Majd dobj be egy CSV-t az inbox-ba.
+// A végén a fájlnak át kell kerülnie a processed mappába,
+// és létrejön (vagy frissül) a report.xlsx.
+      </textarea>
+
+    </section>
+
+    <section>
+      <h2>Extra: Hogy lesz ez gyorsan kész?</h2>
+      <p>
+        Ezt a scriptet nagyon gyorsan le lehet generáltatni egy LLM-mel. Próbáld ki! A feladat az, hogy a generált kódot
+        el tudd olvasni, és össze tudd vetni azzal, amit lépésenként építettünk.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// Példa prompt LLM-nek (másold be egyben):
+
+Írj egy Node.js (ESM) mini projektet, ami a következőt csinálja:
+
+- Használja a commander, chokidar, csv-parse, xlsx, axios csomagokat.
+- Legyen egy main.mjs belépési pont.
+- CLI opciók:
+  --inbox (default: ./inbox)
+  --processed (default: ./processed)
+  --output (default: ./report.xlsx)
+  --no-llm (ha meg van adva, akkor ne hívjon LLM-et)
+- A program figyelje az inbox mappát (ignoreInitial), és amikor új .csv fájl érkezik:
+  1) olvassa be a fájlt és értelmezze (columns: true)
+  2) ha nincs --no-llm és van OPENAI_API_KEY env var, akkor hívjon meg egy OpenAI-kompatibilis chat végpontot
+     (https://api.openai.com/v1/chat/completions) és kérjen rövid magyar bullet pontos elemzést a mintasorok alapján
+     (max 20 sor elküldése)
+     ha nincs kulcs / offline mód, akkor mock elemzést adjon vissza
+  3) generáljon egy report.xlsx fájlt, benne két sheet-tel: Summary (file, rowCount, analysisKind, analysis),
+     illetve Data (a teljes beolvasott táblázat)
+  4) a feldolgozott CSV-t mozgassa át a processed mappába, hogy ne dolgozza fel újra
+
+Adj hozzá pontos telepítési és futtatási lépéseket is (npm init, npm install, mappák létrehozása).
+A kód legyen minimalista, de működőképes. A kulcsot soha ne hardcode-old, csak env varból olvasd.
+      </textarea>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>
