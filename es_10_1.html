@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok – 10.1 lecke</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+<body>
+  <header>
+    <h1>10.1 – Node.js külső könyvtárak</h1>
+    <p>
+      A Node.js beépített moduljai (<code>fs</code>, <code>path</code>, <code>process</code>, <code>child_process</code> stb.)
+      sok mindenre elegendők. A gyakorlatban viszont a Node igazi ereje az ökoszisztémában van:
+      rengeteg kész, újrahasznosítható csomag létezik, amikkel pár sorból egész komoly automatizáló eszközt lehet építeni.
+    </p>
+    <p>
+      Ebben a részben néhány gyakran használt könyvtárat nézünk meg. A kódminták <em>Node-ban futtathatók</em>,
+      de az egységes megjelenés és a szintaxiskiemelés érdekében kódblokkokba tettük őket. Futtatni most nem tudod őket, mert böngészőben nem futnának le.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>0. Telepítés és alapfogalmak (npm, package.json)</h2>
+      <p>
+        Külső könyvtárakat <strong>npm</strong>-mel telepítünk a projekt mappájában.
+        A projekt "névjegye" a <code>package.json</code>, ebben vannak a függőségek, és itt lehet beállítani azt is,
+        hogy ES modulokat használunk (például <code>"type": "module"</code>).
+      </p>
+      <p class="info">
+      Az npm-en kívül több másik csomagkezelő is létezik (yarn, pnpm, bun, deno). Útmutatókban gyakran találkozhatsz velük. Az egyszerűség kedvéért mi most maradjunk az <code>npm </code> mellett.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// Terminál (parancssor) – a projekt könyvtárában:
+
+npm init -y
+npm install axios commander csv-parse xlsx chokidar execa
+
+// Ha ES modul szintaxist (import/export) akarsz .js fájlokban is:
+/// package.json -> "type": "module"
+      </textarea>
+
+    </section>
+
+    <section>
+      <h2>1. commander – elegáns CLI néhány sorból</h2>
+      <p>
+        A parancssori (CLI) argumentumok kézi értelmezése (<code>process.argv</code>) egyszerű, de komplex esetben hamar macerássá válik:
+        help szöveg, alapértelmezett értékek, kötelező paraméterek, alparancsok. A <strong>commander</strong> segítségével mindezt szuper könnyen kezelheted!
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: tool.mjs
+import { Command } from "commander"
+
+const program = new Command()
+
+program
+  .name("tool")
+  .description("Példa CLI eszköz")
+  .option("-i, --input <path>", "bemeneti fájl", "input.csv")
+  .option("-o, --output <path>", "kimeneti fájl", "output.xlsx")
+  .option("--dry-run", "ne írjon ki fájlt, csak naplózzon")
+  .parse(process.argv)
+
+const opts = program.opts()
+
+console.log("input:", opts.input)
+console.log("output:", opts.output)
+console.log("dryRun:", Boolean(opts.dryRun))
+      </textarea>
+
+      <p>
+        A commander automatikusan elkészíti a help-et is, pl. <code>node tool.mjs --help</code>.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. axios – HTTP kérések és LLM hívás (prompt → válasz)</h2>
+      <p>
+        Az <strong>axios</strong> egy egyszerű HTTP kliens (azaz egy programozható
+	böngészőszerűség ami le tud tölteni neked webes erőforrásokat). Mivel rengeteg
+	szolgáltatás tartalmaz valamilyen webes programozói interfészt (API), az axios
+	segítségével ezeket is felvehetjük a fegyvertárunkba.</p>
+
+      <p>Általában valami ilyesmit szeretnénk csinálni: 
+      információt küldünk a külső rendszernek egy API hívással, lekérjük a választ,
+      feldolgozzuk, majd fájlba írjuk vagy továbbküljük.
+      </p>
+
+      <p>
+        Az alábbi példa egy <strong>OpenAI-kompatibilis</strong> chat API-t hív meg (sok szolgáltató használ ilyen felületet).
+        Elküldünk egy promptot, és a válaszból kiolvassuk a szöveget.
+        (A konkrét URL, modellnév és válaszstruktúra értelemszerűen szolgáltatónként eltérhet, de nagyjából ilyen egyszerű az egész!)
+      </p>
+      <p>
+      A webes szolgáltatások használatához általában szükséges lesz egy API kulcsra (ezt többnyire egy webes felületen tudod elkészíteni magadnak regisztráció után)
+      ami feljogosít téged a szolgáltatás használatára. Ezt minden kérésnél el kell majd külened.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: llm-ask.mjs
+import axios from "axios"
+
+// A "titkos" információt környezeti változóban tároljuk:
+//   LLM_API_KEY="..."
+//   LLM_BASE_URL="https://..."
+// Példa futtatás:
+//   LLM_API_KEY="xxx" LLM_BASE_URL="https://api.szolgalto.hu" node llm-ask.mjs
+
+const API_KEY = process.env.LLM_API_KEY
+const BASE_URL = process.env.LLM_BASE_URL
+
+if (!API_KEY || !BASE_URL) {
+  console.error("Hiányzó LLM_API_KEY vagy LLM_BASE_URL környezeti változó.")
+  process.exit(1)
+}
+
+const prompt = "Adj 3 rövid ötletet, hogyan lehet CSV-ből Excel riportot készíteni Node.js-ben."
+
+const res = await axios.post(
+  `${BASE_URL}/v1/chat/completions`,
+  {
+    model: "gpt-4.1-mini", // példa modellnév – szolgáltatónként más lehet
+    messages: [
+      { role: "system", content: "Válaszolj tömören, felsorolásban." },
+      { role: "user", content: prompt }
+    ],
+    temperature: 0.2
+  },
+  {
+    headers: {
+      "Authorization": `Bearer ${API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    timeout: 30_000
+  }
+)
+
+// eredmény kiolvasása az összetett válasz adatszerkezetből:
+const answer = res.data?.choices?.[0]?.message?.content
+console.log(answer)
+      </textarea>
+
+      <p class="info">
+        Biztonsági szabály: API kulcsot ne írj bele forráskódba! 
+	Ha publikussá teszed, bárki használhatja a szolgáltatást a nevedben!
+      </p>
+
+      <p>
+      Persze elsőre talán nem tűnik túl hasznosnak ilyen programot írni,
+      hiszen a böngészőben futó kényelmes webfelületen is beírhatnád a promptot.
+      De gondolj csak bele, mi van, ha monjuk több száz fájlon szeretnél
+      mondjuk excel táblákban tárolt kérdéseket futtatni egy szabályrendszer szerint?
+      Vagy mondjuk automatikusan végrehatjani egy LLM elemzést, ha
+      valaki egy bizonyos típusú fájlt dob be egy bizonyos mappába!
+      Ezt mind könnyedén meg tudod csinálni, ezzel a módszerrel.
+      </p>
+    </section>
+
+    <section>
+      <h2>3. csv-parse – CSV beolvasása pár sorban</h2>
+      <p>
+        A mérnöki gyakorlatban az adatcsere sokszor CSV-ben történik. A <strong>csv-parse</strong> gyorsan és megbízhatóan alakítja át
+        a CSV szöveget objektumokká. (Egyszerű esetben nem lenne éppen nehéz megírni a kódot, mert a CSV nagyon egyszerű formátum, 
+	de a speciális esetek és kódolások kezelése már macerás lehet. Praktikusabb a könyvtár).
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: parse-csv.mjs
+import { parse } from "csv-parse/sync"
+import { readFile } from "node:fs/promises"
+
+const text = await readFile("input.csv", "utf8")
+
+const rows = parse(text, {
+  columns: true,        // első sor: oszlopnevek
+  skip_empty_lines: true,
+  trim: true
+})
+
+console.log("Sorok száma:", rows.length)
+console.log("Első sor objektumként:", rows[0])
+      </textarea>
+    </section>
+
+    <section>
+      <h2>4. xlsx – Excel olvasás/írás</h2>
+      <p>
+        A cégek rengeteg adatot tárolnak még ma is Excelben. Az <strong>xlsx</strong> könyvtárral könnyen tudsz táblákat
+        beolvasni és generálni.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: write-xlsx.mjs
+import * as XLSX from "xlsx"
+
+// Adatok JavaScript objektumokként:
+const data = [
+  { name: "A", value: 10 },
+  { name: "B", value: 42 },
+  { name: "C", value: 7 }
+]
+
+// Létrehozunk egy munkafüzetet és egy munkalapot:
+const wb = XLSX.utils.book_new()
+const ws = XLSX.utils.json_to_sheet(data)
+
+XLSX.utils.book_append_sheet(wb, ws, "Riport")
+
+// Kiírjuk fájlba:
+XLSX.writeFile(wb, "report.xlsx")
+
+console.log("Kész: report.xlsx")
+      </textarea>
+
+      <p>
+        A beolvasás is hasonlóan egyszerű:
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: read-xlsx.mjs
+import * as XLSX from "xlsx"
+
+const wb = XLSX.readFile("report.xlsx")
+const sheetName = wb.SheetNames[0]
+const ws = wb.Sheets[sheetName]
+
+// Munkalap -> JSON (objektum lista)
+const rows = XLSX.utils.sheet_to_json(ws)
+
+console.log("Beolvasott sorok:", rows)
+      </textarea>
+    </section>
+
+    <section>
+      <h2>5. chokidar – fájlfigyelés: automatizálás "eseményre"</h2>
+      <p>
+        Automatizálásnál gyakori igény, hogy ha megjelenik egy új fájl egy mappában, akkor induljon el a feldolgozás.
+	Például feltöltöttek valamit, vagy egyszerűen csak bemásoltad a mappába a fájlt.
+        A <strong>chokidar</strong> erre egy egyszerű és stabil megoldás.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: watch-folder.mjs
+import chokidar from "chokidar"
+
+const watchPath = "./inbox"
+
+console.log("Figyelem ezt a mappát:", watchPath)
+
+const watcher = chokidar.watch(watchPath, {
+  ignoreInitial: true
+})
+
+watcher.on("add", (filePath) => {
+  console.log("Új fájl érkezett:", filePath)
+  // Itt indíthatnál CSV feldolgozást, Excel exportot, stb.
+})
+
+watcher.on("error", (err) => {
+  console.error("Watcher hiba:", err)
+})
+      </textarea>
+
+      <p class="info">
+        A chokidar használható teljes mappafák figyelésére is, és jól kezeli a platformok közötti különbségeket.
+      </p>
+    </section>
+
+    <section>
+      <h2>6. execa – külső program futtatása elegánsan</h2>
+      <p>
+        A Node használható szervezőként ("orchestrator"). Ilyenkor külső parancsokat futtatsz és a kimenetük alapján döntesz. 
+        A <strong>execa</strong> a <code>child_process</code> modernebb, promise-alapú és kényelmesebb csomagolása.
+      </p>
+
+      <p>
+        Az alábbi példa úgy futtat egy parancsot, hogy az több operációs rendszeren is működjön:
+        Itt most példaként a Node saját végrehajtható állományát indítjuk el (<code>process.execPath</code>) és lekérjük a verziót (<code>-v</code>),
+	de nyilván bármi mást is elindíthatnál ami telepítve van: AutoCAD-et, Excel-et, stb.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: run-external.mjs
+import { execa } from "execa"
+
+try {
+  const { stdout, exitCode } = await execa(process.execPath, ["-v"])
+  console.log("Kilépési kód:", exitCode)
+  console.log("Kimenet:", stdout)
+} catch (err) {
+  // execa itt dob hibát, ha a parancs hibával tér vissza
+  console.error("Parancs futtatási hiba:", err.message)
+}
+      </textarea>
+
+      <p>
+        Ez egy nagyon hasznos minta, ha munkafolyamatokat szeretnél automatizálni, ahol a Node csak "összeköti" a lépéseket
+        (pl. konvertálás → validálás → export).
+      </p>
+    </section>
+
+    <section>
+      <h2>7. További hasznos csomagok</h2>
+      <p>
+        Alább felsoroltunk néhány további csomagot, amit érdemes ismerni. 
+        Sok projektben találkozhatunk velük és jó tudni, hogy léteznek.
+      </p>
+
+      <ul>
+        <li>
+          <strong>cheerio</strong> – HTML feldolgozás Node-ban (DOM-szerű API). Jó, ha weboldalból kell adatot kinyerni,
+          vagy HTML dokumentumot kell analizálni.
+        </li>
+        <li>
+          <strong>pdfkit</strong> – PDF generálás programból. Automatizált riportolásnál, jelentéskészítésnél nagyon hasznos.
+        </li>
+        <li>
+          <strong>dayjs</strong> – dátum/idő formázás és számolás egyszerűbben, mint a beépített <code>Date</code>-tel.
+          Tipikusan logok, riportok, időablakok, idősoros adatok kapcsán jön elő.
+        </li>
+      </ul>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>
