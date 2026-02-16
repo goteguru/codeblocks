@@ -116,11 +116,10 @@ function saveChart(key, chart) {
 
   <main>
     <section class="task">
-      <h3>0. Bemelegítés – "console grafikon" (ASCII oszlopok)</h3>
-      <p class="meta">
-        Cél: lásd, hogy a "grafikon" valójában <em>adat → reprezentáció</em>. Itt most a reprezentáció szöveg.
+      <h3>0. Bemelegítés - "konzol grafikon"</h3>
+      <p>
+      Készíts egy szuper egyszerű konzol-grafikont (mint a gyakorlatban volt).
       </p>
-
       <div class="goal">
         <strong>Elvárt eredmény:</strong> a konzolon 12 sor "oszlop" jelenjen meg, és a leghosszabb legyen kb. 30 karakter.
       </div>
@@ -129,7 +128,7 @@ function saveChart(key, chart) {
 /*
 Feladat:
 - Adott a "data" tömb (12 adatpont).
-- Írj ki a konzolra "█" karakterekből oszlopokat.
+- Írj ki a konzolra "⎯" karakterekből oszlopokat.
 - TODO: skálázd úgy, hogy a maximum érték kb. 30 széles legyen.
 
 Hint: max érték: Math.max(...data)
@@ -148,7 +147,7 @@ for (const value of data) {
   // TODO: számold ki a skálázott szélességet (egész számra kerekítve)
   const width = 0
 
-  console.log("█".repeat(width))
+  // TODO: rajzolj width darab "⎯" karaktert (repeat)
 }
       </textarea>
 
@@ -159,6 +158,7 @@ for (const value of data) {
           <pre><code>const max = Math.max(...data);
 const width = Math.round((value / max) * targetWidth);</code></pre>
           <p>Ha zavar a 0 hosszúság, használhatsz minimumot: <code>Math.max(1, width)</code>.</p>
+	  <p><code>console.log("⎯".repeat(width))</code></p>
         </div>
       </details>
     </section>
