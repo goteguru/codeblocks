@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript nyelvi alapok – 9.2 lecke</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+<body>
+  <header>
+    <h1>9.2 – Mini projekt (core modulok): Könyvtár-statisztika generátor</h1>
+    <p>
+      Ebben a mini projektben egy parancssori Node.js programot építünk fel lépésről lépésre.
+      Tegyük fel, hogy szeretnénk statisztikákat készíteni egy mappában található fájlokról.
+      Tervezzünk egy programot ami bejár egy mappát (pl. <code>./demo</code>),
+      és közben statisztikát készít a fájlokról (darabszám, összméret, kiterjesztések),
+      majd a végén egy <code>report.txt</code> fájlba menti az eredményt.
+    </p>
+    <p class="info">
+      A kód most is a szokásos <code>&lt;textarea&gt;</code> formátumban lesz,
+      de ezeket a saját gépeden kell futtatnod Node-ban (vagy online környezetben).
+      A kódrészleteket nyugodtan át is másolhatod, és egészítsd ki ahol szükséges (vagy ahol szeretnéd).
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>0. Előkészítés</h2>
+      <p>
+        Hozz létre egy új mappát a projekthez, és abban pár teszt fájlt/mappát, hogy legyen mit bejárni.
+	(Vagy a legegyszerűbb ha átmásolsz, vagy majd használsz egy már meglévőt, például a Dokumentumok könyvtárat)
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// Terminálban :
+
+mkdir dir-stats-demo
+cd dir-stats-demo
+
+mkdir demo
+mkdir demo/sub
+echo "hello" > demo/a.txt
+echo "world" > demo/b.txt
+echo "console.log('x')" > demo/c.js
+echo "alma,korte" > demo/sub/data.csv
+      </textarea>
+
+      <p>
+      Az echo sorok fájlokat hoznak létre, ha nincs más ötleted, de ide is másolhatsz pár fájlt és könyvtárat.
+      </p>
+      <p>
+        A programunk a projekt gyökerében lesz, például <code>main.mjs</code> néven, és a <code>demo</code> mappát fogja elemezni.
+	(Vagy amit megadunk neki).
+      </p>
+    </section>
+
+    <section>
+      <h2>1. lépés - CLI: célkönyvtár beolvasása</h2>
+      <p>
+        Először koncentráljunk arra, hogy a program argumentumként beolvasson egy célkönyvtárat. Ha nem adsz meg semmit,
+        legyen az alapértelmezett a <code>./demo</code>.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: main.mjs
+import path from "node:path"
+
+const args = process.argv.slice(2)
+const targetDir = // todo: találd ki ide mit kéne írni...
+// ne feledd: a slice már kivágta a node és a program nevét
+
+console.log("Célkönyvtár:", targetDir)
+console.log("Abszolút útvonal:", path.resolve(targetDir))
+
+console.log("Következő lépés: listázzuk a fájlokat ebben a könyvtárban.")
+      </textarea>
+
+      <p>Futtatás:</p>
+      <textarea data-lang="js" data-readonly>
+// Terminál:
+node main.mjs
+node main.mjs ./demo
+      </textarea>
+      <p>Ha jól csináltad ki kéne írja a könyvtár nevét amit elemezni fog.
+    </section>
+
+    <section>
+      <h2>2. lépés - Könyvtár listázása (csak egy szint)</h2>
+      <p>
+        Most a célkönyvtár közvetlen tartalmát listázzuk ki. Itt még nem megyünk bele az almappákba, csak megmutatjuk,
+        hogy a <code>fs.promises.readdir</code> hogyan működik.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// fájl: main.mjs  (a korábbi helyett ezt írd be)
+import path from "node:path"
+import { readdir } from "node:fs/promises"
+
+const args = process.argv.slice(2)
+// ha másként csináltad és működik akkor az is jó...
+const targetDir = args[0] ?? "./demo"
+const abs = path.resolve(targetDir)
+
+console.log("Célkönyvtár:", abs)
+
+const entries = await readdir(abs, { withFileTypes: true })
+
+for (const e of entries) {
+  const kind = e.isDirectory() ? "DIR " : "FILE"
+  // itt írd ki a típust (kind) és a fájlbejegyzés nevét (e.name)
+  // TODO: kiiratás
+}
+
+      </textarea>
+
+      <p>Futtatás:</p>
+      <textarea data-lang="js" data-readonly>
+node main.mjs
+      </textarea>
+    </section>
+
+    <section>
+      <h2>3. lépés - Rekurzív bejárás + alap statisztika (db, méret)</h2>
+      <p>
+        Most jöhet egy igazán izgalmas lépés: a rekurzió. 
+	Készítsünk ebből a könyvtárlistázó kódból egy aszinkron függvényt.
+	(Azért kell aszinkron mert a readdir() függvényt használjuk majd
+	benne ami aszinkron és await-el várni kell a befejeződésére.)
+      </p>
+      <textarea data-lang="js" data-readonly>
+
+async function listDir(dir) {
+  console.log(dir)
+  const entries = await readdir(dir, { withFileTypes: true })
+  for (const e of entries) {
+    const kind = e.isDirectory() ? "DIR " : "FILE"
+  }
+}
+
+//így tudjuk használni:
+await listDir("./demo")
+      </textarea>
+      <p>
+      Akkor most tulajdonképpen van egy függvényünk 
+      ami kilistáz egy könyvtárat. No de mi van ha egy könyvtárat 
+      találunk a könyvtárban? Nem probléma! Hívjuk meg a kilistázó
+      függvényt erre is! </p>
+      <p>
+      Meghívjuk a függvényt saját magában? Lehet ilyet? Ha ésszel csináljuk, akkor abszolút lehet.
+      Ez a rekurzió! Persze nyilván csak a könyvtárakban lévő elemeket érdemes listázni,
+      hiszen a fájlokban már nincs további fájl (csak adat). Tehát ki kell válogatni őket.
+      </p>
+      <textarea data-lang="js" data-readonly>
+
+import path from "node:path"
+import { readdir } from "node:fs/promises"
+
+async function listDir(dir) {
+  console.log(dir)
+  const entries = await readdir(dir, { withFileTypes: true })
+  for (const e of entries) {
+    if (e.isDirectory()) 
+      await listDir(path.join(dir, e.name))
+  }
+}
+
+await listDir("./demo")
+      </textarea>
+
+      <p>
+      Szuper. Csak van egy kis gond! Ez a függvény most
+      csak kiírja a képernyőre a fájlneveket, nekünk viszont 
+      össze kéne gyűjtenünk a statisztikákat. (pl. fájlméret)
+      </p>
+      <p>
+      Ezeket a statisztikákat viszont valahova tenni kellene.
+      Hiszen a függvény a saját belső változóit "elfelejti".
+      Kéne tehát valami tároló ami az eredményt megjegyzi.
+      </p>
+      <p>
+      Találjunk ki egy struktúrát (pl.: <code>{ dirCount: 0, fileCount: 0 }</code>).
+      Adjuk át ezt is paraméterként a függvénynek, mondjuk acc (accumulator) néven,
+      és máris van hely hova pakolni az eredményt!
+      </p>
+
+<textarea data-lang="js" data-readonly>
+async function listDir(dir, acc) {
+  console.log(dir)
+  const entries = await readdir(dir, { withFileTypes: true })
+  for (const e of entries) {
+    if (e.isDirectory()) {
+      await listDir(path.join(dir, e.name), acc)
+      acc.dirCount++
+    } else {
+      acc.fileCount++
+    }
+  }
+}
+
+// ez lesz a tároló
+const acc = { dirCount: 0, fileCount: 0 }
+// meghívjuk a függvényt:
+await listDir("./data", acc)
+</textarea>
+      <p class="info">
+      Persze azt is megtehettük volna, hogy *nem* adjuk át paraméterként
+      a függvénynek, hanem csak írunk bele, hiszen a belső függvény
+      a "külső" változót "látja". Ez azonban "csúnya" megoldás,
+      mindig jobb expliciten megadni, hogy hova írjon a függvény. Képzeld el,
+      mi történne, ha két példányban is elindítanád (két külön könyvtárat is statisztikázni szeretnél)! 
+      Ha *ugyanabba* a közös globális változóba írnának, csak az az összeget kapnád meg!
+      Ha viszont átadod paraméterként, nyugodtan csinálhatsz mindkettőnek külön tárhelyet.
+      </p>
+      <textarea data-lang="js" data-readonly>
+const acc1 = { dirCount: 0, fileCount: 0 }
+const acc2 = { dirCount: 0, fileCount: 0 }
+
+// mivel nem várunk rájuk "párhuzamosan" futnak...
+listDir("./path1", acc1)
+listDir("./path2", acc2)
+      </textarea>
+      <p>
+      Vértezzük fel még néhány képességgel: 
+      Például bizonyos fájlokat vagy típusokat ne listázzon.
+      (Használjunk Set-et).
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+import path from "node:path"
+import { readdir, stat } from "node:fs/promises"
+
+const args = process.argv.slice(2)
+const targetDir = args[0] ?? "./demo"
+const root = path.resolve(targetDir)
+
+// Mit ne listázzon?
+const IGNORE = new Set(["node_modules", ".git"])
+
+async function listDir(dir, acc) {
+  const entries = await readdir(dir, { withFileTypes: true })
+
+  for (const e of entries) {
+    if (IGNORE.has(e.name)) continue
+
+    const fullPath = path.join(dir, e.name)
+
+    if (e.isDirectory()) {
+      acc.dirCount += 1
+      await listDir(fullPath, acc)
+    } else if (e.isFile()) {
+      const s = await stat(fullPath)
+      acc.fileCount += 1
+      acc.totalBytes += s.size
+    }
+  }
+}
+
+const acc = { dirCount: 0, fileCount: 0, totalBytes: 0 }
+
+console.log("Bejárás indul:", root)
+await listDir(root, acc)
+
+console.log("Könyvtárak:", acc.dirCount)
+console.log("Fájlok:", acc.fileCount)
+console.log("Összméret (byte):", acc.totalBytes)
+      </textarea>
+    </section>
+
+    <section>
+      <h2>4. lépés – Kiterjesztés statisztika + report.txt mentés</h2>
+      <p>
+        Most kibővítjük a gyűjtést: fájl kiterjesztésenként számolunk darabszámot, majd egy egyszerű szöveges riportot mentünk.
+        A riport formátuma direkt ember-olvasható.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+function formatBytes(bytes) {
+  // Minimalista: ember-olvasható méret (KB/MB/GB)
+  const units = ["B", "KB", "MB", "GB", "TB"]
+  let v = bytes
+  let i = 0
+  while (v &gt;= 1024 && i &lt; units.length - 1) {
+    v /= 1024
+    i += 1
+  }
+  return `${v.toFixed(i === 0 ? 0 : 2)} ${units[i]}`
+}
+
+const acc = { dirCount: 0, fileCount: 0, totalBytes: 0, extCounts: {} }
+await listDir(root, acc)
+
+// Kiterjesztések rendezése darabszám szerint (csökkenő)
+const extLines = Object.entries(acc.extCounts)
+  .sort((a, b) => b[1] - a[1])
+  .map(([ext, count]) => `${ext.padEnd(10)} ${String(count).padStart(6)} db`)
+  .join("\n")
+
+const report = [
+  "Directory statistics report",
+  "==========================",
+  "",
+  `Target:   ${root}`,
+  `Dirs:     ${acc.dirCount}`,
+  `Files:    ${acc.fileCount}`,
+  `Total:    ${acc.totalBytes} bytes (${formatBytes(acc.totalBytes)})`,
+  "",
+  "By extension:",
+  "------------",
+  extLines || "(no files)",
+  "",
+].join("\n")
+
+await writeFile(reportPath, report, "utf8")
+
+console.log("Riport elkészült:", reportPath)
+      </textarea>
+
+      <p>Futtatás és eredmény ellenőrzése:</p>
+      <textarea data-lang="js" data-readonly>
+// Terminál:
+node main.mjs ./demo
+
+// Nézd meg a report.txt-t (bármelyik szövegszerkesztővel).
+      </textarea>
+
+      <p class="info">
+        Tipp: ha nagy mappát elemzel, gyakran érdemes kizárni az olyankönyvtárakat ahol túl sok fájl lehet (ahogy a kódban tettük).
+      </p>
+    </section>
+
+    <section>
+      <h2>Opcionális feladat – Gondolkodj el rajta: report.txt helyett report.json</h2>
+      <p>
+        Ebben a kódban szöveges jelentést használtunk Sok automatizálási folyamatban viszont
+        praktikusabb JSON-t alkalmazni, mert azt más programok is könnyen be tudják olvasni.
+      </p>
+      <p>
+        <strong>Feladat:</strong> gondold végig, hogyan nézne ki ugyanennek a programnak egy <code>report.json</code> kimenete.
+        Például ilyen struktúrával:
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// Példa ötlet (nem kész megoldás):
+// {
+//   "target": "...",
+//   "dirCount": 12,
+//   "fileCount": 140,
+//   "totalBytes": 123456,
+//   "extCounts": { ".txt": 10, ".js": 5, "(no-ext)": 2 }
+// }
+      </textarea>
+
+      <p>
+        Tipp: a mentéshez <code>JSON.stringify(obj, null, 2)</code>, majd <code>writeFile(...)</code>.
+      </p>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>
