@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript automatizálás – 11. fejezet (2. rész): Google Workspace tutorial</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+
+<body>
+  <header>
+    <h1>11. fejezet – 2. rész: Google Workspace automatizálás (tutorial)</h1>
+    <p>
+      Ebben a fejezetben egy konkrét példán keresztül, <strong>lépésről lépésre</strong> végigcsinálunk egy
+      automatizálási feladatot a teljes <strong>Google Forms → Google Sheets → Apps Script → Gmail/Drive</strong> láncon.
+      Megnézzük, hogyan néznek ki ezek a felületek, <em>hogyan adhatsz jogosultságot</em>, és
+      <em>hogyan futtathatod automatikusan (triggerrel)</em> a kódot.
+    </p>
+    <p>
+    Nem kell megijedni, sokkal egyszerűbb, mint amilyennek hangzik!
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>0. A TERV (mit fogsz elkészíteni?)</h2>
+      <p>
+        A következő rendszert szeretnénk összekalapálni:
+      </p>
+      <ol>
+        <li>Készítettünk egy <strong>Google Form</strong> űrlapot, amin valaki beküld egy igényt / jelentkezést.</li>
+        <li>Az űrlap válaszai automatikusan egy <strong>Google Sheets</strong> táblába kerülnek.</li>
+        <li><strong>minden beküldésnél</strong> automatikusan lefut egy <strong>Apps Script</strong> (trigger).</li>
+        <li>A script:
+          <ul>
+            <li>ellenőrzi a beküldött adatot (validáció),</li>
+            <li>generál egy <strong>azonosítót</strong> (ID),</li>
+            <li>beállít egy <strong>státuszt</strong> (pl. NEW),</li>
+            <li>küld egy <strong>visszaigazoló emailt</strong> a beküldőnek,</li>
+            <li>és készít egy <strong>archív összefoglalót</strong> a Drive-on egy mappába.</li>
+          </ul>
+        </li>
+        <li>Opcionális: beállíthatsz egy <strong>napi összesítő</strong> emailt időzített triggerrel.</li>
+      </ol>
+
+      <p class="info">
+        Nem annyira a "programozási feladvány" a lényeg, úgyis LLM-el íratod meg eleinte. 
+	Ha el tudod olvasni a kódot az már bőven jó. A cél az, hogy a Google Workspace környezetben
+        megértsd a teljes folyamatot: létrehozás → jogosítás → futtatás → trigger.
+      </p>
+
+    </section>
+
+    <section>
+      <h2>1. Google Form létrehozása és Sheets-hez kötése (gyors, de követhető)</h2>
+
+      <article>
+        <h3>1.1. Google Form létrehozása</h3>
+	<a href="https://docs.google.com/forms" target="_blank"><img src="es_11_1_gform.png"> </a>
+        <ol>
+          <li>Nyisd meg a Google Drive-ot (vagy csak kattints a fenti képre).</li>
+          <li>Driveon: <strong>Új</strong> → <strong>Továbbiak</strong> → <strong>Google Űrlapok</strong>.</li>
+          <li>Add meg a címét, pl.: <strong>"Igénybejelentés"</strong> vagy ami tetszik.</li>
+          <li>Adj hozzá pár mezőt (az emailt ne hagyd ki, mert ide szeretnénk levelet küldeni):
+            <ul>
+              <li><strong>Név</strong> (rövid válasz)</li>
+              <li><strong>Email</strong> (rövid válasz)</li>
+              <li><strong>Téma</strong> (rövid válasz)</li>
+              <li><strong>Leírás</strong> (bekezdés)</li>
+            </ul>
+          </li>
+          <li>Opcionális: állíts be kötelező mezőket (kapcsoló: <strong>Kötelező</strong>).</li>
+        </ol>
+	<p>
+	<img src="es_11_2_gform.png">
+	</p>
+      </article>
+
+      <article>
+        <h3>1.2. Válaszok táblázatba mentése (Sheets-hez kötés)</h3>
+        <ol>
+          <li>Az űrlap tetején nyisd meg a <strong>Válaszok</strong> fület.</li>
+          <li>Kattints a zöld Sheets ikonra (táblázat létrehozása).</li>
+          <li>Válaszd: <strong>Új táblázat létrehozása</strong>.</li>
+          <li>Adj neki nevet, pl. <strong>"Igénybejelentések – válaszok"</strong>.</li>
+          <li>Kattints: <strong>Létrehozás</strong>.</li>
+        </ol>
+        <p >
+	Ha sikerrel jártál, valami ilyesmit kéne látnod:
+        </p>
+	<img src="es_11_3_sheets.png">
+        <p class="info">
+          Ettől kezdve minden beküldés új sor lesz a táblázatban (timestamp + mezők oszlopokban).
+        </p>
+        <p >
+	Kattints a linkre és várd meg amíg (egy új fülön) megnyílik a sheets. Ha publikálod az
+	űrlapodat (közzététel) és a kapott linket megnyitod, akár ki is próbálhatod:
+	ha felviszel az űrlapon valamit, az itt automatikusan megjelenik!
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Apps Script projekt létrehozása a táblázathoz </h2>
+
+      <article>
+        <h3>2.1. Script editor megnyitása</h3>
+        <ol>
+          <li>Nyisd meg a létrejött Google Sheets táblázatot.</li>
+          <li>A menüben kattints: <strong>Bővítmények (Extensions)</strong> → <strong>Apps Script</strong>.</li>
+          <li>Megnyílik az Apps Script szerkesztő egy új projekttel.</li>
+          <li>A bal felső sarokban nevezd át a projektet pl.: <strong>"Igénykezelő automatizálás"</strong>.</li>
+        </ol>
+        <p class="info">
+          Ez egy <strong>bound script</strong>: a script "hozzá van kötve" ehhez a táblázathoz, így könnyebb elérni
+          az aktív táblázatot és a triggerek is tipikusan ehhez kötődnek.
+        </p>
+        <p><em>Screenshot helye:</em> "Extensions → Apps Script menü és a Script editor felülete".</p>
+      </article>
+
+      <article>
+        <h3>2.2. Alapfájlok</h3>
+        <p>
+          Alapesetben lesz egy <code>Code.gs</code> fájl. Mi most ebbe fogjuk beírni a kódot (később lehet szétbontani több fájlra).
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. A kód bemásolása</h2>
+	<p>
+	Jöhet a lényeg, a kód!
+	</p>
+      <p>
+        Másold be az alábbi kódot a <code>Code.gs</code> fájlba, a meglévő tartalom helyére. (Arra nem lesz szükség, csak példa).
+      </p>
+	<img src="es_11_4_gs.png">
+      <p>
+      A kód nem rövid, (ezt itt alább éppen a chatGPT írta nekem) de azért csak nézd át. Sosem árt,
+      ha az ember legalább nagyjából tudja mit futtat az adatain ;). Végül is épp azért dolgoztunk ennyit, hogy el tudd olvasni.
+      </p>
+      <p>
+      (Ha esetleg valamelyik rész mégsem lenne világos, akkor a fenti célokkal együtt másold 
+      be a kedvenc LLM modelledbe és kérdezd meg miért pont úgy csinálta).
+      </p>
+
+      <article>
+        <h3>3.1. Konfiguráció (mappanév, oszlopok)</h3>
+        <textarea data-lang="js" data-readonly>
+/**
+ * KONFIGURÁCIÓ
+ * - ARCHIVE_FOLDER_NAME: ide mentjük a beküldések összefoglaló fájljait a Drive-on
+ * - EXPECTED_HEADERS: ezek alapján keressük meg a megfelelő oszlopokat
+ */
+const ARCHIVE_FOLDER_NAME = "Igenybejelentes_Archive";
+const EXPECTED_HEADERS = ["Timestamp", "Név", "Email", "Téma", "Leírás"];
+
+// Opcionális: ide küldjük a napi összesítőt (alapesetben saját magadnak)
+const DAILY_DIGEST_TO = "idejön@az.email.cimed.hu"
+
+        </textarea>
+	<p> 
+	Természetesen ha te nem ezeket a mezőket hoztad létre az űrlapodon,
+	akkor más EXPECTED_HEADERS-t adj meg!
+	</p>
+      </article>
+
+      <article>
+        <h3>3.2. Fő belépési pont: form beküldés feldolgozása</h3>
+	<p>Ezt fogja majd meghívni a "trigger" vagyis a feltöltési esemény.</p>
+        <textarea data-lang="js" data-readonly>
+/**
+ * Ezt a függvényt fogja hívni az "On form submit" trigger.
+ * Paraméter: e (event object) - a beküldés adatai (Sheets/Forms eseményből)
+ */
+function handleFormSubmit(e) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getActiveSheet(); // a válaszokat tartalmazó sheet
+
+  const headerMap = getHeaderMap_(sheet);
+  const row = e && e.range ? e.range.getRow() : sheet.getLastRow();
+
+  // Beolvasás a beküldött sorból
+  const record = readRecord_(sheet, headerMap, row);
+
+  // 1) Validáció (minimum elvárás: legyen email + téma)
+  const errors = validateRecord_(record);
+  if (errors.length > 0) {
+    // Hibás beküldés esetén is archiválunk, de a státusz ERROR lesz és nem küldünk a beküldőnek emailt
+    writeBack_(sheet, headerMap, row, { Status: "ERROR", Error: errors.join("; ") });
+    archiveRecord_(record, "ERROR");
+    sendAdminAlert_(record, errors);
+    return;
+  }
+
+  // 2) Azonosító és státusz
+  const id = generateId_();
+  record.ID = id;
+  record.Status = "NEW";
+
+  // 3) Visszaírás a táblázatba (új oszlopok: ID, Status, ProcessedAt)
+  writeBack_(sheet, headerMap, row, {
+    ID: id,
+    Status: "NEW",
+    ProcessedAt: new Date()
+  });
+
+  // 4) Archiválás Drive-ra
+  archiveRecord_(record, "NEW");
+
+  // 5) Email visszaigazolás
+  sendConfirmation_(record);
+}
+        </textarea>
+      </article>
+
+      <article>
+        <h3>3.3. Segédfüggvények </h3>
+	<p>
+	Végül tegyünk még hozzá néhány segédfüggvényt (olvasás, validáció, írás, email, archiválás).
+	persze beleírhatta volna az "AI" ezt is a triggerbe, de nem tette és jó okkal.
+	Ha mindent oda halmoztunk volna, nemigen tudnád végigolvasni. Így viszont 
+	az logikailag szétválasztható funkcionalitás külön függvényben van
+	és el tudod dönteni, hogy jó-e, ezt szeretted volna-e vagy sem.
+	</p>
+	<p>
+	Figyeld meg, hogy a függvények neve végére egy aláhúzásjelet rakott.
+	Ez nem kötelező (inkább tradíció) és azt szokták vele jelölni,
+	hogy ezek a függvények nem "globális" függvények (egyébként
+	a függvényeid bárhonnan hívhatók), hanem csak ennek a scriptnek
+	a segédfüggvényei, és nem akarjuk sehol máshol használni őket,
+	mint a "fő" trigger függvényben. 
+	</p>
+	<p>
+	Az Apps Script ismeri a tradíciót és fent a futtatandó függvények 
+	listájában nem is fogja mutatni őket!
+	</p>
+	<img src="es_11_5_run.png">
+        <textarea data-lang="js" data-readonly>
+function getHeaderMap_(sheet) {
+  const headerRow = 1;
+  const headers = sheet.getRange(headerRow, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const map = {};
+  headers.forEach((h, idx) => {
+    if (h) map[String(h).trim()] = idx + 1; // 1-based column index
+  });
+  return map;
+}
+
+function readRecord_(sheet, headerMap, row) {
+  const get = (name) => {
+    const col = headerMap[name];
+    return col ? sheet.getRange(row, col).getValue() : "";
+  };
+
+  return {
+    Timestamp: get("Timestamp"),
+    "Név": get("Név"),
+    Email: get("Email"),
+    "Téma": get("Téma"),
+    "Leírás": get("Leírás")
+  };
+}
+
+function validateRecord_(r) {
+  const errors = [];
+  const email = String(r.Email || "").trim();
+  const topic = String(r["Téma"] || "").trim();
+
+  if (!email) errors.push("Hiányzó Email");
+  if (email && !email.includes("@")) errors.push("Az Email nem tűnik valós címnek");
+  if (!topic) errors.push("Hiányzó Téma");
+
+  return errors;
+}
+
+function generateId_() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  const id =
+    d.getFullYear() +
+    pad(d.getMonth() + 1) +
+    pad(d.getDate()) + "-" +
+    pad(d.getHours()) +
+    pad(d.getMinutes()) +
+    pad(d.getSeconds()) + "-" +
+    Math.floor(Math.random() * 1000);
+  return id;
+}
+
+function ensureColumn_(sheet, headerMap, name) {
+  if (headerMap[name]) return headerMap[name];
+  const col = sheet.getLastColumn() + 1;
+  sheet.getRange(1, col).setValue(name);
+  headerMap[name] = col;
+  return col;
+}
+
+function writeBack_(sheet, headerMap, row, fields) {
+  Object.keys(fields).forEach((k) => ensureColumn_(sheet, headerMap, k));
+  Object.entries(fields).forEach(([k, v]) => {
+    sheet.getRange(row, headerMap[k]).setValue(v);
+  });
+}
+
+function getOrCreateFolder_() {
+  const it = DriveApp.getFoldersByName(ARCHIVE_FOLDER_NAME);
+  if (it.hasNext()) return it.next();
+  return DriveApp.createFolder(ARCHIVE_FOLDER_NAME);
+}
+
+function archiveRecord_(record, status) {
+  const folder = getOrCreateFolder_();
+
+  const lines = [
+    `Status: ${status}`,
+    `ID: ${record.ID || ""}`,
+    `Timestamp: ${record.Timestamp || ""}`,
+    `Név: ${record["Név"] || ""}`,
+    `Email: ${record.Email || ""}`,
+    `Téma: ${record["Téma"] || ""}`,
+    "",
+    "Leírás:",
+    String(record["Leírás"] || "")
+  ];
+
+  const fileName = `igeny_${record.ID || ("noid_" + Date.now())}.txt`;
+  folder.createFile(fileName, lines.join("\n"), MimeType.PLAIN_TEXT);
+}
+
+function sendConfirmation_(record) {
+  const to = String(record.Email).trim();
+  const subject = `Visszaigazolás – igény rögzítve (${record.ID})`;
+
+  const body =
+`Szia ${record["Név"] || ""}!
+
+Rögzítettük az igényedet.
+
+Azonosító: ${record.ID}
+Téma: ${record["Téma"]}
+
+Rövidesen feldolgozzuk.
+
+Üdv,
+Automata rendszer`;
+
+  MailApp.sendEmail(to, subject, body);
+}
+
+function sendAdminAlert_(record, errors) {
+  const subject = "Hibás űrlap beküldés érkezett";
+  const body =
+`Hiba: ${errors.join("; ")}
+
+Beküldés:
+Név: ${record["Név"] || ""}
+Email: ${record.Email || ""}
+Téma: ${record["Téma"] || ""}
+Leírás: ${record["Leírás"] || ""}`;
+  MailApp.sendEmail(DAILY_DIGEST_TO, subject, body);
+}
+        </textarea>
+	<p>Mit gondolsz, mit csinál a senConfirmation_ függvény? (Na jó, ez nem túl fogós.) No és az ensureColumn_?</p>
+      </article>
+
+      <article>
+        <h3>3.4. Opcionális: napi összesítő email (time-driven triggerhez)</h3>
+        <textarea data-lang="js" data-readonly>
+function sendDailyDigest() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getActiveSheet();
+
+  const headerMap = getHeaderMap_(sheet);
+  const data = sheet.getDataRange().getValues();
+
+  const colStatus = headerMap["Status"];
+  const colId = headerMap["ID"];
+  const colTopic = headerMap["Téma"];
+  const colEmail = headerMap["Email"];
+  const colTs = headerMap["Timestamp"];
+
+  if (!colStatus || !colId) {
+    MailApp.sendEmail(DAILY_DIGEST_TO, "Napi összesítő – nincs még feldolgozott adat", "Még nincs Status/ID oszlop.");
+    return;
+  }
+
+  const today = new Date();
+  const y = today.getFullYear(), m = today.getMonth(), d = today.getDate();
+  const start = new Date(y, m, d, 0, 0, 0);
+  const end = new Date(y, m, d, 23, 59, 59);
+
+  const items = [];
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const status = row[colStatus - 1];
+    if (status !== "NEW") continue;
+
+    const ts = colTs ? row[colTs - 1] : null;
+    const tsDate = ts instanceof Date ? ts : null;
+    if (tsDate && (tsDate < start || tsDate > end)) continue;
+
+    items.push({
+      id: row[colId - 1],
+      topic: colTopic ? row[colTopic - 1] : "",
+      email: colEmail ? row[colEmail - 1] : ""
+    });
+  }
+
+  const subject = `Napi összesítő – NEW igények: ${items.length}`;
+  const body = items.length === 0
+    ? "Ma nem érkezett NEW igény."
+    : items.map(it => `- ${it.id}: ${it.topic} (${it.email})`).join("\n");
+
+  MailApp.sendEmail(DAILY_DIGEST_TO, subject, body);
+}
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Mentés és első manuális futtatás (jogosultságok / OAuth)</h2>
+	<p>Ezen a ponton ha megnyomod a "projekt mentése" gombot (<abbr title="Tudja még valaki mi az a floppy és hogy néz ki?">floppy ikon</abbr>), 
+	akkor tulajdonképpen le tudnád futtatni a programot. De előbb még adnunk kéne neki engedélyeket,
+	és egyébként is azt szeretnénk, hogy "magától" fusson!</p>
+
+      <article>
+        <h3>4.1. Mentés</h3>
+        <ol>
+          <li>Kattints a <strong>Mentés</strong> ikonra (vagy Ctrl+S).</li>
+          <li>Ellenőrizd, hogy nincs piros hiba jelzés (syntax error).</li>
+        </ol>
+      </article>
+
+      <article>
+        <h3>4.2. Első futtatás: jogosultságkérés</h3>
+        <ol>
+          <li>A felső sávban válaszd ki a futtatandó függvényt: <strong>handleFormSubmit/sendDailyDigest</strong>.</li>
+          <li>Kattints: <strong>Futtatás (Run)</strong>.</li>
+          <li>Engedélykérésnél: <strong>Review permissions</strong> → válaszd ki a fiókodat.</li>
+          <li>Ha "This app isn’t verified" jelenik meg: <strong>Advanced</strong> → <strong>Go to ... (unsafe)</strong>.</li>
+          <li>Fogadd el a kért jogosultságokat (Sheets / Gmail / opcionálisan Drive).</li>
+        </ol>
+	<p>
+	A kért jogosultságlista elég impozáns lesz (levélküldés a nevedben,
+	dirve adatok elérése és törlése). Ugye <strong>RENDESEN</strong> elolvastad mit csinál a kód? :)
+	(Ha esetleg mégsem, vagy csak nem bízol a gépekben, lépj be egy másik teszt fiókkal).
+	</p>
+        <p class="info">
+	Honnan tudja a rendszer, hogy mihez kell jogot kérnie? Nos, ez nagyon egyszerű!
+	Látta, hogy a kódban szerepel a MailApp és a DriveApp, tehát azokhoz kell jog.
+	Mivel a jogokat nem szűkítettük (lehetne) ezért mindent kért. Ezért is nem használtuk
+	a GmailApp objektumot, az még ijesztőbb lett volna (pl. összes leveled törlésének képessége)
+	A MailApp hasonló, de az csak küldeni tud levelet.
+        </p>
+	<p>
+	A jogadásról hamarosan kapsz majd egy email értesítést. Ott vissza is tudod vonni majd
+	a jogot, ha nem szeretnéd, hogy így maradjon! (Egyébként a http://security.google.com oldalon is módosíthatod)
+	</p>
+        <p class="info">
+          A triggerek csak akkor tudnak futni, ha egyszer már engedélyezted a scriptet. Ezért kell a "kézi" első futtatás.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Triggerek beállítása (automatikus futtatás)</h2>
+
+      <article>
+        <h3>5.1. On form submit trigger: handleFormSubmit</h3>
+        <ol>
+          <li>Apps Script editor → bal oldalt: <strong>Triggers</strong> (óra ikon).</li>
+          <li><strong>Add Trigger</strong> (ezt valamiért magyarul Aktiválónak hívják).</li>
+          <li>Állítsd be:
+            <ul>
+              <li>Function: <code>handleFormSubmit</code></li>
+              <li>Event source (eseményforrás): <strong>From spreadsheet</strong> (táblázatból)</li>
+              <li>Event type (eseménytípus): <strong>On form submit</strong> (módosításkor)</li>
+              <li>Error report (hibaértesítés) jobb oldalon: legyen azonnali</li>
+            </ul>
+          </li>
+          <li><strong>Save</strong>.</li>
+        </ol>
+      </article>
+
+      <article>
+        <h3>5.2. Opcionális: time-driven trigger a napi összesítőhöz</h3>
+        <ol>
+          <li>Triggers → <strong>Add Trigger</strong></li>
+          <li>Function: <code>sendDailyDigest</code></li>
+          <li>Event source: <strong>Time-driven</strong> → pl. <strong>Day timer</strong></li>
+          <li>Válassz időablakot (pl. 18:00–19:00).</li>
+          <li><strong>Save</strong></li>
+        </ol>
+      </article>
+    </section>
+
+    <section>
+      <h2>6. Teszt: a teljes lánc kipróbálása</h2>
+      <ol>
+        <li>Küldj be egy teszt űrlapot (valós email címmel).</li>
+        <li>Nézd meg Sheets-ben: létrejött-e az <code>ID</code>, <code>Status</code>, <code>ProcessedAt</code> és a Status <code>NEW</code>-e.</li>
+        <li>Nézd meg Gmailben: megjött-e a visszaigazolás.</li>
+        <li>Nézd meg Drive-ban: létrejött-e a <code>Igenybejelentes_Archive</code> mappa és benne a TXT fájl.</li>
+        <li>Ha nem (és bekapcsoltad az azonnali hibajelentést) valószínűleg kaptál a hibáról értesítést</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>7. Tipikus hibák</h2>
+      <ul>
+        <li><strong>Authorization required</strong>: nem futott még le kézzel a script engedélyezéssel.</li>
+        <li><strong>This app isn’t verified</strong>: ez nem hiba, saját scriptnél teljesen rendben van, Advanced → Go to ... (unsafe).</li>
+        <li><strong>Permission denied</strong>: nincs Gmail/Drive scope, vagy más fiók futtatja a scriptedet.</li>
+      </ul>
+    </section>
+
+
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="codeblocks.js"></script>
+</body>
+</html>

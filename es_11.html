@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript automatizálás - 11. fejezet: Office automatizálás (cloud)</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
+</head>
+
+<body>
+  <header>
+    <h1>11. fejezet – Office automatizálás (Google Apps Script és Office Scripts)</h1>
+    <p>
+      Ebben a fejezetben kicsit megkapargatjuk, mit is jelent a felhő alapú <strong>irodai (office) automatizálás</strong>, és
+      hogyan tudunk <strong>JavaScript/TypeScript</strong> segítségével táblázatokat, e-maileket és dokumentumokat
+      programozottan kezelni. Persze ez egy elég komoly téma, sok háttértudást igényel (de hát erre van az LLM),
+      itt annyi a cél, hogy nagyjából:
+      <em>milyen problémákra jó ez</em>, <em>milyen környezetben fut</em>, és <em>hogyan néz ki a kód</em>.
+    </p>
+  </header>
+
+  <main>
+
+    <section>
+      <h2>1. Mi az irodai automatizálás?</h2>
+
+      <article>
+        <h3>1.1. Alapmodell: adat + esemény + szabály + automatikus művelet</h3>
+        <p>
+          Irodai automatizálás alatt azt értjük, amikor a táblázat/űrlap/e-mail/dokumentum környezetben
+          ismétlődő (vagy emberi hibára hajlamos) feladatokat <strong>programozott logikával</strong> végzünk el.
+        </p>
+
+        <p class="info">
+          Tehát itt nem megmondod, hogy csináld-ezt, csináld-azt, hanem: <strong>valamilyen adat megváltozik</strong> (vagy eltelt egy bizonyos idő) →
+          <strong>lefut egy szabály (rendszer)</strong> →
+          <strong>amire válaszul történik valami</strong> (jelölés, számítás, email, riport, fájlmozgatás, stb.).
+        </p>
+      </article>
+
+      <article>
+        <h3>1.2. Mire jó ez nekem?</h3>
+        <p>
+          A felhő alapú irodai automatizálás elég széleskörben elterjedt, és 
+	  minden valószínűség szerint csak még jobban el fog. Sok esetben a meglévő
+	  UI-al is el tudjuk végezni ezeket a feladatokat, csak éppen
+          lassú, hibalehetőség nagy, és rosszul skálázódik (egyszer oké, de 100x
+	  már nem szívesen csinálnád meg). Pár gyakori, valós eset:
+        </p>
+
+        <ul>
+          <li><strong>Validáció</strong>: hibás formátum, hiányzó mezők, duplikációk jelölése.</li>
+          <li><strong>Riportolás</strong>: heti/havi összesítők, dashboard-frissítés.</li>
+          <li><strong>Értesítés</strong>: automatikus email/Teams üzenet, ha "valami történt".</li>
+          <li><strong>Űrlap→feldolgozás→archiválás</strong>: beküldéskor ellenőrzés, mentés Drive/SharePoint alá.</li>
+          <li><strong>Időzített frissítés</strong>: API-ból adat beolvasása, táblázat frissítése naponta.</li>
+        </ul>
+
+        <p>
+          Tulajdonképpen a táblázatból egy kicsi, de nagyon hasznos "mini-alkalmazást" tudunk létrehozni.
+        </p>
+      </article>
+
+      <article>
+        <h3>1.3. Miért "felhő"? Mi a különbség?</h3>
+        <p>
+          Felhőben a kód jellemzően nem a saját gépeden fut, hanem a szolgáltató környezetében.
+          Ez több következménnyel is jár:
+        </p>
+
+        <ul>
+          <li>Nem kell telepíteni semmit, nincs saját szervered: a platform adja a futtatókörnyezetet.</li>
+          <li>A "fájlrendszer" helyett <strong>szolgáltatások</strong> vannak (Drive/SharePoint, Gmail/Outlook, stb.).</li>
+          <li>Az elérés <strong>jogosultságokhoz</strong> és <strong>scope</strong>-okhoz kötött.</li>
+          <li>A futtatást általában<strong>triggerek</strong> indítják (idő, esemény, workflow lépés).</li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Népszerű platformok: Google Apps Script és Microsoft Office Scripts</h2>
+
+      <article>
+        <h3>2.1. Közös nevező</h3>
+        <p>
+          Mindkét megoldás felhőben fut, dokumentum-központú (Sheets/Excel), és egy
+          <strong>platform API-n keresztül</strong> érheted el az adatokat és a műveleteket.
+        </p>
+
+        <p class="info">
+          Itt nincs DOM (mint a böngészőben), és nincs fájlrendszer sem (vagy npm, úgy mint Node.js-ben).
+          Az adott office platform objektummodellje az egész világ. Ami ott van, az van, ami nincs az nincs.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.2. Google Apps Script (GAS) </h3>
+        <ul>
+          <li>JavaScript-alapú környezet Google felhőben</li>
+          <li>Natív integráció: Sheets, Drive, Gmail, Calendar</li>
+          <li>Indítás: időzített trigger, űrlap / táblázat esemény, vagy manuális futtatás</li>
+          <li>Fő belépési pontok (API objektumok): <code>SpreadsheetApp</code>, <code>GmailApp</code>, <code>DriveApp</code></li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>2.3. Microsoft Office Scripts </h3>
+        <ul>
+          <li>TypeScript/JavaScript jellegű környezet Excel Online-ban</li>
+          <li>Workflow integráció: Power Automate (Flows)</li>
+          <li>Fő belépési pont: <code>workbook</code> objektum (és azon belül worksheet/range)</li>
+          <li>Erős(ebb) típusosság (TypeScript), ami segít a hibák megelőzésében</li>
+        </ul>
+	<p class="info">A TypeScript a JavaScript "bővitett változata" ahol a változóknak
+	és formális paramétereknek szigorú típust írhatsz elő. Vagyis megmondhatod, 
+	hogy az összeadás függvényed számokat (number) fogad, és akkor nem is lehet
+	neki mást (pl. string) átadni.</p>
+      </article>
+
+      <article>
+        <h3>2.4. Különbségek összefoglalása</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Szempont</th>
+              <th>Google Apps Script</th>
+              <th>Office Scripts</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Nyelv</td>
+              <td>JavaScript</td>
+              <td>TypeScript (JS-szerű)</td>
+            </tr>
+            <tr>
+              <td>Trigger</td>
+              <td>Beépített triggerek (idő/esemény)</td>
+              <td>Power Automate workflow-kkal tipikus</td>
+            </tr>
+            <tr>
+              <td>Ökoszisztéma</td>
+              <td>Gmail/Drive/Calendar natív</td>
+              <td>Teams/SharePoint/Office 365 natív</td>
+            </tr>
+            <tr>
+              <td>Futtatás</td>
+              <td>Google szerver</td>
+              <td>Excel Online (felhő)</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Alapvető különbségek Node.js-hez és böngészőhöz képest</h2>
+
+      <article>
+        <h3>3.1. Node.js vs Office felhő runtime</h3>
+        <p>
+          A Node.js-t korábban "lokális automatizálásra" használtuk: fájlok, mappák, parancsok, rendszerszintű műveletek.
+          Office automatizálásnál a közeg teljesen más.
+        </p>
+
+        <ul>
+          <li><strong>Nincs</strong> (vagy erősen limitált) fájlrendszer-hozzáférés.</li>
+          <li><strong>Nincs</strong> (vagy limitált) NPM csomagolás – nem úgy bővítesz, mint Node-ban.</li>
+          <li>A belépési pont a <strong>dokumentum API</strong>, nem a rendszer.</li>
+          <li>Az indítás jellemzően <strong>trigger / workflow</strong>, nem CLI parancs.</li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>3.2. Böngésző JS és Office felhő eltérései</h3>
+        <p>
+          Böngészőben a "világ" a HTML/DOM (gombok, mezők, elemek). Office automatizálásnál a "világ" a dokumentum:
+          munkalapok, cellák, táblák, formázások.
+        </p>
+        <p>
+	A felhő dokumentumban:
+        </p>
+
+        <ul>
+          <li>Nincs <code>document</code> objektum, nincs DOM.</li>
+          <li>Nincs klasszikus UI: a felület maga a táblázat.</li>
+          <li>A manipulációkat nem DOM elemekre, hanem <strong>range-ekre</strong> és <strong>cellákra</strong> alkalmazhatjuk.</li>
+        </ul>
+	<p>
+          Röviden és tömören:
+        </p>
+        <ul>
+          <li><strong>Böngésző</strong>: UI-központú programozás (DOM + eventek).</li>
+          <li><strong>Node.js</strong>: rendszer-központú automatizálás (fájl, folyamat, parancs).</li>
+          <li><strong>Office felhő</strong>: dokumentum-központú automatizálás (range, táblázat, trigger/workflow).</li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Na jó, és hogy kell ezt csinálni?</h2>
+      <p>
+      Hát először is meg kell tanulni sok-sok függvényt, objektumot és végig kell olvasni a dokumentációt... 😉
+      </p>
+      <p>
+      Mármint régebben úgy kellett. Szerencsére ma már vannak
+      nagy nyelvi modellek, azok pedig ezt mind tudják, így aztán nekünk csak annyi a dolgunk, hogy
+      értsük mit csinálunk és jó helyre másoljuk a kódot. Nézzünk néhány ízelítőt! 
+      </p>
+      <p>Nem lesznek hosszúak, inkább csak rövid példák, hogy lássuk, hogy is néz ki egy ilyen automatizálás.
+      </p>
+	<p>
+	A kódrészletekhez szükség lesz egy táblázatkezelőre (itt, ezen a html lapon nyilván nem fogják azt csinálni amire szántuk őket).
+	Akár ki is próbálhatod például google sheets-ben. 
+	Nyiss meg egy új táblázatatot. Írj bele pár adatot.
+	A bővítmények fül alatt találsz egy App Scripts menüt (megnyit egy szép editort).
+	Ide tudod bemásolni (és a futtatás gombbal futtatni) a függvényeket. Mivel azonban a jogosultságrendszerrel
+	nem foglalkoztunk, a Google Workspace reklamálni fog, hogy a kód "nem biztonságos"
+	és csak akkor futtasd, ha megbízol a készítőben. Így hát, amennyiben megbízol magadban, akkor 
+	a kis alig látható engedélyezés gombra kell majd böknöd és nem a hatalmas kiemelt "vissza a biztonsághoz"
+	gombra, mert az nem fogja engedni, hogy futtasd.
+	</p>
+	<p>
+	Mivel nem állítotottunk be
+	</p>
+
+      <article>
+        <h3>4.1. Google Apps Script - automatikus email küldés a táblázatból</h3>
+        <p>
+          Tegyük fel, hogy a legutolsó sorban van egy e-mail cím, és szeretnénk automatikusan küldeni rá egy értesítést.
+        </p>
+        <textarea data-lang="js">
+function sendNotification() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const lastRow = sheet.getLastRow();
+
+  const email = sheet.getRange(lastRow, 2).getValue(); // pl. B oszlop: email
+
+  GmailApp.sendEmail(
+    email,
+    "Értesítés",
+    "Az adatod rögzítve lett."
+  );
+}
+        </textarea>
+	<p>Láthatod, hogy a scriptben több "globális" objektumot is
+	használunk (SpreasheetApp, GmailApp). A globális objektumnak
+	több tulajdonsága és metódusa is van (hogy pontosan milyenek, azt a dokumentációban találod).
+	A függvények (metódusok) neve elég beszédes.
+	</p>
+	<p>
+	Az táblázatkezelő aktív munkafüzetéből az aktív lapot eltesszük egy változóba (általában többször akarjuk majd használni).
+	Kikérjük az utolsó sor számát, majd ennek segítségével kivesszük a második oszlopból az értéket. 
+	Végül a GmailApp-al elküldjük.
+	</p>
+	<p>
+	Nem is olyan bonyolult, nem igaz?
+	</p>
+
+      </article>
+
+      <article>
+        <h3>4.2. Alapértelmezett érték (ha üres a cella)</h3>
+        <p>
+          Ha egy cella üres (falsy), akkor adjunk neki alapértelmezett értéket.
+        </p>
+        <textarea data-lang="js">
+function ensureDefault() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const cell = sheet.getRange("B2");
+
+  const value = cell.getValue();
+  if (!value) {
+    cell.setValue(42);
+  }
+}
+        </textarea>
+      </article>
+
+      <article>
+        <h3>4.3. Office Scripts – negatív számok színezése (Excel Online)</h3>
+        <p>
+          A használt tartományt bejárjuk, és ha negatív számot találunk, piros hátteret állítunk.
+        </p>
+        <textarea data-lang="js">
+function main(workbook: ExcelScript.Workbook) {
+  const sheet = workbook.getActiveWorksheet();
+  const range = sheet.getUsedRange();
+  const values = range.getValues();
+
+  for (let r = 0; r &lt; values.length; r++) {
+    for (let c = 0; c &lt; values[r].length; c++) {
+      if (typeof values[r][c] === "number" && values[r][c] &lt; 0) {
+        range.getCell(r, c)
+          .getFormat()
+          .getFill()
+          .setColor("red");
+      }
+    }
+  }
+}
+        </textarea>
+
+        <p >
+          Itt jól látszik a Microsoft féle megközelítés: 
+	  erősen objektum-orientált API, sok láncolt hívással
+          (format/fill/color), valamint a main függvényben
+	  láthatod, hogy megadtuk a workbook típusát is.
+        </p>
+	<p class="info">
+	A TypeScript megérne egy külön tanfolyamot, 
+	itt most elég annyit megjegyezni, hogy kettősponttal 
+	tudjuk megmondani, hogy milyen típust
+	gondolunk helyesnek az adott változóhoz/paraméterhez.
+	</p>
+      </article>
+
+      <article>
+        <h3>4.4. Office Scripts - összegzés generálása egy oszlopból</h3>
+        <p>
+          Számítsunk ki valamit. Az A1:A10 tartomány számait összeadjuk, majd az eredményt a B1 cellába írjuk.
+	  Tudom, van erre függvény, a jó öreg sum(), ez most csak egy szuper egyszerű példa. Ideképzelhetnénk bármit amit a
+	  javascript tud. Például csinálhatnánk itt fokozatos közelítést, maya naptárat, 
+	  vagy ami eszünkbe jut. 
+        </p>
+        <textarea data-lang="js" data-readonly>
+function main(workbook: ExcelScript.Workbook) {
+  const sheet = workbook.getActiveWorksheet();
+  const range = sheet.getRange("A1:A10");
+  const values = range.getValues();
+
+  let sum = 0;
+
+  for (let i = 0; i < values.length; i++) {
+    const v = values[i][0];
+    if (typeof v === "number") sum += v;
+  }
+
+  sheet.getRange("B1").setValue(sum);
+}
+        </textarea>
+        <p>
+	El tudtad olvasni a kódot?
+        </p>
+      </article>
+
+      <article>
+        <p>
+          A fejezet második részében ezeket a mintákat fogjuk használni valamilyen formában:
+          triggerek, jogosultságok, táblázat-struktúra, és tipikus "feladat pipeline-ok".
+          Egyelőre annyi volt a cél, hogy tisztán lásd a gondolkodásmódot.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>Összefoglalás</h2>
+      <ul>
+        <li>Az office automatizálás felhőben <strong>dokumentum-központú</strong>.</li>
+        <li>Két gyakori platform: <strong>Google Apps Script</strong> és <strong>Microsoft Office Scripts</strong>.</li>
+        <li>Node.js-hez képest nincs fájlrendszer + NPM jellegű szabadság; böngészőhöz képest nincs DOM.</li>
+        <li>A kód rövid, de a lényeg az <strong>API objektummodell</strong> és a <strong>triggerek/workflow</strong> megértése.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="codeblocks.js"></script>
+</body>
+</html>
