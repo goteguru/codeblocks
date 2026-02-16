@@ -1,0 +1,1421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GLOSSARY>
+  <INFO>
+    <NAME>Fogalomtár</NAME>
+    <INTRO/>
+    <INTROFORMAT>1</INTROFORMAT>
+    <ALLOWDUPLICATEDENTRIES>0</ALLOWDUPLICATEDENTRIES>
+    <DISPLAYFORMAT>dictionary</DISPLAYFORMAT>
+    <SHOWSPECIAL>1</SHOWSPECIAL>
+    <SHOWALPHABET>1</SHOWALPHABET>
+    <SHOWALL>1</SHOWALL>
+    <ALLOWCOMMENTS>0</ALLOWCOMMENTS>
+    <USEDYNALINK>1</USEDYNALINK>
+    <DEFAULTAPPROVAL>1</DEFAULTAPPROVAL>
+    <GLOBALGLOSSARY>0</GLOBALGLOSSARY>
+    <ENTBYPAGE>10</ENTBYPAGE>
+    <ENTRIES>
+      <ENTRY>
+        <CONCEPT>Statement</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Olyan utasítás, amely végrehajt valamilyen műveletet, de önmagában nem feltétlenül ad vissza értéket.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Expression</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Programfutás</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Expression</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Olyan kódrészlet, amely kiértékelés után egy konkrét értéket ad.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Statement</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Operátor</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Primitive típus</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Alapvető, nem-objektum típus a JavaScriptben (number,string,boolean,bigint,undefined,null,symbol).&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Object</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Típuskonverzió</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>number</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Numerikus érték típusa lebegőpontos ábrázolással.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Arithmetic operátor</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>BigInt</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>boolean</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Logikai típus, értéke true vagy false.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Logikai operátor</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Összehasonlító operátor</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>bigint</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Nagyon nagy egész számok reprezentálására szolgáló típus.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>number</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>undefined</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Olyan érték, amely egy deklarált, de még nem inicializált változót jelöl.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>null</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Truthy</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Falsy</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>null</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Szándékosan „nincs érték” állapotot jelölő speciális primitív.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>undefined</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>symbol</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Egyedi azonosítóként használható primitív típus.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Object property</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Object</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Kulcs-érték párok gyűjteménye, minden nem-primitív érték alapja.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Property</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Prototype</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Property</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Objektumhoz tartozó név-érték pár.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Object</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Metódus</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Metódus</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Olyan property, amelynek értéke függvény.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>this</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Object</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Függvény (function)</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Újrafelhasználható kódegység, amely paramétereket fogadhat és értéket adhat vissza.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Return</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Paraméter</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Argumentum</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Paraméter</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;A függvény definíciójában szereplő bemeneti változó.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Argumentum</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Argumentum</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;A függvény meghívásakor átadott konkrét érték.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Paraméter</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Return value</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;A függvény által visszaadott érték.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Függvény</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Function declaration</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Névvel ellátott, hoistolt függvénydefiníció.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Function expression</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Arrow function</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Function expression</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Függvény kifejezésként definiálva, gyakran változóhoz rendelve.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Arrow function</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Arrow function</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Rövidített függvényszintaxis, lexikális this viselkedéssel.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>this</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Callback</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Generator function</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Speciális függvény, amely yield segítségével több lépésben ad vissza értékeket.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>yield</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Iterator</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>yield</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Generator függvényben ideiglenes visszatérésre szolgáló kulcsszó.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Generator function</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>this</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Az aktuális objektumra mutató referencia metódushíváskor.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Metódus</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Object</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Operátor</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Olyan jel vagy kulcsszó, amely értékeken végez műveletet.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Expression</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Arithmetic operátor</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Számítási műveletekhez használt operátorok (+,-,*,/,%,**).&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Operátor</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Assignment operátor</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Értékadásra szolgáló operátor (=,+=,-= stb.).&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Változó</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Összehasonlító operátor</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Két érték összehasonlítására szolgál (&gt;,&lt;,=== stb.).&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>boolean</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Logikai operátor</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Logikai operátor</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Feltételek összekapcsolására szolgál (&amp;&amp;,||,!)&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>boolean</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Szigorú egyenlőség (===)</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Típus és érték szerinti összehasonlítás.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>==</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Típuskonverzió</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Laza egyenlőség (==)</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Érték szerinti összehasonlítás implicit típuskonverzióval.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>===</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Implicit konverzió</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Típuskonverzió</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Értékek egyik típusból másikba alakítása.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Implicit konverzió</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Explicit konverzió</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Implicit konverzió</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;A JavaScript által automatikusan végzett típusátalakítás.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>==</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Explicit konverzió</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Programozó által kezdeményezett típusátalakítás (Number(),String(),Boolean()).&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Típuskonverzió</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Truthy</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Olyan érték, amely logikai kontextusban true-ként viselkedik.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Falsy</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Boolean</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Falsy</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Olyan érték, amely logikai kontextusban false-ként viselkedik.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Truthy</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>if/else</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Elágazási vezérlési szerkezet feltételek alapján.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Logikai operátor</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>for ciklus</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Ismétlődő végrehajtás meghatározott számlálóval.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>while</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>while ciklus</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Ismétlés feltétel teljesüléséig.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>for ciklus</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Array</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Indexelt, rendezett, mutábilis elemlista.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Index</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Mutáció</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Index</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Tömb elemének sorszáma, 0-tól indul.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Array</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Mutáció</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Objektum vagy tömb belső állapotának megváltoztatása.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Mutable állapot</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Immutabilitás</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>slice</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Tömbből rész kivágása új tömbként, az eredeti módosítása nélkül.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>splice</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>splice</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Tömb elemeinek törlése/beszúrása helyben módosítva.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>slice</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Mutáció</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Map</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Kulcs-érték párok speciális gyűjteménye tetszőleges kulcstípussal.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Object</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Set</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Egyedi elemek gyűjteménye.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Array</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Date</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Dátum- és időkezelésre szolgáló objektumtípus.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Object</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>RegExp</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Reguláris kifejezéseket reprezentáló objektum.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>string</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>try/catch/finally</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Hibakezelési szerkezet futásidejű hibák kezelésére.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Runtime error</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Runtime error</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Futás közben keletkező hiba, amely megszakítja a végrehajtást.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>throw</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>throw</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Hiba dobására szolgáló kulcsszó.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>try/catch</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Strict mode</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;use strict direktíva, amely szigorúbb hibakezelést és szabályokat aktivál.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Runtime error</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Modul</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Önálló fájlba szervezett kódegység exportált API-val.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>import</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>export</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>export</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Modulból publikussá tett elem jelölése.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>import</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>import</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Más modulból exportált elem beemelése.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>export</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Prototype</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Objektumöröklési mechanizmus alapja JavaScriptben.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Prototype lánc</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Prototype lánc</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Objektumok öröklési hierarchiája property keresés során.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Prototype</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Single-threaded</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;A JavaScript egyszerre egy kódrészt futtat egy szálon.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Call stack</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Call stack</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;A függvényhívások veremszerű nyilvántartása.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Single-threaded</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Task queue</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Makrotaskok sora (pl. setTimeout, I/O).&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Microtask queue</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Event loop</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Microtask queue</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Promise folytatások sora, prioritással a task queue előtt.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Promise</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Event loop</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Az ütemezési mechanizmus, amely a call stack és a queue-k között dolgozik.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Task queue</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Microtask queue</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Callback</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Később meghívandó függvény, gyakran aszinkron művelethez.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Promise</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Promise</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Jövőbeli értéket reprezentáló objektum (pending,fulfilled,rejected).&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>async/await</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Microtask queue</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>async/await</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Promise-alapú aszinkron kód szintaktikai egyszerűsítése.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Promise</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Closure</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Függvény, amely hozzáfér létrehozáskori lexikális környezetéhez.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Lexikális környezet</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Pure function</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Olyan függvény, amelynek nincs mellékhatása és csak bemeneteitől függ.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Side effect</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Side effect</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Függvény által okozott külső állapotváltozás.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Mutáció</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Pure function</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>State (állapot)</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;A program aktuális adatainak összessége.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Mutáció</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Immutable</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Immutable</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Olyan adatkezelési szemlélet, ahol új objektum jön létre módosítás helyett.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Mutáció</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Reference típus</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Objektumok és tömbök, amelyek hivatkozás szerint adódnak át.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Object identity</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Object identity</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Két objektum akkor azonos, ha ugyanarra a memóriacímre mutat.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Reference típus</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Sekély másolat</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Objektum első szintű másolata, beágyazott objektumok hivatkozva maradnak.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Mély másolat</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Mély másolat</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Objektum teljes, rekurzív másolata.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Sekély másolat</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Node.js</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Böngészőn kívüli JavaScript futtatókörnyezet.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Runtime</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>Core modul</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Runtime</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;A JavaScript végrehajtási környezete (pl. böngésző,Node.js).&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Node.js</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Core modul</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Node.js beépített moduljai (fs,path,process stb.).&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>fs</NAME>
+          </ALIAS>
+          <ALIAS>
+            <NAME>path</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>fs</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Node.js fájlrendszer modulja.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Core modul</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>path</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Node.js útvonalkezelő modul.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Core modul</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>process.argv</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Parancssori argumentumok Node.js-ben.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>CLI</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>CLI</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Parancssori interfész programvezérléshez.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>commander</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>commander</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;CLI paraméterkezelő külső könyvtár Node.js-ben.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>npm</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>npm</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Node.js csomagkezelő rendszere.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>package.json</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>package.json</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Projekt konfigurációs fájl Node.js-ben.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>npm</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>fetch</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Böngésző API HTTP kérésekhez.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Promise</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>localStorage</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Böngészőben perzisztens kulcs-érték tároló.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>IndexedDB</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>IndexedDB</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;Kliensoldali adatbázis API böngészőben.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>localStorage</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Canvas</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;HTML grafikus rajzfelület.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Chart.js</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+      <ENTRY>
+        <CONCEPT>Chart.js</CONCEPT>
+        <DEFINITION>&lt;p dir=&quot;ltr&quot; style=&quot;text-align: left;&quot;&gt;JavaScript könyvtár grafikonok rajzolására.&lt;br/&gt;&lt;/p&gt;</DEFINITION>
+        <FORMAT>1</FORMAT>
+        <DEFINITIONTRUST>0</DEFINITIONTRUST>
+        <USEDYNALINK>0</USEDYNALINK>
+        <CASESENSITIVE>0</CASESENSITIVE>
+        <FULLMATCH>0</FULLMATCH>
+        <TEACHERENTRY>1</TEACHERENTRY>
+        <ALIASES>
+          <ALIAS>
+            <NAME>Canvas</NAME>
+          </ALIAS>
+        </ALIASES>
+      </ENTRY>
+    </ENTRIES>
+  </INFO>
+</GLOSSARY>

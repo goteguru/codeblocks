@@ -1,0 +1,88 @@
+Fogalom;Definíció;Kapcsolódó kifejezések
+Statement;Olyan utasítás, amely végrehajt valamilyen műveletet, de önmagában nem feltétlenül ad vissza értéket.;Expression,Programfutás
+Expression;Olyan kódrészlet, amely kiértékelés után egy konkrét értéket ad.;Statement,Operátor
+Primitive típus;Alapvető, nem-objektum típus a JavaScriptben (number,string,boolean,bigint,undefined,null,symbol).;Object,Típuskonverzió
+number;Numerikus érték típusa lebegőpontos ábrázolással.;Arithmetic operátor,BigInt
+boolean;Logikai típus, értéke true vagy false.;Logikai operátor,Összehasonlító operátor
+bigint;Nagyon nagy egész számok reprezentálására szolgáló típus.;number
+undefined;Olyan érték, amely egy deklarált, de még nem inicializált változót jelöl.;null,Truthy,Falsy
+null;Szándékosan „nincs érték” állapotot jelölő speciális primitív.;undefined
+symbol;Egyedi azonosítóként használható primitív típus.;Object property
+Object;Kulcs-érték párok gyűjteménye, minden nem-primitív érték alapja.;Property,Prototype
+Property;Objektumhoz tartozó név-érték pár.;Object,Metódus
+Metódus;Olyan property, amelynek értéke függvény.;this,Object
+Függvény (function);Újrafelhasználható kódegység, amely paramétereket fogadhat és értéket adhat vissza.;Return,Paraméter,Argumentum
+Paraméter;A függvény definíciójában szereplő bemeneti változó.;Argumentum
+Argumentum;A függvény meghívásakor átadott konkrét érték.;Paraméter
+Return value;A függvény által visszaadott érték.;Függvény
+Function declaration;Névvel ellátott, hoistolt függvénydefiníció.;Function expression,Arrow function
+Function expression;Függvény kifejezésként definiálva, gyakran változóhoz rendelve.;Arrow function
+Arrow function;Rövidített függvényszintaxis, lexikális this viselkedéssel.;this,Callback
+Generator function;Speciális függvény, amely yield segítségével több lépésben ad vissza értékeket.;yield,Iterator
+yield;Generator függvényben ideiglenes visszatérésre szolgáló kulcsszó.;Generator function
+this;Az aktuális objektumra mutató referencia metódushíváskor.;Metódus,Object
+Operátor;Olyan jel vagy kulcsszó, amely értékeken végez műveletet.;Expression
+Arithmetic operátor;Számítási műveletekhez használt operátorok (+,-,*,/,%,**).;Operátor
+Assignment operátor;Értékadásra szolgáló operátor (=,+=,-= stb.).;Változó
+Összehasonlító operátor;Két érték összehasonlítására szolgál (>,<,=== stb.).;boolean,Logikai operátor
+Logikai operátor;Feltételek összekapcsolására szolgál (&&,||,!);boolean
+Szigorú egyenlőség (===);Típus és érték szerinti összehasonlítás.;==,Típuskonverzió
+Laza egyenlőség (==);Érték szerinti összehasonlítás implicit típuskonverzióval.;===,Implicit konverzió
+Típuskonverzió;Értékek egyik típusból másikba alakítása.;Implicit konverzió,Explicit konverzió
+Implicit konverzió;A JavaScript által automatikusan végzett típusátalakítás.;==
+Explicit konverzió;Programozó által kezdeményezett típusátalakítás (Number(),String(),Boolean()).;Típuskonverzió
+Truthy;Olyan érték, amely logikai kontextusban true-ként viselkedik.;Falsy,Boolean
+Falsy;Olyan érték, amely logikai kontextusban false-ként viselkedik.;Truthy
+if/else;Elágazási vezérlési szerkezet feltételek alapján.;Logikai operátor
+for ciklus;Ismétlődő végrehajtás meghatározott számlálóval.;while
+while ciklus;Ismétlés feltétel teljesüléséig.;for ciklus
+Array;Indexelt, rendezett, mutábilis elemlista.;Index,Mutáció
+Index;Tömb elemének sorszáma, 0-tól indul.;Array
+Mutáció;Objektum vagy tömb belső állapotának megváltoztatása.;Mutable állapot,Immutabilitás
+slice;Tömbből rész kivágása új tömbként, az eredeti módosítása nélkül.;splice
+splice;Tömb elemeinek törlése/beszúrása helyben módosítva.;slice,Mutáció
+Map;Kulcs-érték párok speciális gyűjteménye tetszőleges kulcstípussal.;Object
+Set;Egyedi elemek gyűjteménye.;Array
+Date;Dátum- és időkezelésre szolgáló objektumtípus.;Object
+RegExp;Reguláris kifejezéseket reprezentáló objektum.;string
+try/catch/finally;Hibakezelési szerkezet futásidejű hibák kezelésére.;Runtime error
+Runtime error;Futás közben keletkező hiba, amely megszakítja a végrehajtást.;throw
+throw;Hiba dobására szolgáló kulcsszó.;try/catch
+Strict mode;"use strict" direktíva, amely szigorúbb hibakezelést és szabályokat aktivál.;Runtime error
+Modul;Önálló fájlba szervezett kódegység exportált API-val.;import,export
+export;Modulból publikussá tett elem jelölése.;import
+import;Más modulból exportált elem beemelése.;export
+Prototype;Objektumöröklési mechanizmus alapja JavaScriptben.;Prototype lánc
+Prototype lánc;Objektumok öröklési hierarchiája property keresés során.;Prototype
+Single-threaded;A JavaScript egyszerre egy kódrészt futtat egy szálon.;Call stack
+Call stack;A függvényhívások veremszerű nyilvántartása.;Single-threaded
+Task queue;Makrotaskok sora (pl. setTimeout, I/O).;Microtask queue,Event loop
+Microtask queue;Promise folytatások sora, prioritással a task queue előtt.;Promise
+Event loop;Az ütemezési mechanizmus, amely a call stack és a queue-k között dolgozik.;Task queue,Microtask queue
+Callback;Később meghívandó függvény, gyakran aszinkron művelethez.;Promise
+Promise;Jövőbeli értéket reprezentáló objektum (pending,fulfilled,rejected).;async/await,Microtask queue
+async/await;Promise-alapú aszinkron kód szintaktikai egyszerűsítése.;Promise
+Closure;Függvény, amely hozzáfér létrehozáskori lexikális környezetéhez.;Lexikális környezet
+Pure function;Olyan függvény, amelynek nincs mellékhatása és csak bemeneteitől függ.;Side effect
+Side effect;Függvény által okozott külső állapotváltozás.;Mutáció,Pure function
+State (állapot);A program aktuális adatainak összessége.;Mutáció,Immutable
+Immutable;Olyan adatkezelési szemlélet, ahol új objektum jön létre módosítás helyett.;Mutáció
+Reference típus;Objektumok és tömbök, amelyek hivatkozás szerint adódnak át.;Object identity
+Object identity;Két objektum akkor azonos, ha ugyanarra a memóriacímre mutat.;Reference típus
+Sekély másolat;Objektum első szintű másolata, beágyazott objektumok hivatkozva maradnak.;Mély másolat
+Mély másolat;Objektum teljes, rekurzív másolata.;Sekély másolat
+Node.js;Böngészőn kívüli JavaScript futtatókörnyezet.;Runtime,Core modul
+Runtime;A JavaScript végrehajtási környezete (pl. böngésző,Node.js).;Node.js
+Core modul;Node.js beépített moduljai (fs,path,process stb.).;fs,path
+fs;Node.js fájlrendszer modulja.;Core modul
+path;Node.js útvonalkezelő modul.;Core modul
+process.argv;Parancssori argumentumok Node.js-ben.;CLI
+CLI;Parancssori interfész programvezérléshez.;commander
+commander;CLI paraméterkezelő külső könyvtár Node.js-ben.;npm
+npm;Node.js csomagkezelő rendszere.;package.json
+package.json;Projekt konfigurációs fájl Node.js-ben.;npm
+fetch;Böngésző API HTTP kérésekhez.;Promise
+localStorage;Böngészőben perzisztens kulcs-érték tároló.;IndexedDB
+IndexedDB;Kliensoldali adatbázis API böngészőben.;localStorage
+Canvas;HTML grafikus rajzfelület.;Chart.js
+Chart.js;JavaScript könyvtár grafikonok rajzolására.;Canvas
