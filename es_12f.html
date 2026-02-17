@@ -211,12 +211,12 @@
   <div class="wrap">
 
     <section id="celt">
-      <h2>Célok <span class="badge">AutoCAD 2024 • 2D</span></h2>
+      <h2>Célok </h2>
 
       <p>
-        Ebben a projektben azt szeretnénk bemutatni, milyen rugalmasan (és sok helyen) használhatjuk a 
-	JavaScript-et (ECMAScript-et) amikor <strong>rendszerek összekötéséről</strong> van szó.
-	Itt most éppen AutoCAD-et fogunk Google Sheets-hez kötni, de nagyon sok más rendszert
+        Ebben a leckében azt szeretnénk megmutatni, milyen rugalmasan (és sok helyen) használhatjuk a 
+	JavaScript-et (ECMAScript-et) ha <strong>rendszerek összekötéséről</strong> van szó!
+	A projektben konkrétan AutoCAD-et fogunk Google Sheets-hez kötni, de nagyon sok más rendszert
 	hozzá tudnál illeszteni nagyon sok más szolgáltatáshoz. Nézzük mit is szeretnénk:
       </p>
 
@@ -553,14 +553,14 @@ function doGet(e) {
       </textarea>
 
       <h3>6.1 Betöltés AutoCAD-be</h3>
-      <p>Szuper. Most már csak el kell mondanunk az AutoCAD-nek, hogy ebben a fájlban találja a parancsot!</p>
+      <p>Szuper. Most már csak el kell mondanunk az AutoCAD-nek, hogy ebben a fájlban találja a scriptet!</p>
       <ol>
         <li>Nyisd meg az AutoCAD-et, nyiss egy üres rajzot.</li>
         <li>Parancssor: <strong>WEBLOAD</strong></li>
         <li>Load (betöltés) alparancs</li>
         <li>Válaszd ki, vagy gépeld be <code>drawFromCloud.js</code> elérési útját URL formátumban.</li>
       </ol>
-      <p>Ezzel betöltöttök a javascript függvényt, és futtatható mint AutoCad parancs!</p>
+      <p>Ezzel betöltöttük a javascript függvényt, ami regisztrálta a parancsot. Ettől kezdve futtatható mint AutoCad parancs!</p>
       <details>
         <summary>Mi a csuda az az "URL formátum"?</summary>
 	<p>
