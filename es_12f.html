@@ -171,6 +171,9 @@
       text-align:center;
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+  <link rel="stylesheet" href="codeblocks.css">
 </head>
 
 <body>
@@ -363,7 +366,7 @@ https://docs.google.com/spreadsheets/d/1AbCDefGhIJkLMnopQRstuVWxyz1234567890abcd
 Akkor a dokumentumod azonosítója: 1AbCDefGhIJkLMnopQRstuVWxyz1234567890abcdEFg
       </details>
 
-      <pre><code>
+      <textarea data-lang="js" data-readonly>
 const SPREADSHEET_ID = "IDE_JÖN_A_SHEETS_ID";
 const SHEET_NAME = "Rects"; // ez a munkafüzetlap neve
 const SHARED_SECRET = "MY_SHARED_SECRET";
@@ -411,7 +414,7 @@ function doGet(e) {
     .createTextOutput(JSON.stringify({ items }))
     .setMimeType(ContentService.MimeType.JSON);
 }
-      </code></pre>
+      </textarea>
 
       <h3>3. lépés - Deploy web appként</h3>
       <ol>
@@ -471,6 +474,7 @@ function doGet(e) {
       <h3>5.1 AutoCAD JS fájl létrehozása</h3>
       <p>
         Hozz létre egy fájlt a gépeden, pl.: <code>C:\autocad-cloud\drawFromCloud.js</code>
+	(Lehetőleg ne használj túl hosszú elérési utat, mert innen kell majd betöltenünk)
       </p>
 
       <p>
@@ -478,7 +482,7 @@ function doGet(e) {
         <strong>WEB_APP_URL</strong> és <strong>SECRET</strong>.
       </p>
 
-      <pre><code>
+      <textarea data-lang="js" data-readonly>
 (function () {
   // 1) Konfiguráció
   const WEB_APP_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
@@ -541,42 +545,41 @@ function doGet(e) {
   Acad.Editor.addCommand(
     "CLOUDTOOLS",        // group
     "drawFromCloud",     // global name
-    "drawFromCloud",     // local name (amit beírsz parancssorba)
+    "drawFromCloud",     // local name (ez lesz a parancs neve amit beírsz parancssorba)
     Acad.CommandFlag.TRANSPARENT,
     drawFromCloud
   );
 })();
-      </code></pre>
-
-      <details>
-        <summary>Hint: mi van, ha a fetch nem működik?</summary>
-        <p>Használhatsz XHR-t is (régebbi környezetekben stabilabb):</p>
-        <pre><code>
-function fetchJson(url) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("GET", url);
-    xhr.onload = () => {
-      if (xhr.status &lt; 200 || xhr.status &gt;= 300) return reject(new Error("HTTP " + xhr.status));
-      try { resolve(JSON.parse(xhr.responseText)); }
-      catch (e) { reject(e); }
-    };
-    xhr.onerror = () => reject(new Error("Network error"));
-    xhr.send();
-  });
-}
-        </code></pre>
-      </details>
+      </textarea>
 
       <h3>6.1 Betöltés AutoCAD-be</h3>
+      <p>Szuper. Most már csak el kell mondanunk az AutoCAD-nek, hogy ebben a fájlban találja a parancsot!</p>
       <ol>
-        <li>Nyisd meg az AutoCAD 2024-et, nyiss egy üres rajzot.</li>
+        <li>Nyisd meg az AutoCAD-et, nyiss egy üres rajzot.</li>
         <li>Parancssor: <strong>WEBLOAD</strong></li>
-        <li>Válaszd ki a <code>drawFromCloud.js</code> fájlt.</li>
+        <li>Load (betöltés) alparancs</li>
+        <li>Válaszd ki, vagy gépeld be <code>drawFromCloud.js</code> elérési útját URL formátumban.</li>
       </ol>
+      <p>Ezzel betöltöttök a javascript függvényt, és futtatható mint AutoCad parancs!</p>
+      <details>
+        <summary>Mi a csuda az az "URL formátum"?</summary>
+	<p>
+	Az URL formátum, ahogy a weben eléred az erőforrásokat, például egy honlapot. 
+	Általában úgy kezdődik, hogy https://... De a saját fájljaidat is
+	elérheted így, csak akkor úgy kezdődik, hogy file:/// (három per-jel).
+	A többi része a fájl elérési útja, de normális per jeleket kell 
+	használni, nem a microsoft (nem szabványos) visszafele perjeleit.
+	</p>
+	<p>
+	Tehát ha úgy mentetted el a fájlodat, hogy
+        <code>C:\autocad-cloud\drawFromCloud.js</code>
+	Akkor az URL formátumban: 
+        <code>file:///C:/autocad-cloud/drawFromCloud.js</code> lesz.
+	</p>
+      </details>
 
       <h3>6.2 Futatás</h3>
-      <p>Parancssorba írd:</p>
+      <p>Parancssorba írd be:</p>
       <pre>drawFromCloud</pre>
 
       <div class="callout ok">
@@ -591,7 +594,7 @@ function fetchJson(url) {
         <thead>
           <tr>
             <th>Jelenség</th>
-            <th>Valószínű ok</th>
+            <th>Ok</th>
             <th>Gyors fix</th>
           </tr>
         </thead>
@@ -609,63 +612,50 @@ function fetchJson(url) {
           <tr>
             <td>HTTP 404 / 500</td>
             <td>rossz deploy URL, nincs engedélyezve</td>
-            <td>Deploy → web app → új URL; jogosultságok jóváhagyása.</td>
-          </tr>
-          <tr>
-            <td><code>fetch is not defined</code></td>
-            <td>runtime korlát</td>
-            <td>Válts XHR-es megoldásra (lásd hint).</td>
-          </tr>
-          <tr>
-            <td>Rajzol, de rossz méret / hely</td>
-            <td>egységek/koordináta-rendszer</td>
-            <td>Egyeztesd a Sheets adatok mértékegységét az AutoCAD rajzéval.</td>
+            <td>Deploy - web app - új URL; jogosultságok jóváhagyása.</td>
           </tr>
         </tbody>
       </table>
 
       <details>
-        <summary>Hint: gyors "debug" üzenetek AutoCAD-ben</summary>
+        <summary>Hint: ha még mindig nem megy és szeretnél csinálni "debug" üzeneteket</summary>
         <p>
-          Használj <code>Acad.Editor.executeCommand("_.PROMPT", "...")</code> üzeneteket kritikus pontokon:
-          URL kiírás, items szám, első rekord, stb.
+          A programban használd az <code>Acad.Editor.executeCommand("_.PROMPT", "...")</code> üzeneteket.
+	  (Itt sajnos nem megy a console.log, mert szeretnénk az autocad-ben látni a hibákat.)
+          Például kiírathatod az URL-t, items számát, első rekord-ot, stb.
         </p>
       </details>
     </section>
 
     <section id="feladatok">
-      <h2>Extra feladatok (opcionális)</h2>
+      <h2>Extra kihívások (opcionális)</h2>
 
       <ol>
         <li>
-          <strong>Rétegezés:</strong> a Sheets-ben legyen <code>layer</code> oszlop, és rajzolás előtt állíts réteget.
+          <strong>Rétegkezelés:</strong> a Sheets-ben legyen <code>layer</code> oszlop, és rajzolás előtt állíts réteget.
         </li>
         <li>
           <strong>Validáció:</strong> a Web App szűrje ki a hibás sorokat (negatív width/height), és adjon vissza <code>warnings</code> listát.
         </li>
         <li>
-          <strong>Táblázat frissítés:</strong> AutoCAD rajzolás után a Web App írja vissza a "drawnAt" időbélyeget.
+          <strong>Táblázat frissítés:</strong> AutoCAD rajzolás után a Web App írja vissza a "lastDrawnAt" időbélyeget a sor végére.
         </li>
         <li>
-          <strong>Forma bővítés:</strong> téglalap helyett <code>POLYLINE</code> vagy kör (x,y,r) paraméterezés.
-        </li>
-        <li>
-          <strong>Shared secret erősítése:</strong> időalapú (timestamp) + HMAC-szerű aláírás (haladó).
+          <strong>Forma bővítés:</strong> téglalap helyett <code>POLYLINE</code> vagy kör (x,y,r) paraméterezés. Vagy egy oszlopban megadhatod a típust.
         </li>
       </ol>
 
       <div class="callout">
-        <strong>Tanulság:</strong> itt a "nagy ötlet" nem a rajzolás, hanem az, hogy
-        a JavaScript képes <em>adatot</em> hozni a felhőből, és abból automatizáltan végrehajtani egy desktop műveletsort.
+        <strong>Tanulság:</strong> Nem is a rajzolás a lényegi rész (bár látványos),
+	hanem az, hogy a JavaScript képes <em>adatot</em> letölteni nekünk a felhőből,
+	és abból automatizáltan végrehajtani egy desktop műveletsort.
       </div>
     </section>
 
-    <footer>
-      © JavaScript automatizálás - Mini projekt (AutoCAD 2024 + Apps Script + Google Sheets)
-    </footer>
   </div>
 
-  <!-- (Opcionális) Ha van nálatok kódblokk-kiemelő -->
-  <!-- <script src="codeblock.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
 </body>
 </html>
