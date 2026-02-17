@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>12. lecke – Serverless (Cloud Functions / Lambda) alapok</title>
+
+  <!-- CodeMirror (ugyanaz, mint a korábbi leckéknél) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
+
+  <!-- A tananyag egységes kódblokk-stílusa -->
+  <link rel="stylesheet" href="codeblocks.css">
+
+  <style>
+    /* Kisebb kiegészítések az olvashatóságért – kompatibilis a korábbi stílussal */
+    .info {
+      border-left: 4px solid #3b82f6;
+      padding: 0.75rem 1rem;
+      background: rgba(59,130,246,0.08);
+      border-radius: 8px;
+    }
+    .warn {
+      border-left: 4px solid #f59e0b;
+      padding: 0.75rem 1rem;
+      background: rgba(245,158,11,0.10);
+      border-radius: 8px;
+    }
+    .ok {
+      border-left: 4px solid #22c55e;
+      padding: 0.75rem 1rem;
+      background: rgba(34,197,94,0.10);
+      border-radius: 8px;
+    }
+    details {
+      margin: 0.75rem 0 1rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 10px;
+      background: rgba(148,163,184,0.12);
+    }
+    details > summary {
+      cursor: pointer;
+      font-weight: 600;
+    }
+    kbd {
+      border: 1px solid rgba(148,163,184,0.5);
+      border-bottom-width: 2px;
+      padding: 0.1rem 0.35rem;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.95em;
+      background: rgba(148,163,184,0.10);
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>12. lecke – Serverless (Cloud Functions / Lambda) alapok</h1>
+    <p>
+      Ebben arról lesz szó, mit jelent a <strong>serverless</strong> megközelítés,
+      és miért hasznos mérnöki feladatok automatizálása esetén.
+      Lesz szó: <em>időzített</em> futásról, egyszerű
+      <em>számítási API</em> létrehozásáról, és eseményvezérelt feldolgozásról.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Mi az a serverless?</h2>
+
+      <p>
+        A <strong>serverless</strong> nem azt jelenti, hogy "nincs szerver".
+        Azt jelenti, hogy <strong>nem te üzemelteted</strong>: nem te frissíted az operációs rendszert,
+        nem te indítod újra a folyamatot, nem te méretezed a gépet. Te egy <em>függvényt</em> adsz meg,
+        és egy szolgáltató futtatja azt, amikor kell. (Szuper kényelmes).
+      </p>
+      <p>
+      Jellemzői:
+      </p>
+
+      <ul>
+        <li><strong>Függvény-alapú futtatás:</strong> rövid ideig futó kódrészletek</li>
+        <li><strong>Esemény indítja:</strong> HTTP kérés, fájlfeltöltés, üzenet, vagy időzítés</li>
+        <li><strong>Automatikus skálázás:</strong> ha sok kérés jön, több példány fut párhuzamosan</li>
+        <li><strong>Használat alapú költség:</strong> tipikusan futási idő alapján</li>
+      </ul>
+
+      <p class="info">
+        A serverless tulajdonképpen egy: <strong>"kódrészlet, ami egy eseményre reagálva fut"</strong>.
+        A hangsúly az eseményen van – nem azon, hogy "elindítok egy programot, aztán fut".
+	Láttunk már ilyet, hiszen a AppScriptek is voltak ilyen "trigger"-ek. Nos, ez lényegében ugyanaz.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Eltérések a Node.js-es (lokális) futtatáshoz képest</h2>
+
+      <article>
+        <h3>2.1. Ki indítja el és meddig fut?</h3>
+        <p>
+          Lokális Node.js scriptnél <strong>te</strong> indítod a programot, és addig fut, amíg le nem áll.
+          Serverlessnél a futást <strong>egy trigger</strong> (esemény) indítja, és a futás jellemzően
+          <strong>rövid életű</strong>. (A szolgáltatónak nem jó, ha sokáig foglalod az erőforrásait,
+	  szóval ha komoly terhelést szeretnél ráküldeni, az már fizetős lesz).
+        </p>
+      </article>
+
+      <article>
+        <h3>2.2. Állapot (state) kezelése: "stateless" működés</h3>
+        <p>
+          Serverless környezetben a függvény futásai <strong>függetlenek</strong>.
+          Nem érdemes arra építeni, hogy "ami memóriában van, az később is ott marad".
+	  A "felhő" szabadon kinyírhatja a scriptedet bármikor. Pont ez a lényeg:
+	  amikor szükség van rá futtatja, egyébként meg leállítja.
+        </p>
+        <p>
+	Cserébe viszont szuperül skálázódik. Ha elkezdik százan, ezren
+	vagy százezren használni, akkor is működik vidáman.
+        </p>
+
+        <p class="warn">
+          <strong>Szabály:</strong> ha valamit "meg kell jegyezni", azt külső helyre tedd:
+          adatbázisba, fájltárolóba, vagy más szolgáltatásba. A változóid 
+	  csak addig élnek amíg a függvény lefut!
+        </p>
+
+        <details>
+          <summary>Miért fontos ez?</summary>
+          <p>
+            Mert a platform bármikor indíthat több példányt párhuzamosan, vagy épp leállíthatja a futtatókörnyezetet.
+            Ha a logikád "globális változókra" vagy "memóriában tartott állapotra" épül, akkor bizonytalan lesz a működés.
+	    (A bizonytalan alatt értsük azt, hogy teljesen rossz. Elvi hiba ha ilyet csinálsz. Szóval ne csináld :))
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>2.3. Korlátok: idő és erőforrás</h3>
+        <p>
+          A serverless függvényeknek általában van <strong>maximális futási ideje</strong> és <strong>memória</strong> limitje.
+          Ezért tipikusan nem hosszú, órákig futó feldolgozásokra valók, hanem jól darabolható, gyors feladatokra.
+        </p>
+
+        <p class="info">
+          Ha nagyon nagy számításigényű feladatod van (például sok órányi szimuláció),
+          akkor azt általában más típusú infrastruktúrában érdemes futtatni.
+          Serverlesshez inkább az illik, hogy "gyorsan számolj és add vissza az eredményt".
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Hogyan használd? – rövid útmutató</h2>
+
+      <p>
+        A pontos lépések platformonként eltérnek, de a gondolatmenet ugyanaz.
+      </p>
+
+      <ol>
+        <li><strong>Írd meg a függvényt</strong> (bemenet → feldolgozás → kimenet)</li>
+        <li><strong>Válassz triggert</strong> (HTTP, időzítés, fájlfeltöltés, webhook, üzenet)</li>
+        <li><strong>Deploy</strong> (feltöltés a felhőbe)</li>
+        <li><strong>Teszt</strong> (valós inputtal)</li>
+        <li><strong>Figyeld</strong> (logok, hibák, futási idők)</li>
+      </ol>
+
+      <article>
+        <h3>3.1. Tipikus triggerek</h3>
+        <ul>
+          <li><strong>HTTP trigger:</strong> a függvényed egy webes "szolgáltatásként" működik</li>
+          <li><strong>Időzítés:</strong> "minden hétfő 08:00-kor futtasd"</li>
+          <li><strong>Fájlfeltöltés:</strong> "ha feltöltenek egy fájlt, dolgozd fel"</li>
+          <li><strong>Webhook:</strong> "ha egy külső rendszer jelez, reagálj"</li>
+        </ul>
+
+        <details>
+          <summary>Hogyan kezeld a bemenetet?</summary>
+          <p>
+            Serverlessnél a bemenet általában JSON (HTTP), fájl (feltöltés), vagy esemény-objektum.
+            A kódod elején <strong>validáld</strong> a bemenetet: típust, kötelező mezőket, tartományokat.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>3.2. Platformok</h3>
+	Nézzük meg, hol tudod kipróbálni, ha érdekel a dolog. Számos ilyen szolgáltatás
+	létezik, igaz a legtöbbnél meg kell adni bankkártyát (akkor is ha nem von le érte
+	pénzt).
+        <ul>
+          <li>Cloudflare Workers (ez jobbára működik kártya nélkül is)</li>
+          <li>Google Cloud Functions</li>
+          <li>AWS Lambda - ez az Amazon implementációja</li>
+          <li>Vercel Functions - ez egy szuper egyszerű szolgáltatás elég egy GitHub login</li>
+          <li>Netlify Functions - (gitlab, github account, ha programozol érdemes utánanézni)</li>
+        </ul>
+      </article>
+      
+      <article>
+        <h3>3.2. API kulcsok</h3>
+	<p>
+	Önmagában a függvény nem sok mindenre jó. Persze ki tudsz számolni vele 
+	valamit, de minden valószínűség szerint valamilyen külső erőforrást is el szeretnél érni, vezérelni:
+	levelet küldeni, felhőtárhelyre felpakolni valamit, adatbázisból adatot kiszedni vagy beletenni,
+	meghívni egy nagy nyelvi modellt és elemzést végezni vele, stb.
+	</p>
+	<p>
+	Igen ám, de honnan tudja az a szolgáltatás, hogy a Serverless függvényednek
+	van erre a joga? Elvégre nem sétálhat csak úgy be bárki az adatbázisodba vagy tárhelyedre,
+	hogy ott műveleteket végezzen. Amikor használod általában bejelentkezel, így tudja ki vagy.
+	De a Serverless függvény nem tud "bejelentkezni", hogy tud akkor műveleteket végezni a nevedben? 
+	</p>
+	<p>
+	Itt jönnek képbe az API kulcsok. Fizikailag ez egy ronda nagy, látszólag véletlenszerű kód (bár nem az)
+	ami feljogosítja a függvényedet az alkalmazás használatára. A kulcshoz hozzá van rendelve
+	egy jogosultsági készlet, amit a kulcs tulajdonosa megtehet. Elképzelheted úgy, hogy a feljogosítás során 
+	a felhasználó által elfogadott képességeket "beleégeti" a kulcsba, így azzal a kulcsal
+	később már csak azt lehet megtenni, minden mást elutasít a rendszer.
+	(Ez az, amit az authentikációs ablakban feldob neked: "engeded-e, hogy az ilyen és olyan
+	alkalmazás, ezt és azt tehesse.) 
+	</p>
+
+	<p class="warn">
+	Az API kulcsot sosem tesszük bele a kódba! (A kódodat sokan láthatják és 
+	sokkal könnyebben kiszivárog). Vagy az erre a célra tervezett biztonságos
+	kulcstárban tartjuk (pl. AWS Secrets Manager) vagy környezeti változóban 
+	(ez a gyakoribb és mindenhol létezik). 
+	</p>
+      </article>
+
+    <section>
+      <h2>4. Példák</h2>
+
+      <article>
+        <h3>4.1. Példa 1 – "Automatikus számítás" </h3>
+        <p>
+          Készítsünk egy egyszerű mérnöki számítást ami elérhető HTTP API-n keresztül.
+          Példa: <strong>feszültség</strong> számítása: <code>σ = F / A</code>.
+        </p>
+        <p>
+	A Serverless függvényekkel létrehozhatsz "felhőben élő" számításokat, 
+	amiket bármilyen platformról, bárhonnan, bármikor elérhetsz, feltéve, hogy
+	az a rendszer ismeri a HTTP protokollt (azt meg minden ismeri,
+	valószínűleg még a tévéd is, hiszen ezt használja a web).
+        </p>
+        <h4>4.1.1. HTTP függvény minimalista formában</h3>
+        <p>
+	  Az általános séma valami ilyesmi:
+          A platform ad egy <code>request</code> és <code>response</code> objektumot (HTTP esetén),
+          te pedig visszaadsz egy JSON objektumot.
+        </p>
+        <p>
+	A kapott és átadott objektumok pont olyanok mint amit node request csomag esetén már láttunk. A kezelő tehát valami ilyesmi:
+        </p>
+
+        <textarea data-readonly data-lang="js">
+// HTTP trigger
+exports.handler = (req, res) => {
+  // itt csinálsz vele valamit
+  res.json({ ok: true, message: "Hello serverless!" });
+};
+        </textarea data-readonly>
+
+        <p class="warn">
+          A konkrét név (<code>handler</code>, <code>req</code>, <code>res</code>) és export forma platformonként változhat,
+          de a lényeg ugyanaz: <strong>bemenet → feldolgozás → válasz</strong>.
+        </p>
+      </article>
+
+      <article>
+
+        <h4>4.1.1. Egy egyszerű megoldás </h4>
+        <textarea data-readonly data-lang="js">
+// HTTP trigger: JSON bemenet -> JSON válasz
+exports.calculateStress = (req, res) => {
+  const force = Number(req.body.force); // N
+  const area = Number(req.body.area);   // m^2
+
+  const stress = force / area; // Pa
+
+  res.json({ stress });
+};
+        </textarea data-readonly>
+	<p>
+	Persze a <code>Number(...)</code> adhat <code>NaN</code>-t is (például ha hiányzik a mező vagy szöveg).
+            Ilyenkor adj vissza hibát, és ne számolj tovább!
+	</p>
+
+        <h4>4.1.2. Biztonságosabb verzió (validációval)</h4>
+        <textarea data-readonly data-lang="js">
+exports.calculateStress = (req, res) => {
+  const force = Number(req.body.force);
+  const area = Number(req.body.area);
+
+  if (!Number.isFinite(force) || !Number.isFinite(area)) {
+    return res.status(400).json({ error: "force és area szám kell legyen" });
+  }
+  if (area <= 0) {
+    return res.status(400).json({ error: "area legyen pozitív" });
+  }
+
+  const stress = force / area;
+  return res.json({ stress });
+};
+        </textarea data-readonly>
+        <p class="ok">
+          Miért jó az nekem ha a felhőben számol? Nos, azért jó, mert így a számítás <strong>bármilyen rendszerből</strong> hívható:
+          webappból, mobilról, CAD plug-inből, vagy egy irodai folyamatból is. Vagy akár az összesből. Egyszerre.
+        </p>
+
+        <details>
+          <summary>Extra: egységek és dokumentáció</summary>
+          <p>
+            Mérnöki számításnál a leggyakoribb hiba az egységkezelés.
+            Írd le a függvényed dokumentációjában, hogy milyen egységeket vársz (pl. N, m²),
+            és mi a kimenet (pl. Pa).
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>4.2. Példa 2 – Időzített futás</h3>
+
+
+        <p >
+          Például: hetente egyszer lekérdezel adatot egy API-ból (mérőeszköz, rendszerlog, projekt státusz),
+          összesítesz, és elküldöd a riportot. Ha elmész két hétre síelni és nem kapcsolod be a gépet,
+	  attól még minden működik szépen tovább.
+        </p>
+
+        <h4>4.2.1. "Riport generálás" </h4>
+        <textarea data-readonly data-lang="js">
+// Scheduled trigger (időzítés): a platform hívja ezt a függvényt
+exports.weeklyReport = async () => {
+  // 1) adatlekérdezés (pl. fetch egy API-ra)
+  // 2) feldolgozás: átlag, max, hibák száma, stb.
+  // 3) eredmény mentése vagy elküldése
+
+  console.log("Heti riport lefutott.");
+};
+        </textarea data-readonly>
+
+        <details>
+          <summary>Hint: mit keres ott az az async?</summary>
+          <p>
+            A riport esetében általában szeretnél valamilyen hálózati kérést (API), fájlmentés, e-mail küldés használni- ezek pedig aszinkron műveletek.
+	    Emiatt logikus, hogy a függvény is <code>async</code>, így tudod használni az elegáns <code>await</code>-et.
+          </p>
+        </details>
+
+        <h4>4.2.2. Ütemező ("Cron") </h4>
+        <p>
+          Az időzítés általában egy szabály ami megmondja, hogy mikor fusson le a függvényed. Például:
+        </p>
+        <ul>
+          <li>minden nap 07:00</li>
+          <li>minden hétfő 08:00</li>
+          <li>óránként</li>
+        </ul>
+        <p >
+	Ilyen időzítő egyébként a számítógépeden is létezik, annyi különbséggel
+	hogy az egy programot futtat a megadott időben. Mivel azonban a számítógéped
+	nincs állandóan bekapcsolva (ha csak nincs szervered), nyilván csak akkor
+	tud elindítani valamit, amikor éppen működik. A Serverless platformnál
+	nincs ilyen korlát, az éjjel-nappal fut.
+        </p>
+        
+	<p class="ok">
+          Miért jó az nekem? Azért mert így tudsz
+	  akár éjjel-nappal futó rendszert készíteni.
+          A felhőben fut a kód, ezért nem kell hozzá
+          bekapcsolt saját gép.
+        </p>
+
+        <p class="warn">
+          A konkrét időzítő szintaxis platformfüggő, de a lényeg azonos:
+	  be tudsz állítani egy (ismétlődő) időpontot, amikor a függvény lefut.
+	  Általában nem garantált, hogy ezredmásodpercre akkor, 
+	  inkább csak úgy nagyjából akkor.
+        </p>
+      </article>
+      <h3>4.3. További példák</h3>
+        <p>Mire reagálhat (és mit csinálhat) a függvényem? (Néhány további példa):</p>
+        <ul>
+          <li><strong>HTTP:</strong> tetszőleges "kalkulátor szolgáltatás" (API hívás)</li>
+          <li><strong>Fájlfeltöltés:</strong> "DXF/CSV ellenőrzés feltöltéskor"</li>
+          <li><strong>Webhook:</strong> "Git commit után ellenőrzés és értesítés"</li>
+          <li><strong>Szenzor rendszer:</strong> IoT eszközök adatainak gyűjtése, küszöbérték vizsgálat, trendfigyelés</li>
+          <li><strong>Időzítés:</strong> "heti riport generálás"</li>
+          <li><strong>Automatikus archiválás:</strong>A függvény régi fájlokat archiválja, mentéseket készít, régi mentéseket törli.</li>
+        </ul>
+    </section>
+
+    <section>
+      <h2>5. Amit érdemes észben tartani</h2>
+
+      <ul>
+        <li>
+          <strong>Futási idő limit:</strong> a függvény nem "fut állandóan". Tipp: bontsd kisebb lépésekre a feladatot!
+        </li>
+        <li>
+          <strong>Stateless:</strong> ne reméld, hogy a memória tartalma megmarad következő futásig.
+        </li>
+        <li>
+          <strong>Bemenet validáció:</strong> külső inputot mindig ellenőrizz (NaN, hiányzó mezők, tartományok).
+        </li>
+        <li>
+          <strong>Egységek:</strong> számításnál egyértelműen dokumentáld az egységeket (N, m², Pa, stb.).
+        </li>
+        <li>
+          <strong>Logolás:</strong> ha valami elromlik, a napló lesz a legjobb barátod.
+        </li>
+      </ul>
+    </section>
+
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="codeblocks.js"></script>
+</body>
+</html>
