@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript as a System - Lesson 7</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+<body>
+  <header>
+    <h1>Lesson 7 - JavaScript as a System: Execution Model, Closure, Asynchronous Patterns</h1>
+    <p>
+      Even when writing code with a machine (or perhaps especially then),
+      it is worthwhile to understand the "big picture," that is, how the system that interprets
+      the program works. Even if not in extreme detail, just broadly:
+      how it schedules tasks, why references,
+      objects, and asynchronous operations behave as they do in practice.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. JavaScript Execution Model</h2>
+      <p>
+        In JavaScript, many things become clearer if we understand some "technical details."
+        For example, that code fundamentally runs <strong>on a single thread</strong>,
+        but the browser or other environment (e.g., Node.js) can handle background timing, I/O, networking,
+        and return the results to JS for processing.
+      </p>
+
+      <article>
+        <h3>1.1. Single-threaded - what does this actually mean?</h3>
+        <p>
+          "Single-threaded" means that <strong>only one piece of JS code runs at a time</strong>.
+          There is no situation where two functions "truly run" simultaneously within the same JS environment.
+          This greatly simplifies operation. If multiple things execute simultaneously,
+	  they can interfere with each other's work. Think about what happens
+	  if multiple people edit a file and overwrite each other's results.
+	  With only one thread, there is no such "race condition."
+        </p>
+
+        <p>
+          If you run the code below, the browser appears to hang between "start" and "end,"
+          because JS is working and cannot run other JS code (like handling UI events).
+	  While it runs, try editing the code! (Of course, how long it hangs depends heavily on your machine's performance,
+	  if you have a powerful machine, you might get the result quickly anyway. In that case, try entering a larger number).
+        </p>
+	<p>
+	  If you enter a very large number, close the tab and reopen it! The slow code won't affect your other tabs:
+	  we see that the script runs on a single thread, but—at least in modern browsers—each tab is separate. (One tab does not affect another).
+        <textarea data-lang="js">
+function slowTask() {
+  let sum = 0
+  for (let i = 0; i < 1000000000; i++) sum += i
+  return sum
+}
+
+console.log("start")
+console.log(slowTask())
+console.log("end")
+        </textarea>
+
+      </article>
+
+      <article>
+        <h3>1.2. Call stack</h3>
+        <p>
+          The <strong>call stack</strong> is the "list" where JavaScript keeps track of which function is currently running and who called whom (and so on).
+	  Each function call "pushes" onto the top of the stack, and when it returns, it "pops" off.
+	  That's why it's called a "stack." (You remove the last item you put in).
+        </p>
+
+        <textarea data-lang="js">
+function a() {
+  console.log("a start")
+  b()
+  console.log("a end")
+}
+
+function b() {
+  console.log("   b start")
+  c()
+  console.log("   b end")
+}
+
+function c() {
+  console.log("        c running")
+}
+a()</textarea>
+
+        <p>
+          If you follow the code mentally, you'll see that first <code>a</code> goes onto the stack, then <code>b</code>, then <code>c</code>,
+          then <code>c</code> returns, is removed, then <code>b</code>, then <code>a</code>.
+        </p>
+        <p>
+	When an error occurs, the "traceback" shows us the call sequence, clarifying where the error happened.
+        </p>
+        <p>
+	Unfortunately, this elegant model only works so well with simple linear code. When we have events,
+	working with Promises (i.e., asynchronous code), it becomes much harder to pinpoint exactly when and where the error occurred.
+        </p>
+      </article>
+
+      <article>
+        <h3>1.3. Task queue and microtask queue</h3>
+        <p>
+          In asynchronous scenarios, the environment schedules tasks. In practice, this is often implemented by
+	  creating a scheduling queue (think of it as an array), and when a new asynchronous
+	  task is created, it is not executed immediately but added to this queue, then the function returns.
+	  The browser has a loop that continuously checks this queue and processes tasks.
+        </p>
+	<p>In browsers, there are two such queues:</p>
+        <ul>
+          <li><strong>task queue</strong> (macrotask): for <code>setTimeout</code>, UI events, I/O callbacks</li>
+          <li><strong>microtask queue</strong>: for Promises (<code>.then</code>, <code>await</code> continuations)</li>
+        </ul>
+
+        <p>
+          It might be unnecessary to go into too much detail, but as a rule of thumb, the script processor
+	  first "empties" the call stack (synchronous execution),
+	  then <strong>executes all microtasks first</strong>,
+	  and only then takes an item from the task queue.
+        </p>
+        <p>
+	If you do something very slow in your function (or create an infinite loop),
+	it will seem as if the browser has "frozen," because the call stack takes a very long time (or never returns),
+	and during that time, tasks and microtasks do not run.
+        </p>
+
+        <textarea data-lang="js">
+logger = console.log
+logger("A: synchronous start")
+
+// this goes into the Task Queue
+setTimeout(() => logger("D: setTimeout (task)"), 0)
+
+// this goes into the Microtask Queue
+Promise.resolve()
+  .then(() => logger("C: Promise then (microtask)"))
+
+// this is the end of the normal (synchronous) stack.
+logger("B: synchronous end")
+        </textarea>
+
+        <p>
+          In your browser, it will probably look like this, even if you didn't explicitly call them in this order: A, B, C, D.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Closure: "Memory" functions</h2>
+      <p>
+        The <strong>closure</strong> is one of JavaScript's most important (and often misunderstood) features:
+        a function has access to the variables around it at the time of creation (lexical environment),
+        even if called later, "elsewhere."
+      </p>
+
+      <article>
+        <h3>2.1. Simple example: a function that remembers a value</h3>
+        <textarea data-lang="js">
+function multiplier(n) {
+  return function (x) {
+    return x * n
+  }
+}
+
+let doubler = multiplier(2)
+let tripler = multiplier(3)
+
+console.log(doubler(10))  // 20
+console.log(tripler(10)) // 30
+        </textarea>
+
+        <p>
+          As you see, the inner function "remembers" what <code>n</code> was at creation time.
+	  This is not some strange quirk but an integral part of the language. We often use it intentionally.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.2. "Private state" with closure</h3>
+        <p>
+          With closures, you can easily create states that are not directly accessible from outside,
+          yet persist between two calls.
+        </p>
+
+        <textarea data-lang="js">
+function counter() {
+  let value = 0
+
+  return {
+    inc: () => (value = value + 1),
+    get: () => value
+  }
+}
+
+let c = counter()
+c.inc()
+c.inc()
+console.log(c.get()) // 2
+        </textarea>
+
+        <p>
+          Okay, but what is this good for? Couldn't we just have a <code>value</code> variable that we increment?
+	  Sure, but then it would be "global," visible to the entire code, and if we accidentally use it somewhere else,
+	  it could be overwritten. Who knows what is in a large codebase? This way, it's guaranteed that no external code
+	  can access this value. It acts as a persistent state.
+        </p>
+
+        <p class="info">
+	Interesting: in older code, you might see <code>var</code> used instead of <code>let</code>. In that case, there's no block scope,
+	so the closure points to the same variable. If you understand this, you know more than many programmers :-D <code>let</code>.
+        </p>
+      </article>
+
+        <textarea data-lang="js">
+logger = console.log
+
+// old style (var) variable code
+for (var i = 0; i < 3; i++) {
+  setTimeout(() => logger("var i =", i), 0)
+}
+
+// modern, with block-scoped variables (let):
+for (let j = 0; j < 3; j++) {
+  setTimeout(() => logger("let j =", j), 0)
+}
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. A Little Design Perspective</h2>
+
+      <article>
+        <h3>3.1. State</h3>
+        <p>
+          <strong>State</strong> generally refers to the "current condition" of the system:
+          what values are stored, and how they influence operation.
+          For example, a counter value, logged-in user data, current list items.
+        </p>
+
+        <textarea data-lang="js">
+let cart = ["apple", "bread"]
+
+function addItem(item) {
+  cart.push(item)
+}
+
+addItem("milk")
+console.log(cart)
+        </textarea>
+
+        <p>
+          Here, <code>cart</code> is the "state" of the system.
+	  The question always is: who can write, who can read, and under what rules can it change?
+	  In larger systems, it is very useful to explicitly state that the system's state
+	  is stored in a single central "state," and, if possible, avoid having many small "states" scattered throughout.
+        </p>
+        <p>
+	As your system becomes more complex, managing state becomes increasingly important.
+	If you only have a cart, it might not seem critical, but imagine a system with many users, logged in or not,
+	with separate carts, analyzers, permissions, administrators, collected data, reports,
+	which must persist, be accounted for, and referenced by accounting or other systems.
+        </p>
+        <p>
+	Moreover, it should be handled in a way that parts of a multi-file system do not interfere with each other,
+	even if written by different people.
+        </p>
+        <p>
+	Fortunately, we aim to solve much simpler tasks, but it's good to keep this "state" concept in mind.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.2. Imperative vs. Functional Approach</h3>
+        <p>
+          In an imperative style, we specify: "<em>how</em> to do something step by step."
+          In a functional style, we focus more on "<em>what</em> I want to get."
+        </p>
+	<p>The imperative is a sequence of instructions, the functional is more about transformations.</p>
+
+        <p><strong>Imperative example (loop, manual collection)</strong></p>
+        <textarea data-lang="js">
+let nums = [1, 2, 3, 4, 5]
+let evenDoubles = []
+
+for (let n of nums) {
+  if (n % 2 === 0) {
+    evenDoubles.push(n * 2)
+  }
+}
+
+console.log(evenDoubles) // [4, 8]
+        </textarea>
+
+        <p><strong>Functional example (filter + map)</strong></p>
+        <textarea data-lang="js">
+let nums = [1, 2, 3, 4, 5]
+
+let evenDoubles = nums
+    .filter(n => n % 2 === 0)
+    .map(n => n * 2)
+
+console.log(evenDoubles) // [4, 8]
+        </textarea>
+
+        <p>
+	Why is the functional approach "better"? Well, not necessarily. It can be slower.
+	But it often provides a more reliable and understandable mental model,
+	if you think of the process as a series of transformations.
+	"Take this <code>nums</code> list, filter out the even ones, then transform (double) them."
+	In the code above, <code>filter</code> does the filtering, and <code>map</code> does the transformation.
+	Both take a lambda function that explicitly states how to perform the operation.
+        </p>
+        <p>
+	In modern EcmaScript, such functional approaches are quite common, so it's worth knowing them.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.3. Pure function</h3>
+        <p>
+          A <strong>pure function</strong> is one that:
+        </p>
+        <ul>
+          <li>depends only on its input (always returns the same output for the same input)</li>
+          <li>has no side effects (does not modify external state, does not print, does not query time, does not communicate over the network)</li>
+        </ul>
+
+        <textarea data-lang="js">
+function netGross(net, vatRate) {
+  return net * (1 + vatRate)
+}
+
+console.log(netGross(100, 0.27))
+        </textarea>
+
+        <p>
+	  This is a pure function. Its output depends solely on the parameters.
+	  You can call it as many times as you want, with the same arguments, and get the same result.
+	  Why is this good? Easy to test, easy to reuse, and it rarely causes "surprises."
+        </p>
+      </article>
+
+      <article>
+        <h3>3.4. Side effect</h3>
+        <p>
+          A <strong>side effect</strong> occurs when a function changes something "external":
+          modifies a global variable, writes to the DOM, writes a file, communicates over the network, logs, reads time, etc.
+          Sometimes, this is necessary, but it's important to know which parts of your program do this.
+        </p>
+
+        <textarea data-lang="js">
+let total = 0
+
+function addToTotal(x) {
+  total = total + x
+}
+
+addToTotal(10)
+addToTotal(5)
+addToTotal(10)
+
+console.log(total)
+        </textarea>
+
+        <p>
+	  This is not pure code. If you call it again with the same parameter, you might not get the same result! Why is this a problem?
+	  Well, it's obvious that testing such code is harder, because it can return different results depending on previous calls.
+	  If a function always returns B for input A, then we can just check if the answer is B for A.
+	  But with the above code, if you pass 40 and get 70, is that correct? Or not?
+	</p>
+	<p>Furthermore, imagine another function, say resetTotal, which resets the total (or many other functions that do different things with it). Now, the order of calls matters. If addToTotal is called in a code segment, and in the meantime, an asynchronous resetTotal runs, then the function might return a completely different value than before, depending on whether the async code ran earlier or later. This is a "race condition," and debugging it can take ages.</p>
+	<p>Therefore, it is often more practical to write functions in a "pure" form, returning a value, and then decide whether to store or discard it at the call site.</p>
+
+        <textarea data-lang="js">
+// this is a pure function:
+function add(total, x) {
+  return total + x
+}
+
+let total = 0
+total = add(total, 10)
+total = add(total, 5)
+
+console.log(total)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>3.5. Mutability</h3>
+        <p>
+          A <strong>mutable</strong> parameter or function means: "I modify the same object."
+          This is fast and simple, but harder to track, and more prone to errors due to shared state.
+        </p>
+
+        <p><strong>Mutable example (modify in place)</strong></p>
+        <textarea data-lang="js">
+let user = { name: "Anna", score: 10 }
+
+function incScore(u) {
+  u.score = u.score + 1
+  return u
+}
+
+incScore(user)
+console.log(user)
+        </textarea>
+	<p>
+	The incScore function took the <code>user</code> object and modified (mutated) it.
+	</p>
+
+        <p><strong>Immutable style (return a new object)</strong></p>
+        <textarea data-lang="js">
+let user = { name: "Anna", score: 10 }
+
+function incScore(u) {
+  return { ...u, score: u.score + 1 }
+}
+
+let user2 = incScore(user)
+
+console.log(user)  // original
+console.log(user2) // new one
+        </textarea>
+
+        <p>
+	This variant leaves the original untouched and returns a new object with the desired change.
+	Obviously, if your object is huge (say, many megabytes), creating copies all the time isn't ideal,
+	but in most cases, especially when many parts access the data, this approach is clearer.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Object Behavior</h2>
+
+      <article>
+        <h3>4.1. Reference types</h3>
+        <p>
+          For objects (including arrays, functions), variables do not store the data itself but a <strong>reference</strong> to it.
+          Therefore, two variables can point to the "same" object.
+        </p>
+
+        <textarea data-lang="js">
+let a = { x: 1 }
+let b = a
+
+b.x = 99
+
+console.log(a.x) // 99
+console.log(b.x) // 99
+        </textarea>
+	<p>Here, <code>a</code> and <code>b</code> actually refer to the same data, just with different names.</p>
+      </article>
+
+      <article>
+        <h3>4.2. Object identity</h3>
+        <p>
+          Two separately created objects are not equal even if they contain the same data,
+          because their references (identity) differ. This is true in ECMAScript, but not in all languages.
+        </p>
+
+        <textarea data-lang="js">
+let p1 = { x: 1, y: 2 }
+let p2 = { x: 1, y: 2 }
+
+console.log(p1 === p2) // false
+console.log(p1 == p2) // false
+
+let p3 = p1
+console.log(p1 === p3) // true
+        </textarea>
+
+        <p>
+	Thus, for objects, equality really means: "are they the same instance in memory?" rather than "do they have the same data."
+        </p>
+      </article>
+
+      <article>
+        <h3>4.3. Mutation vs. new object</h3>
+        <p>
+	As mentioned before, it is important to distinguish whether you are modifying the same object or creating a new one.
+        </p>
+
+        <textarea data-lang="js">
+let obj = { a: 1, b: 2 }
+
+// mutation (same object)
+obj.b = 200
+
+// new object
+let obj2 = { ...obj, b: 300 }
+
+console.log(obj)
+console.log(obj2)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>4.4. Shallow vs. deep copy</h3>
+        <p>
+          A <strong>shallow copy</strong> copies only the top level; nested objects are referenced.
+          A <strong>deep copy</strong> recursively copies everything, avoiding shared internal references.
+        </p>
+
+        <p><strong>Shallow copy trap</strong></p>
+        <textarea data-lang="js">
+let original = {
+  name: "Project",
+  meta: { version: 1 }
+}
+
+let shallow = { ...original }
+
+shallow.meta.version = 2
+
+console.log(original.meta.version) // 2 (copy, but changed!)
+console.log(shallow.meta.version)  // 2
+        </textarea>
+
+        <p>
+          Here, the <code>meta</code> object remains shared because the spread only copied the top level.
+        </p>
+
+        <p>For deep copying, there are libraries, but here's a simple (though limited) trick:</p>
+        <textarea data-lang="js">
+let original = {
+  name: "Project",
+  meta: { version: 1 }
+}
+
+// deep copy:
+let deep = JSON.parse(JSON.stringify(original))
+deep.meta.version = 3
+
+console.log(original.meta.version) // 1
+console.log(deep.meta.version)     // 3
+        </textarea>
+
+        <p>
+          The problem with this method is that JSON does not support special objects (like Date, Map, Set, functions, undefined, circular references),
+	  so they would be lost. But for simple objects, it can be a solution.
+        </p>
+      </article>
+    </section>
+
+
+    <section>
+      <h2>6. Summary</h2>
+      <ul>
+        <li>
+          <strong>single-threaded</strong>: one JS code runs at a time; environment schedules and returns tasks.
+        </li>
+        <li>
+          <strong>call stack</strong>: shows where the execution is and who called what.
+        </li>
+        <li>
+          In asynchronous mode, there are two queues: <strong>task queue</strong> and <strong>microtask queue</strong>. Microtasks (Promises/await) run first.
+        </li>
+        <li>
+          Due to <strong>closure</strong>, functions "remember" their creation environment (a feature and a trap).
+        </li>
+        <li>
+          Useful concepts in design: <strong>state</strong>, pure functions, side effects, mutable vs. immutable.
+        </li>
+        <li>
+          For objects, two key concepts: <strong>reference</strong> and <strong>identity</strong>. Understanding these makes "surprising" behaviors less surprising.
+        </li>
+      </ul>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

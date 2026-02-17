@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Automation - Chapter 11 (Part 2): Google Workspace Tutorial</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+
+<body>
+  <header>
+    <h1>Chapter 11 - Part 2: Google Workspace Automation (Tutorial)</h1>
+    <p>
+      In this chapter, through a specific example, we will <strong>step-by-step</strong> perform an automation task across the entire <strong>Google Forms → Google Sheets → Apps Script → Gmail/Drive</strong> chain.
+      We will look at how these interfaces look, <em>how to grant permissions</em>, and
+      <em>how to run the code automatically (with triggers)</em>.
+    </p>
+    <p>
+    Don't be scared, it's much simpler than it sounds!
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>0. THE PLAN (what you will create?)</h2>
+      <p>
+        We want to assemble the following system:
+      </p>
+      <ol>
+        <li>We created a <strong>Google Form</strong> where someone submits a request / application.</li>
+        <li>The form responses automatically go into a <strong>Google Sheets</strong> spreadsheet.</li>
+        <li>For <strong>every submission</strong>, an <strong>Apps Script</strong> (trigger) runs automatically.</li>
+        <li>The script:
+          <ul>
+            <li>validates the submitted data,</li>
+            <li>generates an <strong>identifier</strong> (ID),</li>
+            <li>sets a <strong>status</strong> (e.g., NEW),</li>
+            <li>sends a <strong>confirmation email</strong> to the submitter,</li>
+            <li>and creates an <strong>archive summary</strong> in a Drive folder.</li>
+          </ul>
+        </li>
+        <li>Optional: you can set up a <strong>daily summary</strong> email with a scheduled trigger.</li>
+      </ol>
+
+      <p class="info">
+        It's not really about a "programming challenge"; you will probably have it written by an LLM initially.
+        If you can read the code, that's already quite good. The main goal is to understand the full process within Google Workspace: creation → authorization → execution → trigger.
+      </p>
+    </section>
+
+    <section>
+      <h2>1. Creating a Google Form and linking it to Sheets (quick but traceable)</h2>
+
+      <article>
+        <h3>1.1. Creating a Google Form</h3>
+        <a href="https://docs.google.com/forms" target="_blank"><img src="es_11_1_gform.png" /> </a>
+        <ol>
+          <li>Open Google Drive (or just click the image above).</li>
+          <li>In Drive: <strong>New</strong> → <strong>More</strong> → <strong>Google Forms</strong>.</li>
+          <li>Give it a title, e.g., <strong>"Request Submission"</strong> or whatever you like.</li>
+          <li>Add a few fields (don't omit the email, as we want to send a message here):
+            <ul>
+              <li><strong>Name</strong> (short answer)</li>
+              <li><strong>Email</strong> (short answer)</li>
+              <li><strong>Subject</strong> (short answer)</li>
+              <li><strong>Description</strong> (paragraph)</li>
+            </ul>
+          </li>
+          <li>Optional: set required fields (toggle: <strong>Required</strong>).</li>
+        </ol>
+        <p>
+        <img src="es_11_2_gform.png" />
+        </p>
+      </article>
+
+      <article>
+        <h3>1.2. Saving responses to a spreadsheet (link to Sheets)</h3>
+        <ol>
+          <li>At the top of the form, open the <strong>Responses</strong> tab.</li>
+          <li>Click the green Sheets icon (create spreadsheet).</li>
+          <li>Choose: <strong>Create a new spreadsheet</strong>.</li>
+          <li>Name it, e.g., <strong>"Request Submissions - responses"</strong>.</li>
+          <li>Click: <strong>Create</strong>.</li>
+        </ol>
+        <p>
+        If successful, you should see something like:
+        </p>
+        <img src="es_11_3_sheets.png" />
+        <p class="info">
+          From now on, every submission will be a new row in the sheet (timestamp + fields in columns).
+        </p>
+        <p>
+        Click the link and wait for the sheet to open in a new tab. If you publish your form (publish) and open the received link, you can even test it:
+        if you fill out the form, it will automatically appear here!
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Creating an Apps Script project for the sheet</h2>
+
+      <article>
+        <h3>2.1. Opening the script editor</h3>
+        <ol>
+          <li>Open the created Google Sheets spreadsheet.</li>
+          <li>In the menu, click: <strong>Extensions</strong> → <strong>Apps Script</strong>.</li>
+          <li>The Apps Script editor opens with a new project.</li>
+          <li>In the top-left corner, rename the project, e.g., <strong>"Request Management Automation"</strong>.</li>
+        </ol>
+        <p class="info">
+          This is a <strong>bound script</strong>: the script is "attached" to this spreadsheet, making it easier to access
+          the active sheet and triggers are typically linked to it.
+        </p>
+        <p><em>Screenshot location:</em> "Extensions → Apps Script menu and the Script editor interface".</p>
+      </article>
+
+      <article>
+        <h3>2.2. Basic files</h3>
+        <p>
+          By default, there will be a <code>Code.gs</code> file. We will write the code here (later it can be split into multiple files).
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Pasting the code</h2>
+      <p>
+      Now comes the core, the code!
+      </p>
+      <p>
+        Copy and paste the following code into the <code>Code.gs</code> file, replacing the existing content. (You won't need the original, it's just an example).
+      </p>
+      <img src="es_11_4_gs.png" />
+      <p>
+      The code isn't short (this was just written by chatGPT for me below), but just review it. It's never hurtful
+      to have a rough idea of what your data is running;). After all, that's why we worked so much to be able to read it.
+      </p>
+      <p>
+      (If any part is still unclear, copy the above goals into your favorite LLM model and ask why it did it that way).
+      </p>
+
+      <article>
+        <h3>3.1. Configuration (folder name, columns)</h3>
+        <textarea data-lang="js" data-readonly>
+/**
+ * CONFIGURATION
+ * - ARCHIVE_FOLDER_NAME: where we save the summary files of submissions on Drive
+ * - EXPECTED_HEADERS: based on these, we find the correct columns
+ */
+const ARCHIVE_FOLDER_NAME = "Request_Submission_Archive";
+const EXPECTED_HEADERS = ["Timestamp", "Name", "Email", "Subject", "Description"];
+
+// Optional: send the daily digest here (by default for yourself)
+const DAILY_DIGEST_TO = "your.email@domain.com"
+
+        </textarea>
+        <p>
+        Of course, if you didn't create these fields on your form, specify different EXPECTED_HEADERS!
+        </p>
+      </article>
+
+      <article>
+        <h3>3.2. Main entry point: processing form submission</h3>
+        <p>This will be called by the "trigger" or upload event.</p>
+        <textarea data-lang="js" data-readonly>
+/**
+ * This function will be called by the "On form submit" trigger.
+ * Parameter: e (event object) - data of the submission (from Sheets/Forms event)
+ */
+function handleFormSubmit(e) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getActiveSheet(); // sheet containing responses
+
+  const headerMap = getHeaderMap_(sheet);
+  const row = e && e.range ? e.range.getRow() : sheet.getLastRow();
+
+  // Read from the submitted row
+  const record = readRecord_(sheet, headerMap, row);
+
+  // 1) Validation (minimum requirement: email + subject)
+  const errors = validateRecord_(record);
+  if (errors.length > 0) {
+    // Even in case of invalid submission, archive it, but status will be ERROR and no email sent to submitter
+    writeBack_(sheet, headerMap, row, { Status: "ERROR", Error: errors.join("; ") });
+    archiveRecord_(record, "ERROR");
+    sendAdminAlert_(record, errors);
+    return;
+  }
+
+  // 2) ID and status
+  const id = generateId_();
+  record.ID = id;
+  record.Status = "NEW";
+
+  // 3) Write back to the sheet (new columns: ID, Status, ProcessedAt)
+  writeBack_(sheet, headerMap, row, {
+    ID: id,
+    Status: "NEW",
+    ProcessedAt: new Date()
+  });
+
+  // 4) Archive to Drive
+  archiveRecord_(record, "NEW");
+
+  // 5) Send confirmation email
+  sendConfirmation_(record);
+}
+        </textarea>
+      </article>
+
+      <article>
+        <h3>3.3. Helper functions</h3>
+        <p>
+        Finally, let's add some helper functions (reading, validation, writing, email, archiving).
+        Of course, the "AI" could have written this in the trigger too, but it didn't and for good reason.
+        If everything was piled into the trigger, you wouldn't be able to read it easily. Instead,
+        the logic is separated into functions, and you can decide if it's good, what you wanted or not.
+        </p>
+        <p>
+        Notice that the function names end with an underscore.
+        This isn't mandatory (more like a tradition) and indicates
+        that these functions are not "global" functions (they can be called from anywhere),
+        but are only helper functions for this script, and we don't want to use them elsewhere
+        except in the "main" trigger function.
+        </p>
+        <p>
+        Apps Script recognizes this tradition and won't show these functions in the list of functions to run!
+        </p>
+        <img src="es_11_5_run.png" />
+        <textarea data-lang="js" data-readonly>
+function getHeaderMap_(sheet) {
+  const headerRow = 1;
+  const headers = sheet.getRange(headerRow, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const map = {};
+  headers.forEach((h, idx) => {
+    if (h) map[String(h).trim()] = idx + 1; // 1-based column index
+  });
+  return map;
+}
+
+function readRecord_(sheet, headerMap, row) {
+  const get = (name) => {
+    const col = headerMap[name];
+    return col ? sheet.getRange(row, col).getValue() : "";
+  };
+
+  return {
+    Timestamp: get("Timestamp"),
+    "Name": get("Name"),
+    Email: get("Email"),
+    "Subject": get("Subject"),
+    "Description": get("Description")
+  };
+}
+
+function validateRecord_(r) {
+  const errors = [];
+  const email = String(r.Email || "").trim();
+  const subject = String(r["Subject"] || "").trim();
+
+  if (!email) errors.push("Missing Email");
+  if (email && !email.includes("@")) errors.push("Email does not seem valid");
+  if (!subject) errors.push("Missing Subject");
+
+  return errors;
+}
+
+function generateId_() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  const id =
+    d.getFullYear() +
+    pad(d.getMonth() + 1) +
+    pad(d.getDate()) + "-" +
+    pad(d.getHours()) +
+    pad(d.getMinutes()) +
+    pad(d.getSeconds()) + "-" +
+    Math.floor(Math.random() * 1000);
+  return id;
+}
+
+function ensureColumn_(sheet, headerMap, name) {
+  if (headerMap[name]) return headerMap[name];
+  const col = sheet.getLastColumn() + 1;
+  sheet.getRange(1, col).setValue(name);
+  headerMap[name] = col;
+  return col;
+}
+
+function writeBack_(sheet, headerMap, row, fields) {
+  Object.keys(fields).forEach((k) => ensureColumn_(sheet, headerMap, k));
+  Object.entries(fields).forEach(([k, v]) => {
+    sheet.getRange(row, headerMap[k]).setValue(v);
+  });
+}
+
+function getOrCreateFolder_() {
+  const it = DriveApp.getFoldersByName(ARCHIVE_FOLDER_NAME);
+  if (it.hasNext()) return it.next();
+  return DriveApp.createFolder(ARCHIVE_FOLDER_NAME);
+}
+
+function archiveRecord_(record, status) {
+  const folder = getOrCreateFolder_();
+
+  const lines = [
+    `Status: ${status}`,
+    `ID: ${record.ID || ""}`,
+    `Timestamp: ${record.Timestamp || ""}`,
+    `Name: ${record["Name"] || ""}`,
+    `Email: ${record.Email || ""}`,
+    `Subject: ${record["Subject"] || ""}`,
+    "",
+    "Description:",
+    String(record["Description"] || "")
+  ];
+
+  const fileName = `request_${record.ID || ("noid_" + Date.now())}.txt`;
+  folder.createFile(fileName, lines.join("\n"), MimeType.PLAIN_TEXT);
+}
+
+function sendConfirmation_(record) {
+  const to = String(record.Email).trim();
+  const subject = `Confirmation - request recorded (${record.ID})`;
+
+  const body =
+`Hi ${record["Name"] || ""}!
+
+We have recorded your request.
+
+ID: ${record.ID}
+Subject: ${record["Subject"]}
+
+We will process it shortly.
+
+Regards,
+Automated system`;
+
+  MailApp.sendEmail(to, subject, body);
+}
+
+function sendAdminAlert_(record, errors) {
+  const subject = "Invalid form submission received";
+  const body =
+`Error: ${errors.join("; ")}
+
+Submission:
+Name: ${record["Name"] || ""}
+Email: ${record.Email || ""}
+Subject: ${record["Subject"] || ""}
+Description: ${record["Description"] || ""}`;
+  MailApp.sendEmail(DAILY_DIGEST_TO, subject, body);
+}
+        </textarea>
+        <p>What do you think the function sendConfirmation_ does? (Well, this isn't too tricky.) And ensureColumn_?</p>
+      </article>
+
+      <article>
+        <h3>3.4. Optional: daily digest email (for time-driven trigger)</h3>
+        <textarea data-lang="js" data-readonly>
+function sendDailyDigest() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getActiveSheet();
+
+  const headerMap = getHeaderMap_(sheet);
+  const data = sheet.getDataRange().getValues();
+
+  const colStatus = headerMap["Status"];
+  const colId = headerMap["ID"];
+  const colSubject = headerMap["Subject"];
+  const colEmail = headerMap["Email"];
+  const colTs = headerMap["Timestamp"];
+
+  if (!colStatus || !colId) {
+    MailApp.sendEmail(DAILY_DIGEST_TO, "Daily summary - no processed data yet", "No Status/ID columns yet.");
+    return;
+  }
+
+  const today = new Date();
+  const y = today.getFullYear(), m = today.getMonth(), d = today.getDate();
+  const start = new Date(y, m, d, 0, 0, 0);
+  const end = new Date(y, m, d, 23, 59, 59);
+
+  const items = [];
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const status = row[colStatus - 1];
+    if (status !== "NEW") continue;
+
+    const ts = colTs ? row[colTs - 1] : null;
+    const tsDate = ts instanceof Date ? ts : null;
+    if (tsDate && (tsDate < start || tsDate > end)) continue;
+
+    items.push({
+      id: row[colId - 1],
+      subject: colSubject ? row[colSubject - 1] : "",
+      email: colEmail ? row[colEmail - 1] : ""
+    });
+  }
+
+  const subject = `Daily summary - NEW requests: ${items.length}`;
+  const body = items.length === 0
+    ? "No NEW requests received today."
+    : items.map(it => `- ${it.id}: ${it.subject} (${it.email})`).join("\n");
+
+  MailApp.sendEmail(DAILY_DIGEST_TO, subject, body);
+}
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Saving and first manual run (permissions / OAuth)</h2>
+      <p>At this point, if you click the "Save project" button (<abbr title="Does anyone still know what a floppy is and what it looks like?">floppy icon</abbr>), you could actually run the program. But first, you need to grant permissions, and we also want it to run "by itself"!</p>
+
+      <article>
+        <h3>4.1. Save</h3>
+        <ol>
+          <li>Click the <strong>Save</strong> icon (or Ctrl+S).</li>
+          <li>Check that there are no red error messages (syntax errors).</li>
+        </ol>
+      </article>
+
+      <article>
+        <h3>4.2. First run: permission request</h3>
+        <ol>
+          <li>In the top bar, select the function to run: <strong>handleFormSubmit / sendDailyDigest</strong>.</li>
+          <li>Click: <strong>Run</strong>.</li>
+          <li>When permission is requested: <strong>Review permissions</strong> → select your account.</li>
+          <li>If "This app isn’t verified" appears: <strong>Advanced</strong> → <strong>Go to ... (unsafe)</strong>.</li>
+          <li>Accept the requested permissions (Sheets / Gmail / optionally Drive).</li>
+        </ol>
+        <p>
+        The list of permissions will be quite extensive (sending emails on your behalf, accessing and deleting Drive data). Did you <strong>carefully</strong> read what the code does? :)
+        (If not, or if you don't trust the machines, log in with a different test account).
+        </p>
+        <p class="info">
+        How does the system know what permissions to ask for? Well, it's simple!
+        It saw that the code uses MailApp and DriveApp, so it needs permissions for those.
+        Since we didn't restrict permissions (we could), it asked for everything. That's why we didn't use
+        the GmailApp object, which would have been even scarier (e.g., ability to delete all your emails).
+        The MailApp is similar but only can send emails.
+        </p>
+        <p>
+        You will soon receive an email notification about the permissions. You can revoke the permissions there if you don't want it to stay that way! (You can also modify this at http://security.google.com).
+        </p>
+        <p class="info">
+          Triggers can only run if you've already authorized the script. That's why the "manual" first run is necessary.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Setting up triggers (automatic execution)</h2>
+
+      <article>
+        <h3>5.1. On form submit trigger: handleFormSubmit</h3>
+        <ol>
+          <li>Apps Script editor → left side: <strong>Triggers</strong> (clock icon).</li>
+          <li><strong>Add Trigger</strong> (called "Activate" in Hungarian for some reason).</li>
+          <li>Set:
+            <ul>
+              <li>Function: <code>handleFormSubmit</code></li>
+              <li>Event source: <strong>From spreadsheet</strong></li>
+              <li>Event type: <strong>On form submit</strong></li>
+              <li>Error report (error notifications): set to immediate</li>
+            </ul>
+          </li>
+          <li><strong>Save</strong>.</li>
+        </ol>
+      </article>
+
+      <article>
+        <h3>5.2. Optional: time-driven trigger for daily summary</h3>
+        <ol>
+          <li>Triggers → <strong>Add Trigger</strong></li>
+          <li>Function: <code>sendDailyDigest</code></li>
+          <li>Event source: <strong>Time-driven</strong> → e.g., <strong>Day timer</strong></li>
+          <li>Select a time window (e.g., 18:00-19:00).</li>
+          <li><strong>Save</strong></li>
+        </ol>
+      </article>
+    </section>
+
+    <section>
+      <h2>6. Testing: try the full chain</h2>
+      <ol>
+        <li>Submit a test form (with a real email address).</li>
+        <li>Check in Sheets: has <code>ID</code>, <code>Status</code>, <code>ProcessedAt</code> been created and is the Status <code>NEW</code>?</li>
+        <li>Check Gmail: did the confirmation arrive?</li>
+        <li>Check Drive: has the <code>Request_Submission_Archive</code> folder been created with the TXT file inside?</li>
+        <li>If not (and you've enabled instant error reporting), you probably received a notification about the error.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>7. Common errors</h2>
+      <ul>
+        <li><strong>Authorization required</strong>: the script hasn't been run manually with permissions yet.</li>
+        <li><strong>This app isn’t verified</strong>: this isn't an error; for custom scripts, it's normal, and you can proceed via Advanced → Go to ... (unsafe).</li>
+        <li><strong>Permission denied</strong>: missing Gmail/Drive scope, or another account is running your script.</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="codeblocks.js"></script>
+</body>
+</html>

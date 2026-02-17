@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lesson 12 – Serverless (Cloud Functions / Lambda) Basics</title>
+
+  <!-- CodeMirror (same as in previous lessons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+
+  <!-- The course material's unified code block style -->
+  <link rel="stylesheet" href="codeblocks.css" />
+
+  <style>
+    /* Minor enhancements for readability – compatible with previous styles */
+    .info {
+      border-left: 4px solid #3b82f6;
+      padding: 0.75rem 1rem;
+      background: rgba(59,130,246,0.08);
+      border-radius: 8px;
+    }
+    .warn {
+      border-left: 4px solid #f59e0b;
+      padding: 0.75rem 1rem;
+      background: rgba(245,158,11,0.10);
+      border-radius: 8px;
+    }
+    .ok {
+      border-left: 4px solid #22c55e;
+      padding: 0.75rem 1rem;
+      background: rgba(34,197,94,0.10);
+      border-radius: 8px;
+    }
+    details {
+      margin: 0.75rem 0 1rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 10px;
+      background: rgba(148,163,184,0.12);
+    }
+    details > summary {
+      cursor: pointer;
+      font-weight: 600;
+    }
+    kbd {
+      border: 1px solid rgba(148,163,184,0.5);
+      border-bottom-width: 2px;
+      padding: 0.1rem 0.35rem;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.95em;
+      background: rgba(148,163,184,0.10);
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Lesson 12 – Serverless (Cloud Functions / Lambda) Basics</h1>
+    <p>
+      This section discusses what the <strong>serverless</strong> approach means,
+      and why it is useful for automating engineering tasks.
+      Topics include: <em>scheduled</em> execution, simple
+      <em>computational API</em> creation, and event-driven processing.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. What is serverless?</h2>
+
+      <p>
+        <strong>Serverless</strong> does not mean "no servers".
+        It means <strong>you do not operate</strong>: you do not update the operating system,
+        restart processes, or size the machine. You provide a <em>function</em>,
+        and a service provider runs it when needed. (Super convenient).
+      </p>
+      <p>
+      Characteristics:
+      </p>
+
+      <ul>
+        <li><strong>Function-based execution:</strong> short-lived code snippets</li>
+        <li><strong>Event-triggered:</strong> HTTP request, file upload, message, or schedule</li>
+        <li><strong>Automatic scaling:</strong> if many requests arrive, multiple instances run in parallel</li>
+        <li><strong>Pay-as-you-go:</strong> typically based on execution time</li>
+      </ul>
+
+      <p class="info">
+        Serverless essentially is: <strong>"a code snippet that runs in response to an event"</strong>.
+        The focus is on the event – not on "launching a program and it runs".
+        We've seen this before, as AppScripts also had such "triggers". Well, this is basically the same.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Differences from local Node.js execution</h2>
+
+      <article>
+        <h3>2.1. Who initiates and how long does it run?</h3>
+        <p>
+          In local Node.js scripts, <strong>you</strong> start the program, and it runs until you stop it.
+          In serverless, execution is <strong>triggered</strong> by an <strong>event</strong>, and the run is typically
+          <strong>short-lived</strong>. (The provider does not like you occupying resources for a long time,
+	  so if you want to send heavy loads, it will be paid accordingly).
+        </p>
+      </article>
+
+      <article>
+        <h3>2.2. State management: "stateless" operation</h3>
+        <p>
+          In a serverless environment, function executions are <strong>independent</strong>.
+          It is not advisable to rely on "what is in memory to stay there later".
+	  The "cloud" can freely terminate your script at any time. That’s the key:
+	  it runs when needed, and stops otherwise.
+        </p>
+        <p>
+	Conversely, it scales very well. If hundreds, thousands,
+	or hundreds of thousands start using it, it still works smoothly.
+        </p>
+
+        <p class="warn">
+          <strong>Rule:</strong> if something "must be remembered", store it externally:
+          in a database, file storage, or another service. Your variables
+	  only live as long as the function runs!
+        </p>
+
+        <details>
+          <summary>Why is this important?</summary>
+          <p>
+            Because the platform can start multiple instances in parallel or stop the runtime environment at any time.
+            If your logic relies on "global variables" or "memory-held state", it will be unreliable.
+	    (By unreliable, we mean completely wrong. It’s a fundamental mistake to do that. So don’t.)
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>2.3. Limits: time and resources</h3>
+        <p>
+          Serverless functions usually have <strong>maximum execution time</strong> and <strong>memory</strong> limits.
+          Therefore, they are generally suited for short, quick tasks rather than long processing that takes hours.
+        </p>
+
+        <p class="info">
+          If you have a very compute-intensive task (e.g., many hours of simulation),
+          it is usually better to run it on other types of infrastructure.
+          Serverless is more suitable for "compute quickly and return the result".
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. How to use? – a brief guide</h2>
+
+      <p>
+        Exact steps vary by platform, but the concept remains the same.
+      </p>
+
+      <ol>
+        <li><strong>Write the function</strong> (input → processing → output)</li>
+        <li><strong>Select a trigger</strong> (HTTP, schedule, file upload, webhook, message)</li>
+        <li><strong>Deploy</strong> (upload to the cloud)</li>
+        <li><strong>Test</strong> (with real input)</li>
+        <li><strong>Monitor</strong> (logs, errors, execution times)</li>
+      </ol>
+
+      <article>
+        <h3>3.1. Typical triggers</h3>
+        <ul>
+          <li><strong>HTTP trigger:</strong> your function acts as a web "service"</li>
+          <li><strong>Scheduling:</strong> "run every Monday at 08:00"</li>
+          <li><strong>File upload:</strong> "process when a file is uploaded"</li>
+          <li><strong>Webhook:</strong> "respond when an external system signals"</li>
+        </ul>
+
+        <details>
+          <summary>How to handle input?</summary>
+          <p>
+            In serverless, input is usually JSON (HTTP), file (upload), or event object.
+            At the start of your code, <strong>validate</strong> the input: types, required fields, ranges.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>3.2. Platforms</h3>
+        <p>Let's see where you can try this if you're interested. Many such services exist,
+        but most require a credit card (even if they don't charge you).</p>
+        <ul>
+          <li>Cloudflare Workers (mostly works without a card)</li>
+          <li>Google Cloud Functions</li>
+          <li>AWS Lambda – Amazon's implementation</li>
+          <li>Vercel Functions – very simple, just need a GitHub login</li>
+          <li>Netlify Functions – (GitLab, GitHub account, worth exploring if you program)</li>
+        </ul>
+      </article>
+      
+      <article>
+        <h3>3.3. API keys</h3>
+        <p>
+        The function itself is not very useful on its own. Of course, you can compute something with it,
+        but most likely you want to access or control some external resource:
+        send emails, upload to cloud storage, read/write database data,
+        invoke a large language model for analysis, etc.
+        </p>
+        <p>
+        But how does the external service know your serverless function has permission?
+        It cannot just walk into your database or storage to perform operations.
+        When you use it, you usually authenticate, so it knows who you are.
+        But the serverless function cannot "log in" to perform actions on your behalf. How then?
+        </p>
+        <p>
+        This is where API keys come in. Physically, it’s a large, seemingly random code (though not really)
+        that authorizes your function to use the application. The key is associated with a set of permissions,
+        which the key owner can define. You can think of it as embedding the permissions accepted by the user
+        into the key, so later, only those actions are allowed with that key, everything else is rejected.
+        (This is what the authentication window prompts you: "Do you allow this application to do this and that?")
+        </p>
+
+        <p class="warn">
+        Never embed API keys directly in your code! (Many can see your code,
+        and it’s much easier for secrets to leak). Store it securely in a dedicated secrets manager
+        (e.g., AWS Secrets Manager) or as an environment variable (more common and available everywhere).
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Examples</h2>
+
+      <article>
+        <h3>4.1. Example 1 – "Automatic Calculation"</h3>
+        <p>
+          Let's create a simple engineering calculation accessible via HTTP API.
+          Example: <strong>stress calculation</strong>: <code>σ = F / A</code>.
+        </p>
+        <p>
+        With serverless functions, you can create "cloud-based" calculations,
+        accessible from any platform, anytime, as long as the system understands HTTP (which everyone does,
+        probably even your TV, since it uses web protocols).
+        </p>
+        <h4>4.1.1. Minimalist HTTP function</h4>
+        <p>
+          The general pattern looks like this:
+          The platform provides a <code>request</code> and <code>response</code> object (in HTTP),
+          and you return a JSON object.
+        </p>
+        <p>
+        The received and sent objects are exactly like those seen in node request packages. The handler looks like:
+        </p>
+
+        <textarea data-readonly data-lang="js">
+// HTTP trigger
+exports.handler = (req, res) => {
+  // do something with it
+  res.json({ ok: true, message: "Hello serverless!" });
+};
+        </textarea>
+
+        <p class="warn">
+          The specific names (<code>handler</code>, <code>req</code>, <code>res</code>) and export style may vary by platform,
+          but the core concept remains: <strong>input → processing → response</strong>.
+        </p>
+      </article>
+
+      <article>
+        <h4>4.1.2. A simple solution</h4>
+        <textarea data-readonly data-lang="js">
+// HTTP trigger: JSON input -> JSON output
+exports.calculateStress = (req, res) => {
+  const force = Number(req.body.force); // N
+  const area = Number(req.body.area);   // m^2
+
+  const stress = force / area; // Pa
+
+  res.json({ stress });
+};
+        </textarea>
+
+        <p>
+        Of course, <code>Number(...)</code> can also produce <code>NaN</code> (for example, if the field is missing or text).
+        In such cases, return an error and do not proceed further!
+        </p>
+
+        <h4>4.1.3. Safer version (with validation)</h4>
+        <textarea data-readonly data-lang="js">
+exports.calculateStress = (req, res) => {
+  const force = Number(req.body.force);
+  const area = Number(req.body.area);
+
+  if (!Number.isFinite(force) || !Number.isFinite(area)) {
+    return res.status(400).json({ error: "force and area must be numbers" });
+  }
+  if (area <= 0) {
+    return res.status(400).json({ error: "area must be positive" });
+  }
+
+  const stress = force / area;
+  return res.json({ stress });
+};
+        </textarea>
+        <p class="ok">
+          Why is it good to do calculations in the cloud? Because it makes your calculation
+          <strong>accessible from any system</strong>: web app, mobile, CAD plugin, or an office process.
+          Or all at once.
+        </p>
+
+        <details>
+          <summary>Extra: units and documentation</summary>
+          <p>
+            The most common mistake in engineering calculations is unit handling.
+            Document in your function what units you expect (e.g., N, m²),
+            and what the output units are (e.g., Pa).
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>4.2. Example 2 – Scheduled execution</h3>
+        <p>
+          For example: once a week, query data from an API (sensor, system log, project status),
+          summarize, and send the report. If you go on a two-week ski trip and don’t turn on your computer,
+	  everything still works fine.
+        </p>
+
+        <h4>4.2.1. "Report generation"</h4>
+        <textarea data-readonly data-lang="js">
+// Scheduled trigger: invoked by the platform
+exports.weeklyReport = async () => {
+  // 1) data query (e.g., fetch from an API)
+  // 2) processing: average, max, error count, etc.
+  // 3) save or send the result
+
+  console.log("Weekly report executed.");
+};
+        </textarea>
+
+        <details>
+          <summary>Hint: why is <code>async</code> used here?</summary>
+          <p>
+            For reports, you often want to perform network requests (API), file saving, email sending – all asynchronous operations.
+	    Therefore, it makes sense for the function to be <code>async</code> so you can use the elegant <code>await</code>.
+          </p>
+        </details>
+
+        <h4>4.2.2. Scheduler ("Cron")</h4>
+        <p>
+          The schedule is usually a rule that specifies when your function should run. For example:
+        </p>
+        <ul>
+          <li>every day at 07:00</li>
+          <li>every Monday at 08:00</li>
+          <li>hourly</li>
+        </ul>
+        <p>
+          Such a timer exists on your computer too, with the difference that it runs a program at the specified time.
+          But since your computer is not always on (unless you have a server), it can only start something when it is running.
+          In serverless platforms, there is no such limit; it runs 24/7.
+        </p>
+        <p class="ok">
+          Why is this good? Because you can create a system that runs around the clock.
+          The code runs in the cloud, so you don’t need a powered-on personal machine.
+        </p>
+        <p class="warn">
+          The exact syntax for the timer is platform-dependent, but the core idea is the same:
+	  you can set a recurring time when the function runs.
+	  Usually, it’s not guaranteed to run at the exact millisecond, but roughly around that time.
+        </p>
+      </section>
+      <h3>4.3. More examples</h3>
+      <p>What can your function react to (and do)? (Some additional examples):</p>
+      <ul>
+        <li><strong>HTTP:</strong> any "calculator service" (API call)</li>
+        <li><strong>File upload:</strong> "DXF/CSV validation on upload"</li>
+        <li><strong>Webhook:</strong> "check and notify after a Git commit"</li>
+        <li><strong>Sensor system:</strong> collecting data from IoT devices, threshold checks, trend monitoring</li>
+        <li><strong>Scheduling:</strong> "weekly report generation"</li>
+        <li><strong>Automatic archiving:</strong> archive old files, create backups, delete old backups</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>5. Things to keep in mind</h2>
+
+      <ul>
+        <li>
+          <strong>Execution time limit:</strong> the function does not "run constantly". Tip: break the task into smaller steps!
+        </li>
+        <li>
+          <strong>Stateless:</strong> do not expect the memory content to persist until the next run.
+        </li>
+        <li>
+          <strong>Input validation:</strong> always check external input (NaN, missing fields, ranges).
+        </li>
+        <li>
+          <strong>Units:</strong> clearly document units in calculations (N, m², Pa, etc.).
+        </li>
+        <li>
+          <strong>Logging:</strong> if something goes wrong, logs will be your best friend.
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="codeblocks.js"></script>
+</body>
+</html>

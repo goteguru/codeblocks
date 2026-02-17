@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Language Basics - Lesson 9</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+<body>
+  <header>
+    <h1>Lesson 9 - Locally Running JavaScript: Node.js</h1>
+    <p>
+      So far, we have mainly seen JavaScript in the browser, as a "web page helper program". In this lesson, however, we switch
+      to a different perspective: JavaScript can also be <strong>locally running program</strong>, which reads/writes files,
+      parameterizes from the command line, or even controls other programs.
+    </p>
+    <p>
+      These possibilities are provided by Node.js, a JavaScript "interpreter" (JIT compiler) that runs without a browser, based on the Chrome V8 engine.
+      Although Node.js was originally designed to write server-side functions in JavaScript,
+      we can use it for anything else. In this lesson, the focus is not on server-side coding, but on <strong>automating engineering tasks</strong>,
+      i.e., how to preprocess files, save, rename in bulk, generate reports, and how to use JavaScript as a "glue language" in integration tasks.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Where does Node.js run, and how is it different from the browser?</h2>
+      <p>
+        <strong>Node.js</strong> is a JavaScript runtime environment that runs not in the browser, but on your operating system.
+        The most important difference is that in this case, you directly launch a <strong>process</strong> of JavaScript, like this: <code>node something.mjs</code>.
+      </p>
+
+      <p>
+        What makes this interesting from an engineering perspective: in Node, you don't respond to "user events", but rather
+        <strong>technical events</strong> related to <strong>data and files</strong> and <strong>processes</strong>.
+      </p>
+
+      <ul>
+        <li>
+          <strong>There will be no</strong>: DOM, <code>window</code>, <code>document</code>, browser-specific APIs.
+        </li>
+        <li>
+          <strong>Instead, there are</strong>: file system, process information, external program launching, network at a lower level.
+        </li>
+      </ul>
+
+      <p>
+        In the browser, the global object is typically <code>window</code>. In Node, the equivalent is <code>global</code>.
+        However, if you want to avoid writing two different codes, you can use the <code>globalThis</code> object:
+        it was introduced precisely so that the global namespace is accessible with the same name in both environments.
+      </p>
+
+      <textarea data-lang="js">
+// In browsers: window exists, in Node it does not
+// In Node: global exists, in browsers it does not
+
+// Works in both:
+console.log(typeof globalThis) // "object"
+
+if ("window" in globalThis) // true in browsers, false in Node
+  console.log("In a browser")
+else if ("global" in globalThis) // true in Node
+  console.log("In Node")
+else 
+  console.log("I have no idea where you are... :)")
+      </textarea>
+    </section>
+
+    <section>
+      <h2>2. The structure of a Node program</h2>
+      <p>
+        Think of Node as a small "tool": you start it (passing instructions or a program),
+        it performs its task, then exits. Such a tool (or tools!) can be easily integrated into larger automation chains (so-called pipelines).
+        For example: a design program saves to a specific directory, another helper program runs a static check on data, if successful,
+        a preview is automatically generated, filled into a template, compressed, and sent via email to certain recipients, etc.
+      </p>
+
+      <p>
+        Node is not verbose. In some programming languages, it takes many lines of code to do anything.
+        Here, it is not like that. The smallest meaningful Node program can even be a single line:
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: hello.mjs
+console.log("Hi! This is a ready program in Node.js!")
+      </textarea>
+      <p>
+      If you copy this into a file (say hello.mjs) and run it with the command <code>node hello.mjs</code>,
+      it will execute immediately.
+      </p>
+      
+      <p>
+      As you see, not much has changed compared to the browser: we can still write to <code>console.log</code>,
+      but now the output appears not in the browser, but in the terminal window.
+      </p>
+
+      <p>
+      You don't have to place the program (especially if larger) in a single file. Your program can load
+      additional modules, either ones you create yourself, ones written by others,
+      or ones built into the core system.
+      </p>
+
+      <p class="info">
+        Important note: handling files and paths in Node is an interesting topic (see later: <code>path</code>).
+        We didn't have this problem in the browser because we worked on a "platform" (the browser), but here
+        we need to pay attention to line breaks and path separator characters. The "quick concatenation as string"
+        solution works well on your own machine in the short term, but can cause platform-dependent errors in the long run.
+        (Unfortunately, operating systems do not use the same line ending characters, and sometimes the encoding is not the same).
+      </p>
+    </section>
+
+    <section>
+      <h2>3. Module system in Node: ES modules</h2>
+      <p>
+        The modern, future-proof Node code is based on <strong>ES modules</strong> (ESM): the same <code>import</code>/<code>export</code>
+        syntax we already used in the browser. In Node, you can use this in two ways:
+      </p>
+      <ul>
+        <li>Give every file a <code>.mjs</code> extension</li>
+        <li>Or set in your project's <code>package.json</code>: <code>"type": "module"</code></li>
+      </ul>
+      <p>
+      This <code>package.json</code> is an important file! Node keeps its configuration here. We will talk about it later.
+      </p>
+
+      <p>
+        The example below consists of two files. We cannot run this code directly in the browser, but the structure and syntax are the key points.
+        The first file is the module:
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: math.mjs
+export function areaOfCircle(r) {
+  return Math.PI * r * r
+}
+
+export function clamp(x, min, max) {
+  return Math.max(min, Math.min(max, x))
+}
+      </textarea>
+
+      <p>
+This second file is the program that uses the module (traditionally main.mjs):
+      </p>
+      <textarea data-lang="js" data-readonly>
+// file: main.mjs
+import { areaOfCircle, clamp } from "./math.mjs"
+
+let r = 3
+let area = areaOfCircle(r)
+
+console.log("Area:", area)
+console.log("Clamp example:", clamp(120, 0, 100))
+      </textarea>
+      <p>
+      Just like in the browser, we simply import the necessary elements from the other file.
+      As before, we can only import what the module <code>export</code>ted with the <code>export</code> keyword.
+      </p>
+
+      <article>
+        <h3>3.1. CommonJS module system</h3>
+        <p>
+          In older Node projects, you might encounter a different notation: this is CommonJS.
+          It uses the <code>require</code> and <code>module.exports</code> keywords.
+          New code is generally not written in this style anymore, but it is important to recognize <strong>for reading code</strong>.
+        </p>
+
+        <textarea data-lang="js" data-readonly>
+// legacy example (CommonJS) - found in older projects:
+const fs = require("fs")
+
+module.exports = function readText(filePath) {
+  return fs.readFileSync(filePath, "utf8")
+}
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Node toolbox: core modules</h2>
+      <p>
+        One of the most noticeable differences between Node and the browser is that you get many basic functions ready-made through
+        <strong>built-in (core) modules</strong>. You don't need external packages for core modules; just import them.
+      </p>
+      <p>
+      Of course, if that's not enough, you can choose from many downloadable Node modules, so many that you'll never finish reading them all!
+      </p>
+
+      <article>
+        <h3>4.1. File system: <code>fs</code></h3>
+  <p>Node fundamentally follows async logic. Even if it doesn't physically use multiple CPU cores,
+  logically, processes that take longer (like reading a file) are handled asynchronously (so you can do other things meanwhile). </p>
+  <p>
+  We already know that such asynchronous operation can be handled in two ways: either by passing a callback function (which must be called when data is ready) or by using the more modern Promise-based logic. Under Node, you can usually choose which to use.
+  </p>
+        <p>
+          The <code>fs</code> module is a cornerstone of everyday automation. Typical tasks include reading, modifying, and rewriting a JSON export.
+        </p>
+
+        <textarea data-lang="js" data-readonly>
+// file: transform-json.mjs
+import { readFile, writeFile } from "node:fs/promises"
+
+let inputPath = "input.json"
+let outputPath = "output.json"
+
+let text = await readFile(inputPath, "utf8")
+let data = JSON.parse(text)
+
+// Example: add a timestamp to each element
+let enriched = data.map(x => ({ ...x, processedAt: new Date().toISOString() }))
+
+let outText = JSON.stringify(enriched, null, 2)
+await writeFile(outputPath, outText, "utf8")
+
+console.log("Done:", outputPath)
+        </textarea>
+
+        <p class="info">
+          Here, the <code>node:fs/promises</code> import indicates that we are using the Promise-based API.
+          This results in cleaner, more understandable code than callback style.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.2. Path handling: <code>path</code></h3>
+        <p>
+          Building paths (folders/files) as strings is tempting but can cause platform-dependent issues. The <code>path</code> module
+          helps avoid problems when switching between Linux/Mac/Windows, ensuring your program doesn't break.
+        </p>
+
+        <textarea data-lang="js" data-readonly>
+// file: paths.mjs
+import path from "node:path"
+
+let folder = "exports"
+let file = "report.json"
+
+// platform-independent
+let fullPath = path.join(folder, file)
+
+console.log(fullPath)
+        </textarea>
+        <p>
+  On Windows, it will use backslashes (since Windows prefers that), while on Linux/Mac it will use forward slashes.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.3. Process information: <code>process</code></h3>
+        <p>
+          The <code>process</code> object is the "environment" of the running program: arguments, working directory, environment variables.
+          CLI tools use this as a "control panel" to configure and parameterize your program.
+        </p>
+
+        <textarea data-lang="js" data-readonly>
+// file: args.mjs
+console.log("Arguments:", process.argv)
+console.log("Working directory:", process.cwd())
+
+// Example: environment variable
+let mode = process.env.MODE || "dev"
+console.log("MODE:", mode)
+        </textarea>
+        <p>
+  Save this mini program to a file and try running it like: <code>node args.mjs alpha beta gamma 100</code>.
+  (Here, alpha, beta, gamma, 100 are the parameters).
+        </p>
+        <p>
+  Notice that the arguments include the node executable, the script you run, and all subsequent words you pass.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Command-line interface (CLI): parameterized scripts</h2>
+      <p>
+        Node is very useful when your scripts can be parameterized from the command line. This way, you can run the same code
+        in different modes or with different inputs (and even invoke from other tools like file managers or desktop applications).
+      </p>
+
+      <p>
+        Here's how it might look (the first "useful" argument after the script name):
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: cli-min.mjs
+// remove node and script name
+let args = process.argv.slice(2)
+
+let inputPath = args[0] || "input.json"
+let outputPath = args[1] || "output.json"
+
+console.log("Input:", inputPath)
+console.log("Output:", outputPath)
+      </textarea>
+
+      <p>
+        Usually, it's good to introduce flags as well. For example, we could add a <code>--dry-run</code> mode, which, if provided,
+        makes the program not write to files but just simulate what it would do.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: cli-flags.mjs
+let args = process.argv.slice(2)
+let dryRun = args.includes("--dry-run")
+
+if (dryRun) {
+  console.log("Dry-run: not writing files, just simulating")
+} else {
+  console.log("Live mode: executing the operation")
+}
+      </textarea>
+    </section>
+
+    <section>
+      <h2>6. Launching external programs: <code>child_process</code></h2>
+      <p>
+        In engineering automation, it's often not the goal to solve everything with Node, since we have dedicated tools.
+        There are static analysis programs, CAD or analysis software. The question is more about whether
+        <strong>we can control</strong> existing tools: converters, command-line tools, build steps,
+        or auxiliary programs related to CAD/GIS environments.
+      </p>
+
+      <p>
+        The example below launches a command and checks the return code. Here, the command is Node's own program (<code>process.execPath</code>),
+        so regardless of your operating system or installed software, Node is obviously installed if you can run it:
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: run-command.mjs
+import { spawn } from "node:child_process"
+
+let child = spawn(process.execPath, ["-v"], { stdio: "pipe" })
+
+let stdout = ""
+let stderr = ""
+
+child.stdout.on("data", chunk => {
+  stdout += chunk.toString()
+})
+
+child.stderr.on("data", chunk => {
+  stderr += chunk.toString()
+})
+
+child.on("close", code => {
+  console.log("Exit code:", code)
+
+  if (code === 0) {
+    console.log("Output:", stdout.trim())
+  } else {
+    console.log("Error output:", stderr.trim())
+  }
+})
+      </textarea>
+      <p>
+      This is also a good example of callback-based event handling. (Unfortunately, the <code>child_process</code> module does not have a Promise-based version). You can see that for each "technical event", we provide a handler function: when data arrives on stdout (to be printed to the terminal), do this; when data arrives on the error channel, do that.
+      </p>
+
+      <p class="info">
+        The exit code (<code>code</code>) is usually 0 for success, and non-zero for errors. This is a classic "Unix" convention, which is also quite common in Windows.
+        So, if the program's author followed this, you can easily determine whether what you wanted succeeded or if the process you started threw an error and exited with a failure.
+      </p>
+    </section>
+
+    <section>
+      <h2>7. Configuration and environment</h2>
+      <p>
+        When writing automation scripts, it's tempting to "just once" hardcode filenames, directories, URLs, or token-like values.
+        This is convenient short-term but can backfire badly in the long run.
+      </p>
+      <p>
+      You write integration scripts precisely to automate something. Usually not just once,
+      but many times. Maybe tomorrow, it will be slightly different. In another file. With different initial conditions.
+      With different output. Etc.
+      </p>
+
+      <p>
+        The correct pattern is usually the following:
+      </p>
+      <ul>
+        <li>Default value in the code (easy to start)</li>
+        <li>Override from command-line arguments (<code>process.argv</code>)</li>
+        <li>Or from environment variables (<code>process.env</code>)</li>
+      </ul>
+
+      <textarea data-lang="js" data-readonly>
+// file: config.mjs
+let baseDir = process.env.BASE_DIR || "exports"
+let mode = process.env.MODE || "dev"
+
+console.log("BASE_DIR:", baseDir)
+console.log("MODE:", mode)
+      </textarea>
+    </section>
+
+    <section>
+      <h2>8. package.json - project description and configuration file</h2>
+
+      <p>
+        When a Node.js program consists of more than a single file, possibly using external packages,
+        a central description file is needed. This is <code>package.json</code>.
+      </p>
+
+      <p>
+        The <code>package.json</code> does not run, does not contain business logic, but stores
+        <strong>what this project is</strong>, <strong>how to interpret it</strong>, and <strong>what dependencies it has</strong>.
+      </p>
+
+      <h3>What is package.json good for?</h3>
+      <ul>
+        <li>Project identification (name, version)</li>
+        <li>Specifying the entry point</li>
+        <li>Configuring the module system (ES module vs CommonJS)</li>
+        <li>Declaring external packages (libraries)</li>
+        <li>Defining simple commands (scripts)</li>
+      </ul>
+
+      <p>For example, a small modern Node project’s <code>package.json</code> might look like this:</p>
+
+      <textarea data-lang="js" data-readonly>
+    // file: package.json
+    {
+      "name": "node-automation-demo",
+      "version": "1.0.0",
+      "type": "module",
+      "description": "Simple Node.js automation pattern program",
+      "private": true
+    }
+      </textarea>
+
+      <p>The above example's <code>"type": "module"</code> line tells Node that
+          the project uses <strong>ES module syntax</strong> (<code>import</code>/<code>export</code>).
+        Without this, Node defaults to the old CommonJS model,
+        and the <code>import</code> keyword would throw an error (unless you give it a <code>.mjs</code> extension, then it still works as before).
+      </p>
+
+      <h3>Dependencies in brief</h3>
+      <p>
+        If you need more than the built-in capabilities and want to use external packages
+        (for example, for CSV processing, HTTP clients, Excel files),
+        they go into the <code>dependencies</code> section:
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+    // snippet from a package.json
+    {
+      "dependencies": {
+        "csv-parse": "^5.5.0"
+      }
+    }
+      </textarea>
+
+      <p>
+      This way, Node (and anyone else reading your program) immediately sees that your program
+      will not run standalone but requires these packages. It can quickly install the correct versions
+      compatible with your program. We will discuss package management (<code>npm install</code>, lock files) later.
+      For now, just remember that <strong>the <code>package.json</code> is the "identity and configuration hub" of a Node project</strong>.
+      </p>
+
+      <p>
+        When working with Node, we often <strong>think in projects</strong>, and in this mindset, <code>package.json</code> is the most important structural element.
+      </p>
+    </section>
+    <section>
+      <h2>9. Engineering applications</h2>
+      <p>
+      What can you use Node for? Many things. Basically, anything, since it is a general-purpose language. But here are some examples:
+      </p>
+      <ul>
+        <li><strong>File processing</strong>: cleaning, normalizing, transforming CSV/JSON exports</li>
+        <li><strong>Bulk operations</strong>: renaming files, organizing directory structures</li>
+        <li><strong>Orchestration</strong>: chaining external tools (run → check → process → trigger other systems)</li>
+        <li><strong>Report preparation</strong>: data aggregation, generating intermediate files</li>
+      </ul>
+
+      <p>
+        JavaScript in this environment is a easy-to-write, readable, fast-iteration automation language that can connect many systems.
+      </p>
+    </section>
+    <section>
+      <a href="https://nodejs.org/docs/latest/api/" target="_blank" rel="noreferrer">Node Documentation</a>
+    </section>
+  </main>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

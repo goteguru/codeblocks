@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>8.2 Practice – Data Visualization (Chart.js + GeoChart)</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+
+  <style>
+    :root{
+      --bg: #ffffff;
+      --fg: #111827;
+      --muted: #6b7280;
+      --card: #f3f4f6;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --hint: #0f172a10;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg: #0b1020;
+        --fg: #e5e7eb;
+        --muted: #9ca3af;
+        --card: #121a33;
+        --border: #243055;
+        --accent: #60a5fa;
+        --hint: #ffffff0f;
+      }
+    }
+    body{ background: var(--bg); color: var(--fg); }
+    header, main{ max-width: 980px; margin: 0 auto; padding: 16px; }
+    header h1{ margin: 8px 0 6px; }
+    header p{ color: var(--muted); margin: 0 0 8px; }
+    .task{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin: 14px 0 18px;
+    }
+    .task h3{ margin: 0 0 6px; }
+    .meta{ color: var(--muted); margin: 6px 0 10px; }
+    .goal{
+      border-left: 3px solid var(--accent);
+      padding-left: 10px;
+      margin: 8px 0 10px;
+    }
+    details{
+      background: var(--hint);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      margin-top: 10px;
+    }
+    details summary{
+      cursor: pointer;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .demo{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .demoRow{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .demoBox{
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    canvas{ width: 100%; height: 280px; }
+    .small{ font-size: 0.95rem; color: var(--muted); }
+    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+          background: #00000010; padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border); }
+    @media (prefers-color-scheme: dark){
+      .kbd{ background: #ffffff10; }
+    }
+    a{ color: var(--accent); }
+  </style>
+</head>
+
+<body>
+<script>
+function destroyIfExists(key) {
+  if (!window.__charts) window.__charts = {};
+  if (window.__charts[key]) {
+    window.__charts[key].destroy();
+    window.__charts[key] = null;
+  }
+}
+function saveChart(key, chart) {
+   window.__charts[key] = chart;
+}
+</script>
+  <header>
+    <h1>8.2 Practice – Data Visualization (Chart.js + GeoChart)</h1>
+    <p>
+      In this practice lesson, we are <strong>not</strong> learning to draw charts "by hand", but how to integrate data into a popular visualization library and how to modify existing example code.
+    </p>
+    <p class="small">
+      Tip: the code blocks are executable. If you make a mistake, refresh the page or rerun the original block.
+      You need to complete the <span class="kbd">TODO</span> parts.
+    </p>
+  </header>
+
+  <main>
+    <section class="task">
+      <h3>0. Warm-up - "console chart"</h3>
+      <p>
+      Create a super simple console chart (like in the exercise).
+      </p>
+      <div class="goal">
+        <strong>Expected result:</strong> 12 lines of "columns" appear in the console, and the longest should be about 30 characters.
+      </div>
+
+      <textarea data-lang="js">
+/*
+Task:
+- Given the "data" array (12 data points).
+- Output columns made of "⎯" characters to the console.
+- TODO: scale so that the maximum value is about 30 wide.
+
+Hint: max value: Math.max(...data)
+Hint: scale: value / max * 30
+*/
+
+const data = [12, 35, 28, 44, 9, 18, 52, 41, 33, 25, 15, 48]
+
+// TODO: calculate the max value
+const max = 0
+
+// TODO: set the maximum column width in characters
+const targetWidth = 30
+
+for (const value of data) {
+  // TODO: calculate the scaled width (rounded to integer)
+  const width = 0
+
+  // TODO: draw width number of "⎯" characters (repeat)
+}
+      </textarea>
+
+      <details>
+        <summary>Hint (click here if you need help)</summary>
+        <div class="small">
+          <p>Possible solution outline:</p>
+          <pre><code>const max = Math.max(...data);
+const width = Math.round((value / max) * targetWidth);</code></pre>
+          <p>If you find 0 length disturbing, you can use a minimum: <code>Math.max(1, width)</code>.</p>
+	  <p><code>console.log("⎯".repeat(width))</code></p>
+        </div>
+      </details>
+    </section>
+
+    <section class="task">
+      <h3>1. Chart.js – Basic bar chart setup (labels + data)</h3>
+      <p class="meta">
+        Goal: a minimal bar chart in Chart.js. The main point here is to place the arrays in the correct positions.
+        Documentation: <a href="https://www.chartjs.org/docs/latest/charts/bar.html" target="_blank" rel="noopener">Bar chart</a>
+      </p>
+
+      <div class="demoRow">
+        <div class="demoBox">
+          <canvas id="chart_task1"></canvas>
+          <div class="small">Canvas: <code>#chart_task1</code></div>
+        </div>
+      </div>
+
+      <div class="goal">
+        <strong>Expected result:</strong> 12 bars visible with month labels.
+      </div>
+
+      <textarea data-lang="js">
+/*
+Task:
+- The "months" and "sales" arrays are given.
+- TODO: connect them in the chart configuration:
+  - labels: months
+  - datasets[0].data: sales
+
+Required property names (so that they can be accessed):
+- config.data.labels
+- config.data.datasets[0].data
+*/
+
+// this is just to allow deleting the chart
+destroyIfExists("task1")
+
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const sales  = [12, 19, 7, 15, 22, 18, 25, 21, 17, 13, 9, 16]
+
+const ctx = document.getElementById("chart_task1").getContext("2d")
+
+const config = {
+  type: "bar",
+  data: {
+    // TODO: labels: ?
+    labels: [],
+    datasets: [{
+      label: "Sales (pcs)",
+      // TODO: data: ?
+      data: [],
+    }]
+  },
+}
+
+saveChart("task1", new Chart(ctx, config)) // no need to change this.
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <div class="small">
+          <pre><code>data: {
+  labels: months,
+  datasets: [{
+    label: "Sales (pcs)",
+    data: sales,
+  }]
+}</code></pre>
+        </div>
+      </details>
+    </section>
+
+    <section class="task">
+      <h3>2. Chart.js – Axis configuration (beginAtZero)</h3>
+      <p class="meta">
+        Goal: the y-axis should start from 0.
+        Documentation: <a href="https://www.chartjs.org/docs/latest/axes/cartesian/linear.html" target="_blank" rel="noopener">Axes</a>
+      </p>
+
+      <div class="demoRow">
+        <div class="demoBox">
+          <canvas id="chart_task2"></canvas>
+          <div class="small">Canvas: <code>#chart_task2</code></div>
+        </div>
+      </div>
+
+      <div class="goal">
+        <strong>Expected result:</strong> the bottom of the y-axis should be 0 (not around the data minimum).
+      </div>
+
+      <textarea data-lang="js">
+/*
+Task:
+- The chart works, but the y-axis unfortunately starts at 105.
+- TODO: change it so it starts at 0 instead
+
+To avoid looking into the manual, the setting is called:
+options.scales.y.beginAtZero
+*/
+
+destroyIfExists("task2");
+
+const labels = ["A", "B", "C", "D", "E", "F"];
+const values = [120, 135, 128, 144, 109, 118];
+
+const ctx = document.getElementById("chart_task2").getContext("2d");
+
+const config = {
+  type: "bar",
+  data: {
+    labels,
+    datasets: [{ label: "Sample values", data: values }]
+  },
+// TODO: somewhere here...
+};
+
+saveChart("task2", new Chart(ctx, config));
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <div class="small">
+          <pre><code>options: {
+  scales: {
+    y: { beginAtZero: true }
+  }
+}</code></pre>
+        </div>
+      </details>
+    </section>
+
+    <section class="task">
+      <h3>3. Chart.js – Displaying a title</h3>
+      <p class="meta">
+        Goal: add a title to the chart. Chart.js offers many "plugins" that add extra features to your chart.
+        For example, the title plugin. You specify the desired plugins in the plugins property.
+        Documentation: <a href="https://www.chartjs.org/docs/latest/configuration/title.html" target="_blank" rel="noopener">Title</a>
+      </p>
+
+      <div class="demoRow">
+        <div class="demoBox">
+          <canvas id="chart_task3"></canvas>
+          <div class="small">Canvas: <code>#chart_task3</code></div>
+        </div>
+      </div>
+
+      <div class="goal">
+        <strong>Expected result:</strong> a title ("Weekly average temperature") should appear at the top of the chart.
+        Make sure to enable the display so it is visible.
+      </div>
+
+      <textarea data-lang="js">
+/*
+Task:
+- TODO: enable the title with the plugins.title setting.
+
+Required property names:
+- options.plugins
+- options.plugins.title
+- options.plugins.title.display
+- options.plugins.title.text
+*/
+
+destroyIfExists("task3");
+
+const days = ["M", "T", "W", "Th", "F", "Sa", "Su"];
+const temps = [2, 3, 5, 4, 1, 0, -1];
+
+const ctx = document.getElementById("chart_task3").getContext("2d");
+const titleText =  "Weekly average temperature" // this is what we want as the title
+
+const config = {
+  type: "line",
+  data: {
+    labels: days,
+    datasets: [{
+      label: "°C",
+      data: temps,
+      tension: 0.25
+    }]
+  },
+  options: {
+    // TODO: somewhere here...
+    plugins: {
+      title: {  text: "Weekly average temperature" }
+    }
+  }
+};
+
+saveChart("task3", new Chart(ctx, config));
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <div class="small">
+          <pre><code>options: {
+  plugins: {
+    title: {
+      display: true,
+      text: "Weekly average temperature"
+    }
+  }
+}</code></pre>
+        </div>
+      </details>
+    </section>
+
+    <section class="task">
+      <h3>4. Chart.js – Dynamic update (chart.update)</h3>
+      <p class="meta">
+        Goal: upon button press, change the data and update the chart.
+        Documentation: <a href="https://www.chartjs.org/docs/latest/developers/updates.html" target="_blank" rel="noopener">Updating Charts</a>
+      </p>
+
+      <div class="demo">
+        <div class="demoBox">
+          <button id="btn_task4" style="padding: 0.5em 1em;">New data</button>
+          <span class="small"> (open the console if you want)</span>
+        </div>
+        <div class="demoBox">
+          <canvas id="chart_task4"></canvas>
+          <div class="small">Canvas: <code>#chart_task4</code></div>
+        </div>
+      </div>
+
+      <div class="goal">
+        <strong>Expected result:</strong> when clicking the button, the bar values should change (and the chart should visibly update).
+      </div>
+
+      <textarea data-lang="js">
+/*
+Task:
+- We created a Chart instance: chart
+- TODO: on button click:
+  1) generate new data (e.g., randomly, between 0..50)
+  2) assign it to chart.data.datasets[0].data
+  3) call: chart.update()
+
+Required elements:
+- document.getElementById("btn_task4").addEventListener("click", ...)
+- chart.data.datasets[0].data = ...
+- chart.update()
+*/
+
+destroyIfExists("task4");
+
+const labels = ["A", "B", "C", "D", "E", "F", "G", "H"];
+
+function randomData(n) {
+  return Array.from({ length: n }, () => Math.floor(Math.random() * 51));
+}
+
+const ctx = document.getElementById("chart_task4").getContext("2d");
+
+const chart = new Chart(ctx, {
+  type: "bar",
+  data: {
+    labels,
+    datasets: [{
+      label: "Random value",
+      data: randomData(labels.length),
+    }]
+  },
+  options: {
+    scales: { y: { beginAtZero: true } }
+  }
+});
+
+saveChart("task4", chart);
+
+// this is our button
+const btn = document.getElementById("btn_task4");
+
+btn.addEventListener("click", () => {
+  // 1) TODO: new data 
+  // chart.data.datasets[0].data = ...
+
+  // 3) TODO: update (chart.update())
+});
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <div class="small">
+          <pre><code>btn.addEventListener("click", () => {
+  const next = randomData(labels.length);
+  chart.data.datasets[0].data = next;
+  chart.update();
+});</code></pre>
+        </div>
+      </details>
+    </section>
+
+    <section class="task">
+      <h3>5. Curiosity – Google GeoChart (not Chart.js)</h3>
+      <p class="meta">
+        Goal: see what "special" charts we get from the library, which are not feasible to write manually.
+        Documentation: <a href="https://developers.google.com/chart/interactive/docs/gallery/geochart" target="_blank" rel="noopener">GeoChart</a>
+      </p>
+
+      <div class="demoRow">
+        <div class="demoBox">
+          <div id="geochart_task5" style="width: 100%; height: 360px;"></div>
+          <div class="small">Container: <code>#geochart_task5</code></div>
+        </div>
+      </div>
+
+      <div class="goal">
+        <strong>Expected result:</strong> a few European countries should be colored based on their values.
+      </div>
+
+      <textarea data-lang="js">
+/*
+Task:
+- The Google Charts loader is already loaded (see the bottom of the page).
+- Given data (country + value) and an options object.
+- TODO:
+  1) Create the chart instance:
+     new google.visualization.GeoChart(targetElement)
+  2) Draw it:
+     chart.draw(data, options)
+
+Necessary functions/classes:
+- google.charts.load
+- google.charts.setOnLoadCallback
+- google.visualization.arrayToDataTable
+- google.visualization.GeoChart
+*/
+
+function drawGeo() {
+  const data = google.visualization.arrayToDataTable([
+    ["Country", "Value"],
+    ["Hungary",  7],
+    ["Austria",  10],
+    ["Slovakia", 5],
+    ["Romania",  9],
+    ["Germany",  15],
+    ["France",   13],
+    ["Italy",    12],
+    ["Spain",    11],
+  ]);
+
+  const options = {
+    region: "150", // Europe
+    colorAxis: { minValue: 0, maxValue: 15 },
+    legend: "none"
+  };
+
+  // TODO: create chart instance and draw
+}
+
+google.charts.load("current", { packages: ["geochart"] });
+google.charts.setOnLoadCallback(drawGeo);
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <div class="small">
+          <pre><code>const chart = new google.visualization.GeoChart(
+  document.getElementById("geochart_task5")
+);
+chart.draw(data, options);</code></pre>
+        </div>
+      </details>
+    </section>
+
+  </main>
+
+  <!-- Libraries (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+
+  <!-- CodeMirror + executor -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="codeblocks.js"></script>
+</body>
+</html>

@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+  <title>Lesson 1 – JavaScript Basic Model</title>
+</head>
+<body>
+  <main>
+    <h1>Lesson 1 – JavaScript Basic Model</h1>
+    <h2>Values, Types, Objects, and Functions</h2>
+
+    <h3>Introduction</h3>
+    <p>
+      In this first lesson, we will get acquainted with the fundamentals of JavaScript's way of thinking.
+      The goal is not to understand everything immediately in detail, but to get an idea of
+      what makes up a JavaScript program and how the language "thinks."
+    </p>
+    <p>
+      Although it may seem mysterious at first, JavaScript is actually not magic:
+      it is a sequence of instructions that work with values.
+      These values are categorized into types, often stored in objects,
+      and many things are handled with functions. We will review these concepts.
+    </p>
+
+    <h2>What is programming all about?</h2>
+    <p>
+      Programming is essentially formulating instructions for a computer.
+      These instructions are precise, unambiguous, and always executed in the same way.
+    </p>
+    <p>Typically, a program:</p>
+    <ul>
+      <li>receives data (for example, user input),</li>
+      <li>processes it,</li>
+      <li>then returns a result (for example, displays something).</li>
+    </ul>
+    <p>
+      JavaScript (or more broadly, the ECMAScript standard) was originally designed to "bring life" to web pages, but today it is also used on servers,
+      in mobile applications, and many other environments.
+    </p>
+
+    <h2>What is ECMAScript?</h2>
+    <p>
+      ECMAScript is the official standard name (ECMA-262), which aims to ensure consistency among various implementations (JavaScript, JScript, ActionScript).
+    </p>
+
+    <p>
+    ECMAScript languages are very similar; if you know one, you can navigate quite well in any of them.
+    In this course, we will primarily learn the language through JavaScript,
+    since it is the primary programming language of browsers, embedded in all major browsers,
+    so you don't need to install anything—it's available right away!
+    </p>
+
+    <p>
+    JavaScript is a dynamic, weakly typed, high-level programming language.
+    Its main characteristics at first glance are:
+    </p>
+    <ul>
+      <li>the data type is determined at runtime,</li>
+      <li>the language is flexible,</li>
+      <li>it "overlooks" many small errors for the programmer,</li>
+      <li>yet it allows building complex systems.</li>
+    </ul>
+
+    <h2>How to use these learning materials?</h2>
+    <p>
+    The course contains executable code blocks where you can try out the language.
+    If you click on them, you can also edit their content. And if you click the play button in the top right corner
+    (or press ctrl+enter), it will run them (in the browser) and display the result after the code block!
+    </p>
+
+    <p>
+    For example, you could use it as a calculator (try it):</p>
+    <textarea data-lang="js"> 2 + 26 / 7 ** 3 </textarea>
+    <p>The <code>**</code> operator in JavaScript is the exponentiation sign, so the code <code>6 ** 3</code> reads as "six to the power of three".</p>
+    <p>
+    These code blocks are only included here for readability; in reality, you could use JavaScript anytime if a browser is in front of you! Just press <kbd>F12</kbd>
+    (or <kbd>Fn</kbd>+<kbd>F12</kbd> if your laptop's media keys are primary), or the combination <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>i</kbd>.
+    You will get a JavaScript "console". If you type the above expression (or anything you find later in the course) here,
+    the browser will execute it! Try it out!</p>
+    <p class="info">If you no longer want to see the console, you can turn it off with the same shortcut you used to turn it on.</p>
+
+    <h2>Statement and Expression</h2>
+
+    <h3>Expression</h3>
+    <p>An expression always results in a value. For example, an expression (whose value is 5):</p>
+
+    <textarea data-lang="js">2 + 3</textarea>
+
+    <p>Similarly, this text is also an expression (its value is itself):</p>
+    <textarea data-lang="js"> "Hello" </textarea>
+
+    <p>Note that the text appears within quotes, which will be important later.</p>
+
+    <p>Of course, you can also use functions:</p>
+    <textarea data-lang="js">Math.sin(Math.PI / 4)</textarea>
+    <p>Here, the function is sine. (Mathematical functions are stored under the Math object in JavaScript, hence the sin and pi.)</p>
+    
+    <p>There are also functions that are called just to perform an action, such as printing something. These code blocks are written so that they definitely print the value of the last expression, but you might want to print more than just the last one. The <code>console.log</code> function does exactly that: it prints all its parameters.</p>
+    <textarea data-lang="js">
+console.log("Hi")
+console.log("How are you?")
+"this is not printed"
+"last"
+    </textarea>
+
+    <p>Even so, this still counts as an expression, even though "nothing" is returned and only something happens.</p>
+
+    <h3>Statement</h3>
+    <p>A statement issues an instruction but does not necessarily return a value.</p>
+    <p>Statements are separated by semicolons, which in practice usually means placing a semicolon at the end of the line.</p>
+
+    <textarea data-lang="js">
+let x = 5;
+    </textarea>
+
+    <p>This is a statement: here we create a variable and assign it the value 5. From now on, you can refer to it as x instead of 5.</p>
+
+    <p class="important">
+      Every statement can contain expressions, but not every expression is a statement.
+    </p>
+    <p>If you write statements on separate lines, JavaScript will usually figure out on its own that a semicolon should be placed there, so you can conveniently omit them and write without semicolons:</p>
+    <textarea data-lang="js">
+let x = 5
+let y = 15
+    </textarea>
+
+    <h2>Errors</h2>
+    <p>If your JavaScript code is incorrect, the execution result will be an error. In these code blocks,
+    you will see errors highlighted in red below the code block, just like in the console. Usually, the error message helps identify what went wrong,
+    but unfortunately, it is only in English.</p>
+    <textarea data-lang="js"> 2 + </textarea>
+    <p>For example, here we forgot the second operand of the addition sign, so it complains:
+    "<code>Error: expected expression, got end of script</code>" which roughly means it wanted to see an expression (like (9*3+4))
+    on the right side of the addition sign, but the script ended, which it considers nonsensical.</p>
+    <p>JavaScript is quite lenient (some say too lenient) regarding errors.
+    Most languages, for example, crash (and throw an error) if you divide by zero or try to add a string to a number.
+    JavaScript does not do this; it tries to figure out what you wanted, and if the code is roughly correct, that is enough:
+    <textarea data-lang="js">
+console.log(1/0) 
+console.log(23 / "2")
+    </textarea>
+    <p>If you run it, you'll see it doesn't throw an error, it simply tries to interpret what you wanted.
+    The 1/0 is considered infinity, not an error. The expression <code>23&nbsp;/&nbsp;"2"</code> doesn't make much sense because one is a number and the other a string,
+    but it probably intended to treat "2" as a number, so it converts it for you.
+    (But don't rely on this, because it might not always work. It's better to write code clearly!)</p>
+
+    <h2>Comments</h2>
+    <p>
+      Comments, also known as annotations, are parts of the code that JavaScript does not execute.
+      They are meant for the reader, not the machine; the interpreter ignores them.
+      For us, they can be very useful, drawing attention to something we didn't think of,
+      or simply helping us understand the program.
+    </p>
+
+    <h3>Single-line comment</h3>
+    <textarea data-lang="js">// This is a comment, it does nothing
+2000 + 456 // often found at the end of a line.</textarea>
+
+    <h3>Multi-line comment</h3>
+    <textarea data-lang="js">
+/*
+This is a multi-line
+comment
+*/
+    </textarea>
+
+    <p>Commenting is the foundation of understandable code. Use it freely.</p>
+
+    <h2>Values and Types</h2>
+    <p>
+      In the world of JavaScript, everything is a value. A number, a string, a true/false statement – all are values.
+      JavaScript assigns a type to each value, which indicates what can be done with that value.
+    </p>
+
+    <h2>Primitive Types</h2>
+    <p><em>Primitive types</em> are simple, indivisible values. In JavaScript, you will encounter the following primitive types:</p>
+
+    <h3>number</h3>
+    <p>Any number written as a number is of type number!</p>
+    <textarea data-lang="js">
+10
+3.14
+2.1E3 // can also be written in scientific notation.
+-5
+.7 // no need to write 0 before the decimal point, it works anyway.
+    </textarea>
+    <p>
+      In JavaScript, there is no separate integer and floating-point number; everything is a <code>Number</code>. The decimal point is always a dot. This type is accurate to about 15 significant digits (in decimal), so don't expect more precision!
+    </p>
+    <textarea data-lang="js">
+      .3333333333333333333333333333333 - .3
+    </textarea>
+    <p>Although it outputs in decimal, it stores numbers in binary (base-2), so what appears as a finite fraction to us might not be one for the computer! For example, 0.1 cannot be represented exactly in binary with finite digits. Since storage is only accurate to about 15 digits, calculations with such values can be imprecise!</p>
+    <textarea data-lang="js">
+      .1 + .2
+    </textarea>
+
+    <p class="info">
+    The implementation of Number is a floating-point number, specifically a double-precision, 64-bit IEEE-754 floating-point number. (Sounds fancy, right? :))
+    Besides normal numbers, this format can represent special values like <code>NaN</code> (not a number) or <code>Infinity</code> to indicate that the result is not really a number or is "infinite."
+    </p>
+    <textarea data-lang="js">Math.log(-1)</textarea>
+    <p>This results in a funny situation: the above expression's value is a Number with the value literally meaning "not a number". :)</p>
+
+    <h3>string (text)</h3>
+    <textarea data-lang="js">
+"Hello"
+'Szia'
+`JavaScript`
+    </textarea>
+    <p>A string (text) is always enclosed in quotes. As you can see, three types of quotes can be used.
+    There is no difference between double and single quotes, but sometimes it's useful if the text contains the other type.</p>
+    <textarea data-lang="js">"this text contains 'quotes'!"</textarea>
+    <p>
+     If both are used or if you simply don't want to use two different types, you can "escape" the quote (or any special character) using a backslash.
+     So, you could write it like this:
+    </p>
+    <textarea data-lang="js">"this text contains \"quotes\""</textarea>
+    <p>
+    The backslash helps us insert characters that are represented by special codes,
+    for example, you can insert a Unicode character using <code>\u{1F3DD}</code>
+    or a line break with <code>\n</code>:
+    </p>
+
+    <textarea data-lang="js">"Special char: \u{03A9} \u{1F3DD} line break:\nmiddle line\nthird line."</textarea>
+    <p>If you're interested, you can find the full list of "escape codes" <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Character_escape">here</a>.</p>
+
+    <p>The backtick (`) is a bit special because it can embed variables in the form <code>${variableName}</code> into the string!</p>
+
+    <textarea data-lang="js">
+      let name = "Bob" // value of variable name is "Bob"
+      console.log("Hello ${name}!")
+      console.log(`Hello ${name}!`)
+    </textarea>
+    <p>This is called a template and is very useful when you want to insert variable parts into a longer text.
+    (For example, sending many standard letters where the name and address are different each time).</p>
+
+    <h3>boolean</h3>
+    <p>We can also specify true/false, i.e., logical values:</p>
+    <textarea data-lang="js">
+true
+false
+    </textarea>
+    <p>These values are mainly used for decisions. Such a logical value is the result of any relation.</p>
+    <textarea data-lang="js">3>5</textarea>
+
+    <textarea data-lang="js">"forty-two" == 42</textarea>
+    <p>As you see, the "equality check" operator is the double equals. A simple equals cannot be used because it is already used for assignment.
+    The result is "false" because one is a word and the other a number, so they are obviously not equal (from the program's point of view).</p>
+
+    <h3>bigint</h3>
+    <p>A somewhat later addition to the language is <code>BigInt</code> (very large integers). We saw earlier that
+    all numbers (Number) are stored in the same floating-point format, so there were no real integers in the language.
+    But often, we don't need fractional parts, and extra storage and slightly slower operations are not justified.
+    In such cases, using <code>BigInt</code> is more efficient.
+    These are real integers (not floating-point numbers), indicated by an n at the end.</p>
+    <textarea data-lang="js">
+12345678901234567890n
+    </textarea>
+    <p>The <strong>n</strong> at the end indicates that it is a BigInt.</p>
+
+    <h2>Special Primitive Types</h2>
+    <p>These are not "ordinary" values but rather represent states.</p>
+
+    <h3>undefined</h3>
+    <p>It means: "there is something, but it has no value yet".</p>
+    <textarea data-lang="js">
+let x;
+    </textarea>
+    <p>Here, <code>x</code> has the value <code>undefined</code> because we said
+    that x exists (let) but we didn't specify its value.
+    According to JavaScript, it still has a value, namely <code>undefined</code>.</p>
+
+    <h3>null</h3>
+    <p>Sometimes, we want to explicitly indicate that something is empty or unknown. For this, we use null, which is a deliberately empty value:</p>
+    <textarea data-lang="js">
+let price = null;
+    </textarea>
+    <p>This means the price is still unknown. This way, we can distinguish between something being zero (e.g., free) and something being empty (e.g., we don't know the price yet).</p>
+
+    <h3>symbol</h3>
+    <p>
+      The <code>symbol</code> is a special, unique identifier type.
+      We won't use it often, only in specific cases; it is guaranteed to be a unique identifier.
+    </p>
+
+    <h2>Object and function</h2>
+    <p>In JavaScript, <strong>everything that is not primitive is an Object.</strong></p>
+
+    <h3>What is an Object?</h3>
+    <p>An object is essentially a collection of key-value pairs (called "properties").</p>
+
+    <textarea data-lang="js">
+let person = {
+  name: "Anna",
+  age: 30
+}
+    </textarea>
+
+    <p>In this:</p>
+    <ul>
+      <li><strong>name</strong> and <strong>age</strong> are properties,</li>
+      <li><strong>"Anna"</strong> and <strong>30</strong> are values.</li>
+    </ul>
+    <p>The value of a property can be any type, including a function (which we call a method, see below) or another object. This allows building hierarchical (multi-level) objects.</p>
+
+    <textarea data-lang="js">
+let company = {
+  name: "ABC Company",
+  location: { city: "Budapest", country: "Hungary" }
+}
+company
+    </textarea>
+
+    <p>Functions themselves are objects, so they can also be values within another object.
+    Thus, objects can be quite complex structures. Most structures in ECMAScript are implemented as such objects.
+    Here in the browser, you access the browser, window, and webpage structure as objects,
+    and in other programs, as data or functions.</p>
+
+    <p>Complex data structures are also objects. For example, JavaScript has
+    an array object that can store multiple values.</p>
+
+    <p>Since arrays are very common structures, there is a special notation for them
+    (square brackets), but they are still objects.</p>
+    <textarea data-lang="js">
+let myArray = [1, 2, 3, 4, 5];
+
+console.log(myArray);
+console.log(typeof(myArray));
+    </textarea>
+    <p>If we don't need all elements, individual array elements can be accessed by their index
+    (still using square brackets):</p>
+    <textarea data-lang="js">
+let myArray = [1, 2, 3, 4, 5];
+
+console.log(myArray[0]); // first element (index starts at 0)
+console.log(myArray[4]); // last element
+console.log(myArray[500]); // no error, just undefined
+    </textarea>
+    <p>As you see, JavaScript is very tolerant here as well. If you refer to an element
+    that doesn't exist (here index 501), it simply returns <code>undefined</code> and does not crash with a big error like other languages.</p>
+
+    <h2>Functions</h2>
+    <p>A function is a reusable operation. It can have parameters and always has a return value.</p>
+
+    <h3>Calling a function</h3>
+    <p>A function is called like this:</p>
+
+    <textarea data-lang="js">
+console.log("Hello");
+    </textarea>
+
+    <p>Here:</p>
+    <ul>
+      <li><strong>console.log</strong> is the function name,</li>
+      <li><strong>"Hello"</strong> is the parameter or argument.</li>
+    </ul>
+
+    <p>The <strong>console.log</strong> is a built-in function that outputs something to the console.
+      It will be one of our most important tools during learning.</p>
+    <p>Moreover, we now also know that console.log is actually a method! The <code>console</code> object
+    has a property called <code>log</code> which is a function. That's why it's called console.log (with a dot).
+    The console itself is a rather boring object because it only contains methods. You can even check:</p>
+
+    <textarea data-lang="js"> console </textarea>
+    <p>Try another! Rewrite the above code block to call the "warn" method (instead of log) and output something!</p> 
+
+    <p class="info">In these code blocks, we have overridden the console.log (and warn) functions so that they always write below the code block instead of the console.
+    Normally, the console is what you opened with F12 or ctrl+shift+i at the beginning of the lesson, and messages appear there.
+    If you open any modern website and check the console, you'll probably see many messages there.</p>
+
+    <h3>Argument concept</h3>
+    <p>The argument is the value we pass to the function.</p>
+
+    <textarea data-lang="js">
+console.log(42);
+console.log("Learning");
+    </textarea>
+
+    <p>The same function with different arguments. You can pass multiple arguments; JavaScript is very flexible here,
+    allowing you to pass many more parameters than the function expects, and it won't crash (most programming languages would immediately terminate with an error).</p>
+
+    <textarea data-lang="js">
+console.log(42,23,45);
+Math.sin(1,2,3,4)
+    </textarea>
+    <p>In the case of console.log, multiple parameters make sense because you probably want to output more,
+    but sine can only be calculated from one number. Nevertheless, the interpreter didn't mind,
+    it simply calculated for the first number and ignored the rest.</p>
+    
+    <h3>Function as property (method)</h3>
+
+    <p>
+      If a property of an object is a function (see below), then we call it a method.
+    </p>
+
+    <textarea data-lang="js">
+let person = {
+  name: "Anna",
+  greet: function () {
+    console.log("Hi!");
+  }
+};
+    </textarea>
+    <p>Here, <code>greet</code> is a function, i.e., a method. It has its own name because it is a function assigned to the object, which "sees" the object's data and doesn't necessarily need to receive parameters (more on this later).</p>
+
+    <h2>Summary</h2>
+    <ul>
+      <li>JavaScript works with values,</li>
+      <li>values have types,</li>
+      <li>there are primitive and special primitive types,</li>
+      <li>all complex data are Objects,</li>
+      <li>functions play a central role,</li>
+      <li>and if they are part of an object's value, we call them methods.</li>
+    </ul>
+    <p>
+      This is the foundation upon which all further knowledge in the next lessons will be built.
+    </p>
+  </main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</body>
+</html>

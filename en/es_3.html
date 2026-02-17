@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Language Basics – Lesson 3</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+<body>
+  <header>
+    <h1>Lesson 3 – Functions in Depth</h1>
+    <p>
+      In this lesson, we focus on functions. We examine their purpose and how to make them
+      reusable, understandable, and error-proof.
+      We review different function definition forms, the role of <code>return</code>, the basics of how <code>this</code>
+      works, and introduce the concepts of events and callbacks.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Basic Concepts of Functions</h2>
+
+      <article>
+        <h3>1.1. Parameter and Argument</h3>
+        <p>
+          A function is a reusable "operation package". If we want the function to work with different
+          inputs, we provide it with <strong>parameters</strong>.
+        </p>
+        <p>
+          Important distinction:
+        </p>
+        <ul>
+          <li><strong>Parameter</strong>: the "placeholder" name in the function definition.</li>
+          <li><strong>Argument</strong>: the specific value passed when calling the function.</li>
+        </ul>
+        <p class="info">
+          The name of a function parameter (distinguished from other parameters) is often called a <em>formal parameter</em>.
+        </p>
+
+        <textarea data-lang="js">
+function greet(name) {         // name = parameter
+  console.log("Hi, " + name + "!");
+}
+
+greet("Anna");                 // "Anna" = argument
+greet("Béla");                 // "Béla" = argument
+        </textarea>
+
+        <p>
+          The parameter name can be anything, for example p1, p2, p3. But this is not 
+          good practice; the names of function parameters are essentially part of the documentation,
+          helping to understand what the function expects.
+          Therefore, it is advisable to give meaningful names (for example <code>name</code>, <code>count</code>, <code>price</code>).
+          So if someone else (or you in two weeks) looks at the code, they can guess that the 'price' parameter
+          should be some amount when calling the function.
+        </p>
+        <p>Arguments can also be anything (primitive or object). There is no type checking (mainly this differs from 
+        the language called TypeScript, which is very similar to JavaScript but includes type checking). Clearly, we should pass
+        what the function expects. Many functions are written to accept multiple (different) data types, but there is no guarantee.</p>
+        <p>
+        It is quite common for a function to expect an object as a parameter. This is useful because if we pass many parameters,
+        it can be easy to forget which one should be in which position. Passing an object means each value has a name,
+        so the order doesn't matter; the function can decide what to do based on the name. Of course, this is not automatic;
+        the function must be written to accept such an object.
+        </p>
+        <textarea data-lang="js" readonly>
+extra_complex_function({
+  action: "dosomething",
+  data: { special: true, count: 42 },
+  unique: true,
+  store_forever: true,
+  extra: 99.9999,
+})
+
+// The function should be written to understand what each property is for!
+// For example:
+
+function extra_complex_function(params) {
+  // Order doesn't matter because they have names.
+  console.log("extra: " + params.extra);
+  console.log("action: " + params.action);
+  console.log("store_forever: " + params.store_forever);
+}
+
+        </textarea>
+        <p>The above function now has only one argument, which is an object. Inside it, many things can be specified with names.</p>
+      </article>
+
+      <article>
+        <h3>1.2. Return Value</h3>
+        <p>
+          A function can do two things:
+        </p>
+        <ul>
+          <li><strong>Cause side effects</strong> (e.g., print to console),</li>
+          <li>or <strong>return a value</strong> using <code>return</code>.</li>
+        </ul>
+        <p>
+          If we call the function specifically for its side effect, often we don't need
+          the return value, because our goal is to achieve that effect. Examples include
+          sending a network message, writing to a database, deleting a file, etc.
+          A side effect refers to something that does not affect the internal evaluation of the program,
+          but causes a change in the world (including everything outside the program).
+        </p>
+        <p>Of course, functions called for side effects can also return a value if they want to.
+        They often do. For example, a network message sender function might return whether
+        the message was successfully sent, or its length, or a reference to it.</p>
+        <p>
+        If our function is side-effect free, then it must have a return statement; otherwise, 
+        it makes no sense. <code>return</code> signifies two things:
+        </p>
+        <ol>
+          <li>It provides the function's result.</li>
+          <li>It immediately terminates the function's execution (anything after it won't run).</li>
+        </ol>
+
+        <textarea data-lang="js">
+function add(a, b) {
+  return a + b
+  console.log('this will never run!')
+}
+
+let result = add(10, 5)
+console.log(result) // 15
+
+// can be called multiple times, even like this:
+console.log(add(1, 2))
+        </textarea>
+
+        <p>
+          If a function does not include a <code>return</code>, it still "returns" something: its value is
+          <code>undefined</code>.
+        </p>
+
+        <textarea data-lang="js">
+function logOnly(message) {
+  console.log("Log:", message)
+}
+
+let x = logOnly("Hello")
+console.log(typeof(x)) // undefined
+        </textarea>
+      </article>
+
+      <article>
+        <h3>1.3. Reusability</h3>
+        <p>
+          One of the greatest values of functions is that you don't have to copy the same logic many times.
+          If you write them well, you can use the same "idea" in multiple places.
+        </p>
+        <p>
+          A good rule of thumb for beginners: a function should <strong>do one thing</strong>, and do it well.
+          This makes testing easier, reusing simpler, and reduces errors.
+        </p>
+
+        <textarea data-lang="js">
+function isAdult(age) {
+  return age >= 18
+}
+
+console.log(isAdult(20)) // true
+console.log(isAdult(16)) // false
+
+// The isAdult function can be reused in any decision:
+let age = 17
+if (isAdult(age)) {
+  console.log("Entry permitted.")
+} else {
+  console.log("Entry denied.")
+}
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Function Definitions</h2>
+      <p>
+        In JavaScript, you can create functions in several ways. They all express the same concept
+        (a callable operation), but differ in syntax and have practical differences.
+      </p>
+
+      <article>
+        <h3>2.1. Function Declaration</h3>
+        <p>
+          This is the classic form. The advantage is that JavaScript recognizes the function throughout the entire block,
+          even if it is defined later in the code. It’s as if the interpreter scans the entire code (block) for functions
+          beforehand, so it works even if the function is defined after its call.
+        </p>
+
+        <textarea data-lang="js">
+// theoretically, we don't know what 'hello' is here yet
+hello()
+
+// because it's only defined here:
+function hello() {
+  console.log("Hi! (declaration)")
+}
+
+// and it still works!
+        </textarea>
+
+        <p>
+          The <code>function</code> keyword is followed by the function name, then the parameter list in parentheses,
+          and finally the body in a code block. This code block cannot be omitted, unlike in
+          <code>if</code>, <code>for</code>, etc. The curly braces are mandatory here!
+        </p>
+      </article>
+
+      <article>
+        <h3>2.2. Function Expression</h3>
+        <p>
+          Here, the function is an expression: we assign it to a variable. This is a very important concept:
+          a function is just like data—like a number or string—so it can be assigned, passed around, and returned.
+        </p>
+
+        <textarea data-lang="js">
+const hello = function () {
+  console.log("Hi! (expression)")
+};
+
+hello()
+        </textarea>
+
+        <p>
+          Function expressions are common when you want to pass a function as an argument to another function
+          (for example, as a callback, see later).
+        </p>
+        <p>
+          Since here you refer to your function with a regular variable, you can only use it after it has been created.
+          Try putting the function call (hello()) at the very beginning of the code block and see if it still runs.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.3. Arrow Function</h3>
+        <p>
+          The arrow function (<code>=></code>) is a shorter syntax. It is often used for short,
+          "one-liner" functions, especially as callbacks.
+        </p>
+        <p>
+        In this form, the parameter(s) are before the arrow, and the value returned (i.e., what would follow <code>return</code>)
+        is after the arrow.
+        </p>
+
+        <textarea data-lang="js">
+const add = (a, b) => a + b
+
+console.log(add(3, 4)); // 7
+        </textarea>
+        <p>If there is only one parameter, parentheses are optional.</p>
+        <textarea data-lang="js">
+const volume = edge => edge * edge * edge
+
+console.log(volume(10.1))
+        </textarea>
+        <p>
+        Arrow functions are very readable. It’s immediately clear that <code>x => x*x</code> is something that takes x and produces x*x.
+        </p>
+
+        <p>
+          If the body contains multiple statements, curly braces can be used, and a <code>return</code> statement is needed to return a value.
+        </p>
+
+        <textarea data-lang="js">
+const repeat = (v, n) => {
+	for (i=0; i&lt;n; i++) {
+		console.log(v)
+	}
+	return "return this"
+}
+
+result = repeat("Hi!", 3)
+console.log(result)
+result = repeat("Text", 2)
+console.log(result)
+        </textarea>
+
+        <p>
+          Important practical note: arrow functions handle <code>this</code> differently than traditional <code>function</code>.
+          This will be discussed later in the <code>this</code> section.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Generator Function</h2>
+      <article>
+        <h3>3.1. <code>function*</code> and <code>yield</code> (mention only)</h3>
+        <p>
+          Generator functions are special: they do not "run once and end," but can
+          <strong>pause</strong> and later <strong>resume</strong> from where they left off.
+          This is achieved with the <code>yield</code> keyword.
+        </p>
+        <p>
+          The asterisk after the <code>function</code> keyword indicates that this is a special type of function.
+          You can think of it as having many "returns." It returns something, then continues, then returns again.
+          Conceptionally, it "pukes out" values, i.e., generates them. That's why it's called a generator.
+        </p>
+
+        <textarea data-lang="js">
+function* counter() {
+  yield 1;
+  yield 2;
+  yield 3;
+}
+
+const it = counter();
+
+console.log(it.next()); // { value: 1, done: false }
+console.log(it.next()); // { value: 2, done: false }
+console.log(it.next()); // { value: 3, done: false }
+console.log(it.next()); // { value: undefined, done: true }
+        </textarea>
+
+        <p>
+          The <code>counter()</code> here does not "return a number" but returns an iterator, which we advance with <code>next()</code>.
+          Generator functions are very useful, for example, to iterate over complex data structures, but that is a more advanced topic.
+        </p>
+        <p>It might be useful to know that the <code>for</code> loop with the <code>of</code> keyword works exactly with such iterators.
+        It essentially pulls one value from the iterator each cycle.
+        </p>
+        <textarea data-lang="js">
+// this generator yields the first three letters of the alphabet:
+function* abc_generator() {
+  yield 'a';
+  yield 'b';
+  yield 'c';
+}
+
+for (let c of abc_generator()) {
+	console.log('Next letter:', c);
+}
+        </textarea>
+        <p>Of course, it might seem a bit abstract why you'd want to yield predefined things. Well, it’s not very useful on its own, but usually we do more meaningful things. Let's look at a more practical example: create a generator that alternately returns elements from an array, starting from the beginning and the end!</p>
+        <textarea data-lang="js">
+function* two_sides(arr) {
+	last_index = arr.length - 1
+	first_index = 0
+	while (first_index < last_index) {
+		yield arr[first_index]
+		first_index++
+		yield arr[last_index]
+		last_index--
+	}
+	// finally, the middle element if it exists
+	if (first_index == last_index) {
+		yield arr[first_index]
+	}
+}
+
+// usage:
+t = [9,11,20,1,3]
+iter = two_sides(t)
+for (let c of iter) {
+	console.log('Next data:', c);
+}
+        </textarea>
+        <p>If you don't fully understand what the above code does, feel free to ask a language model. If not, that's okay too. The main idea is that this generator is useful for such tasks.</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. The <code>this</code> Keyword</h2>
+      <p>
+        The <code>this</code> keyword is one of the most misunderstood parts of JavaScript. For now, it suffices to learn a
+        stable rule: <strong>when calling a method</strong>, <code>this</code> usually
+        "refers to the object" (the object on which the method was called).
+      </p>
+
+      <article>
+        <h3>4.1. <code>this</code> as the current object</h3>
+        <textarea data-lang="js">
+const user = {
+  name: "Anna",
+  greet: function () {
+    console.log("Hi, " + this.name + "!");
+  }
+};
+
+user.greet(); // "Hi, Anna!"
+        </textarea>
+
+        <p>
+          Here, <code>greet</code> is a method (a property of the object with a function value), so when the function runs inside the code block, <code>this</code> points to the <code>user</code> object.
+        </p>
+        <p class="info">
+        What's the point of this? Well, someone thought it would be great to avoid passing a formal parameter, and if the function is inside an object (so it has some connection), it would implicitly get its data. This implicit data is <code>this</code>. Since then, due to many misunderstandings and bugs, many think this was not such a brilliant idea after all, but it remains as is. :)
+        </p>
+        <p>
+        It would look like this in a clear way:
+        </p>
+        <textarea data-lang="js">
+const user = {
+  name: "Anna",
+  age: 22
+}
+
+function greet(person) {
+	console.log("Hi, " + person.name + "!")
+}
+        </textarea>
+        <p>But then, the user (user) and the greeting (greet) are not "linked" anymore, so we need to remember that the greeting needs a user, and that the user can be greeted at all.</p>
+        <p>If we include the function as a method inside the object, then the connection is explicit, but we still need to pass the object explicitly:</p>
+        <textarea data-lang="js">
+const user = {
+  name: "Anna",
+  age: 22,
+  greet: function (person) {
+    console.log("Hi, " + person.name + "!")
+  }
+}
+
+// and when calling:
+user.greet(user);
+        </textarea>
+        <p>Calling <code>user.greet(user)</code> is a bit cumbersome; it would be much simpler if we could just write <code>user.greet()</code> and the function would "know" which data to work with. They could have made it so that the function automatically receives the object as a parameter (Python does exactly this), but instead, they chose another solution: the object is accessible inside the function via the magical <code>this</code> name.</p>
+      </article>
+
+      <article>
+        <h3>4.2. Methods and <code>this</code> – common mistake</h3>
+        <p>
+          If you "remove" a method from an object and call it as a separate variable, <code>this</code> may no longer be the same. It’s worth noting: <code>this</code> is not an internal property of the function, but rather depends on <em>how you called it</em>.
+        </p>
+        <p>Calling it as a property of an object (a method) means <code>this</code> points to that object. If you call it differently, <code>this</code> might be undefined or something else.</p>
+
+        <textarea data-lang="js">
+const user = {
+  name: "Béla",
+  greet: function () {
+    console.log("Hi, " + this.name + "!");
+  }
+};
+
+// extract the function into a variable
+const f = user.greet;
+
+// calling it like this, 'this' may not be what you expect...
+f(); 
+// (in most implementations, 'this' will be undefined)
+        </textarea>
+
+        <p>
+          This phenomenon can be understood more precisely later (strict mode, environments, bind/call/apply),
+          but for now, just recognize that in method calls, <code>this</code> is sensitive to how the function is invoked.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.3. Arrow Function and <code>this</code></h3>
+        <p>
+          Arrow functions (<code>=></code>) do not handle <code>this</code> the same way as traditional <code>function</code>.
+          Because of this, we often prefer to write methods as regular functions rather than arrow functions.
+          It’s enough to remember as a rule: if you use <code>this</code> inside a method, the <code>function () {}</code> form is often more predictable.
+        </p>
+
+        <textarea data-lang="js">
+const user = {
+  name: "Csilla",
+  // Intentionally using arrow: often not what you expect.
+  greet: () => {
+    console.log("Hi, " + this.name + "!");
+  }
+};
+
+user.greet(); // usually not "Csilla"
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Events</h2>
+      <p>
+        Modern JavaScript is largely event-driven: the program performs tasks in a strict order, but
+        often <strong>reacts to certain events</strong>. Such events include
+        a click, keypress, network response, or timer expiration.
+      </p>
+
+      <article>
+        <h3>5.1. Functions called on events</h3>
+        <p>
+          Typical example in browsers: a function runs when a click occurs. Usually, we set up a "listener" (event handler).
+        </p>
+
+        <p>
+        If you press this button, nothing will happen:
+        </p>
+        <button id="exampleButton">Button</button>
+        <p>
+        Now, run the following code to assign an action (seemingly doing nothing), then press <em>again the button</em>!
+        </p>
+        <textarea data-lang="js">
+// find the button object:
+const btn = document.querySelector("#exampleButton");
+
+// assign an event handler:
+btn.addEventListener("click", function () {
+	// generate three random numbers (rgb):
+	const r = Math.floor(Math.random() * 256);
+	const g = Math.floor(Math.random() * 256);
+	const b = Math.floor(Math.random() * 256);
+	// color the button with this color
+	btn.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+});
+        </textarea>
+
+        <p>
+          Here, <code>addEventListener</code> means: "if a <code>click</code> event occurs, call this function".
+          The function does not run immediately but is called later, at the moment of the event.
+        </p>
+        <p class="info">Note that the button object was assigned to a variable outside the event handler code block (before),
+        yet we can still use it inside the handler! This demonstrates the earlier mentioned "scope" rule: outer variables are accessible inside inner functions, but not vice versa.</p>
+      </article>
+
+      <article>
+        <h3>5.2. Callback</h3>
+        <p>We saw that in ECMAScript, functions are also data: they can be assigned to variables, stored in objects, and passed as arguments to other functions!</p>
+        <p>
+          A function that is passed as a parameter "for later" execution is called a callback. This is the core idea behind event handling and asynchronous programming.
+        </p>
+
+        <textarea data-lang="js">
+function runLater(callback) {
+  console.log("Preparation...");
+  callback();
+  console.log("Finished.");
+}
+
+// this will be the callback function
+fn = function () {
+  console.log("Callback executed.");
+}
+
+runLater(fn);
+        </textarea>
+
+        <p>
+          In the example above, <code>runLater</code> "does not know" what the callback will do; it only knows it must call it at some point. This provides flexible program structure.
+        </p>
+
+        <textarea data-lang="js">
+// Same with arrow function, shorter:
+runLater(() => console.log("Arrow callback executed."));
+        </textarea>
+        <p>Here, we simply write the function directly as a parameter, without giving it a name. This is common in practice.</p>
+      </article>
+
+      <article>
+        <h3>5.3. Why is this important in practice?</h3>
+        <p>
+          User interfaces (UIs) and network operations (API calls) are typically event-driven. We cannot wait around for the user to press a button, because then we can't do anything else in the meantime. Also, what if the user presses another button that we are not listening for? The model of functions, callbacks, and event handling is the foundation of most web applications.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>6. Summary</h2>
+      <p>
+        In this lesson, we not only "used" functions but (hopefully) learned more deeply how to create and use them:
+      </p>
+      <ul>
+        <li><strong>Parameter vs argument</strong>: definition versus invocation.</li>
+        <li><strong><code>return</code></strong>: returning values and ending execution.</li>
+        <li><strong>Definition forms</strong>: declaration, expression, arrow.</li>
+        <li><strong>Generators</strong>: recognizing <code>function*</code> and <code>yield</code>.</li>
+        <li><strong><code>this</code></strong>: the "current object" idea in method calls.</li>
+        <li><strong>Events and callbacks</strong>: introducing event-driven execution.</li>
+      </ul>
+      <p>
+        In upcoming lessons, functions and objects will work together many times, especially when working with more complex data structures like arrays and objects.
+      </p>
+    </section>
+  </main>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Language Basics - Lesson 6</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+<body>
+  <main style="height: 90vh; overflow: scroll">
+    <section>
+      <h1>Lesson 6 - Asynchronous JavaScript and Events</h1>
+      <p>
+        In this lesson, we will discuss why and how JavaScript can operate in a <strong>non-blocking</strong> manner.
+        (Which is not so obvious when you know that it runs on a single processor core, on a single thread in the browser, even if your machine has dozens of cores).
+        We will look at typical cases of asynchronous execution, the <code>Promise</code> model, the <code>async</code>/<code>await</code> syntax,
+        and how all this relates to the concept of <strong>events</strong> and the <strong>event loop</strong>.
+      </p>
+    </section>
+
+    <section>
+      <h2>1. Synchronous vs Asynchronous</h2>
+      <p>
+        In <strong>synchronous</strong> execution, the program proceeds linearly: while one operation is ongoing, the next does not start.
+        In <strong>asynchronous</strong> operation, we "start" certain tasks, then the program can continue, possibly starting new tasks
+        without waiting for the previous ones to finish. They may run truly in parallel, for example on multiple processor cores,
+        but we call it that even if they do not run "simultaneously" physically, only logically.
+      </p>
+      <p>
+        JavaScript does not run on multiple processor cores (without serious tricks), so here, Asynchrony
+        is a conceptual idea: it means we do not have to wait for something to finish before continuing.
+      </p>
+      <p>
+        The real problems start when the operation has a result, i.e., after it completes, and we need to do something with it.
+        How can we continue working if the result is not yet available? And how do we know when it is available? These problems are traditionally handled in JavaScript either
+        with <strong>callback</strong> functions or with a so-called Promise model.
+      </p>
+
+      <article>
+        <h3>1.1. Why is blocking a problem?</h3>
+        <ul>
+          <li>
+            In the browser, the user interface must constantly respond: if every operation blocks execution,
+            the page would freeze (appear frozen), because while waiting for, say, a keystroke,
+            buttons would not work, menus would not respond, and scrolling would be impossible.
+          </li>
+          <li>
+            There are slow tasks: network requests (AJAX/fetch), file operations (Node.js), timing functions, user events.
+            If we always wait for these, everything would seem terribly slow.
+          </li>
+          <li>
+            The goal of the asynchronous model: let the program "continue", and have the result arrive later in an orderly manner.
+          </li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>1.2. A demonstration "output" box</h3>
+        <p>
+          The following examples will all modify the same <code>#out</code> element. (You will find it on the left).
+        </p>
+
+        <p>
+          The following code creates two helper functions:
+          <code>setOut(text)</code> writes text, and <code>setOutStyle(text, color)</code> sets text and color.
+          Be sure to run this code block, otherwise the others will not work.
+        </p>
+
+        <textarea data-lang="js">
+function setOut(text) {
+  const el = document.querySelector("#footer")
+  if (!el) return
+  el.textContent = "Output: " + text
+}
+
+function setOutStyle(text, color) {
+  const el = document.querySelector("#footer")
+  if (!el) return
+  el.textContent = "Output: " + text
+  el.style.color = color
+}
+        </textarea>
+
+        <p>
+          Why is this useful?
+          Because even from asynchronous callbacks, we can safely "write" something so that it appears on the page,
+          not just in the developer console. You will see it even if you scroll away in the meantime.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Callback approach and timing</h2>
+      <p>
+        The <strong>callback</strong> concept: you pass a function, which the system calls later.
+        For example, <code>setTimeout</code> asks for delayed execution.
+      </p>
+
+      <article>
+        <h3>2.1. setTimeout: "start something that will run later"</h3>
+        <p>
+          The order of code execution can be misleading: <code>setTimeout</code> does not wait, but registers a task that will run at some point in the future.
+          The program then continues immediately.
+        </p>
+        <p>
+        (Of course, we can also register a process for the very near future.)
+        </p>
+
+        <textarea data-lang="js">
+setOutStyle("Start (synchronous part runs)", "black")
+
+setTimeout(() => {
+  setOutStyle("Delayed callback runs (about 1000ms later)", "green")
+}, 1000)
+
+setOutStyle("The program continues (did not wait for timeout)", "blue")
+        </textarea>
+
+        <p>
+          Why is this important?
+          Because if you need the result of an asynchronous operation, you cannot "write below" as if it were already done.
+          The continuation must always be placed in the callback (or Promise/await continuation).
+        </p>
+      </article>
+
+      <article>
+        <h3>2.2. The classic problem: "not ready yet"</h3>
+        <p>
+          The following example models a typical mistake: there is a variable that we assign "later",
+          but the synchronous code uses it immediately.
+        </p>
+
+        <textarea data-lang="js">
+let value = "not ready yet"
+
+setTimeout(() => {
+  value = "now it is ready"
+  setOutStyle("Callback: value = " + value, "green")
+}, 800) // 800 milliseconds
+
+setOutStyle("Immediate read: value = " + value, "red")
+        </textarea>
+
+        <p>
+          The problem here is that the result only appears later, so it should not be treated as if it were already available.
+          In this trivial case (waiting explicitly), it is obvious, but it can happen in many other situations.
+          For example, we request data but the user has not provided it yet,
+          or we fetch information from the network that has not arrived yet, etc.
+          Promise and async/await help with this: they express dependencies and "remember" the continuation.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Promise: the "object" of the future value</h2>
+      <p>
+        The <code>Promise</code> is an object that represents a <strong>future</strong> value.
+        It has three states: <em>pending</em> (in progress), <em>fulfilled</em> (success), <em>rejected</em> (error).
+      </p>
+
+      <article>
+        <h3>3.1. Creating a Promise (simulated asynchronous task)</h3>
+        <p>
+          Instead of calling a network (which depends on many environmental factors), we simulate a delayed "operation"
+          with <code>setTimeout</code> and wrap it in a Promise.
+        </p>
+
+        <textarea data-lang="js">
+const wait = ms => new Promise(resolve => {
+  setTimeout(() => resolve(ms), ms)
+})
+
+setOutStyle("Waiting starts...", "black")
+
+wait(900).then(ms => {
+  setOutStyle("Promise fulfilled: waited " + ms + " ms", "green")
+})
+        </textarea>
+
+        <p>
+          Why is this better than a simple callback function?
+          Because Promise is more uniform and capable: it can be continued with <code>then</code>, chained,
+          and errors can be handled in an organized way.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.2. Promise chaining: multiple steps in sequence</h3>
+        <p>
+          If you want multiple asynchronous steps in sequence, the <code>then</code> can return a new Promise.
+          This way, the next <code>then</code> waits for the previous one.
+        </p>
+
+        <textarea data-lang="js">
+const step = (label, ms) => new Promise(resolve => {
+  setTimeout(() => resolve(label), ms)
+})
+
+setOutStyle("Steps starting...", "black")
+
+step("Step 1 complete", 400)
+  .then(msg => {
+    setOutStyle(msg, "blue")
+    return step("Step 2 complete", 500)
+  })
+  .then(msg => {
+    setOutStyle(msg, "blue")
+    return step("Step 3 complete", 600)
+  })
+  .then(msg => {
+    setOutStyle(msg + " (end)", "green")
+  })
+        </textarea>
+
+        <p>
+          The goal behind this pattern: the "process" order remains readable, while actually only proceeding
+          when the previous asynchronous task has finished.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.3. Error handling in Promise: reject and catch</h3>
+        <p>
+          Asynchronous error handling is not the same as synchronous <code>try/catch</code>.
+          In a Promise, an error is either a <code>reject</code> (or an exception thrown in <code>then</code>),
+          which can be caught with <code>catch</code>.
+        </p>
+
+        <textarea data-lang="js">
+const risky = () => new Promise((resolve, reject) => {
+  // success only 50% of the time:
+  const ok = Math.random() > 0.5
+  setTimeout(() => {
+    if (ok) resolve("Succeeded")
+    else reject(new Error("Something failed"))
+  }, 1600)
+})
+
+setOutStyle("Risky operation starting...", "black")
+
+risky()
+  .then(msg => setOutStyle("OK: " + msg, "green"))
+  .catch(err => setOutStyle("ERROR: " + err.message, "red"))
+        </textarea>
+
+        <p>
+          Why is this good?
+          Because errors do not get mixed up in callbacks, but are part of the control flow, just like success paths.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Async / await: a "nicer" syntax for Promise</h2>
+      <p>
+        The <code>async</code>/<code>await</code> is not a new asynchronous mechanism, but a more readable syntax over Promises.
+        The <code>await</code> can only be used inside an <code>async</code> function,
+        and "pauses" the execution of that function until the Promise is fulfilled.
+      </p>
+
+      <article>
+        <h3>4.1. await with a simulated operation</h3>
+
+        <textarea data-lang="js">
+const wait = ms => new Promise(resolve => {
+  setTimeout(() => resolve(ms), ms)
+})
+
+const run = async () => {
+  setOutStyle("async process starting...", "black")
+
+  const a = await wait(1000)
+  setOutStyle("First await complete: " + a + " ms", "blue")
+
+  const b = await wait(1000)
+  setOutStyle("Second await complete: " + b + " ms", "blue")
+
+  setOutStyle("All steps complete", "green")
+}
+
+run()
+        </textarea>
+
+        <p>
+          Why is this beneficial? Because the code reads as if it were synchronous (top to bottom), while in reality it does not block
+          the browser: during await, the execution yields control back to the event loop.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.2. Error handling with async/await</h3>
+
+        <textarea data-lang="js">
+const risky = () => new Promise((resolve, reject) => {
+  const ok = Math.random() > 0.5
+  setTimeout(() => {
+    if (ok) resolve("Succeeded")
+    else reject(new Error("An asynchronous error occurred"))
+  }, 600)
+})
+
+const run = async () => {
+  setOutStyle("async error handling starting...", "black")
+
+  try {
+    const msg = await risky()
+    setOutStyle("OK: " + msg, "green")
+  } catch (err) {
+    setOutStyle("ERROR: " + err.message, "red")
+  }
+}
+
+run()
+        </textarea>
+
+        <p>
+          The underlying goal: unified error handling with "normal" control structures, while Promises continue to run in the background.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. More about events</h2>
+      <p>
+        An <strong>event</strong> is an abstraction: "something happened" (click, keypress, form submit, timing, network response).
+        In JavaScript, a typical pattern is: subscribe (<code>addEventListener</code>) and provide a callback, which the browser calls
+        when the event occurs.
+      </p>
+
+      <article>
+        <h3>5.1. Simple click event</h3>
+        <p>
+          We create a button. When clicked, it changes the output text and color.
+        </p>
+
+        <button type="button" id="btn">Click here</button>
+
+        <textarea data-lang="js">
+const btn = document.querySelector("#btn")
+
+btn.addEventListener("click", () => {
+  setOutStyle("Click event received", "purple")
+})
+        </textarea>
+
+        <p>
+          Why do it this way?
+          Because the timing of user events cannot be predicted. The program must be "ready" to respond.
+          This is exactly one of the most important forms of asynchronous thinking.
+        </p>
+      </article>
+
+      <article>
+        <h3>5.2. The event object: information about "what happened"</h3>
+        <p>
+          The callback usually receives a parameter: the <code>event</code> object.
+          From it, you can read details (like mouse position, which button was pressed, target element).
+        </p>
+
+        <textarea data-lang="js">
+const btn = document.querySelector("#btn")
+
+btn.addEventListener("click", event => {
+  const x = event.clientX
+  const y = event.clientY
+  setOutStyle("Click: x=" + x + " y=" + y, "purple")
+})
+        </textarea>
+
+        <p>
+          Why is this useful?
+          Because the callback does not only get a "signal", but also context: so
+          we can know not only that something happened, but also what, why, and what triggered it.
+        </p>
+      </article>
+
+      <article>
+        <h3>5.3. Combining event and asynchronous operation</h3>
+        <p>
+          A common case is when an event starts an asynchronous process (like data fetching, calculation, animation).
+          Here, on click, we start a "loading" indicator, then later finish.
+        </p>
+
+        <textarea data-lang="js">
+const wait = ms => new Promise(resolve => {
+  setTimeout(() => resolve(ms), ms)
+})
+
+const btn = document.querySelector("#btn")
+
+btn.addEventListener("click", async () => {
+  setOutStyle("Working... (triggered by click)", "blue")
+  await wait(800)
+  setOutStyle("Done (async operation completed)", "green")
+})
+        </textarea>
+
+        <p>
+          The underlying goal: user experience. The UI responds immediately ("Working...") and updates later when the result is actually ready.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>6. High-level explanation of the event loop</h2>
+      <p>
+        JavaScript (in the browser) fundamentally runs on a single main thread: one code snippet runs on the "stack" at a time.
+        Asynchronous operations are prepared in the background, and when they finish, their callback/continuation
+        is placed into a <strong>task queue</strong>. The <strong>event loop</strong> checks when the stack is empty,
+        and then takes the next task from the queue to execute.
+      </p>
+
+      <article>
+        <h3>6.1. Why is this relevant in practice?</h3>
+        <ul>
+          <li>
+            Explains why synchronous code often "runs first" even if an asynchronous operation was initiated earlier.
+          </li>
+          <li>
+            Helps avoid the expectation that "it must be already done underneath".
+          </li>
+          <li>
+            Highlights: long synchronous calculations block the UI because they prevent the event loop from processing new events.
+          </li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>6.2. Demonstration: "first synchronous, then asynchronous"</h3>
+        <p>
+          Here, <code>setTimeout(..., 0)</code> does not mean "immediately", but rather "as soon as possible", which is after the current synchronous code finishes.
+        </p>
+
+        <textarea data-lang="js">
+setOutStyle("1) Synchronous: this runs first", "black")
+
+setTimeout(() => {
+  setOutStyle("3) Timeout callback: runs later", "green")
+}, 0)
+
+setOutStyle("2) Synchronous: runs before callback", "blue")
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>7. Practice tasks</h2>
+
+      <article>
+        <h3>7.1. Task: countdown, then "Start"</h3>
+        <p>
+          Create an asynchronous process that counts down from 3 seconds (3, 2, 1), then displays "Start".
+          Tip: chain <code>wait</code> + <code>then</code>, or use <code>async</code>/<code>await</code> with multiple awaits.
+        </p>
+
+        <textarea data-lang="js">
+const wait = ms => new Promise(resolve => {
+  setTimeout(resolve, ms)
+})
+
+const countdown = async () => {
+  setOutStyle("3", "blue")
+  await wait(700)
+  setOutStyle("2", "blue")
+  await wait(700)
+  setOutStyle("1", "blue")
+  await wait(700)
+  setOutStyle("Start", "green")
+}
+
+countdown()
+        </textarea>
+      </article>
+
+      <article>
+        <h3>7.2. Task: disable button during asynchronous operation</h3>
+        <p>
+          On click, disable the button, indicate "working" in the output, then re-enable after 1 second.
+          This is a typical UI pattern: prevent double clicks from starting parallel processes.
+        </p>
+
+        <textarea data-lang="js">
+const wait = ms => new Promise(resolve => {
+  setTimeout(resolve, ms)
+})
+
+const btn = document.querySelector("#btn")
+
+btn.addEventListener("click", async () => {
+  btn.disabled = true
+  setOutStyle("Operation running, button temporarily disabled", "blue")
+
+  await wait(1000)
+
+  btn.disabled = false
+  setOutStyle("Done, button reactivated", "green")
+})
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>8. Summary</h2>
+      <ul>
+        <li>
+          The goal of asynchronous operation is to prevent the program from blocking while waiting for tasks to complete.
+        </li>
+        <li>
+          Callback is a basic pattern (used in events and timing), but for larger processes, Promises are more organized.
+        </li>
+        <li>
+          <code>Promise</code> can be chained, and errors can be handled with <code>catch</code>.
+        </li>
+        <li>
+          <code>async</code>/<code>await</code> provide the same model but with more readable code and error handling via <code>try/catch</code>.
+        </li>
+        <li>
+          Events are about: the system "notifies", you subscribe, and respond with callbacks.
+        </li>
+        <li>
+          The event loop at a high level explains why synchronous code often runs first and why avoiding long blocking code is important.
+        </li>
+      </ul>
+    </section>
+  </main>
+  <footer id="footer" style="height: 10vh; background: var(--card-bg);font-size:2.2em; border-top: 1px solid var(--muted-fg); overflow: scroll">
+          Output: here the example codes will write!
+  </footer>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Language Basics – Lesson 4</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+<body>
+  <header>
+    <h1>Lesson 4 – Important Object Types</h1>
+    <p>
+      In this lesson, we focus on the most commonly used complex (non-primitive) values in JavaScript.
+      In JavaScript, every non-primitive value is of <code>Object</code> type, but these objects can behave very differently:
+      a <code>Array</code> behaves differently than a simple (basic) <code>Object</code>, and the language provides special tools for handling
+      dates (<code>Date</code>), unique elements (<code>Set</code>), or key-value pairs (<code>Map</code>).
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Array</h2>
+      <p>
+        An <code>Array</code> is an ordered list: it stores elements one after another, and each element has a number,
+        called the <strong>index</strong>. Indexing starts from <code>0</code>, so the first element's index is <code>0</code>.
+      </p>
+
+      <article>
+        <h3>1.1. Indexing and <code>length</code></h3>
+        <p>
+          Array elements can be accessed with square brackets. The <code>length</code> property indicates the "size" of the array
+          (more precisely, the last index + 1).
+        </p>
+
+        <textarea data-lang="js">
+const nums = [10, 20, 30]
+
+console.log(nums[0])      // 10
+console.log(nums[1])      // 20
+console.log(nums.length)  // 3
+
+nums[1] = 99
+console.log(nums)         // [10, 99, 30]
+        </textarea>
+
+        <p>
+          Important: if you reference a non-existent index, the value obtained is <code>undefined</code>.
+        </p>
+
+        <textarea data-lang="js">
+const nums = [10, 20, 30]
+no_such_thing = nums[10]
+console.log(typeof(no_such_thing)); // undefined
+        </textarea>
+        <p>
+        However, if you assign a value to a previously non-existent index (just like with any object), it is simply created!
+        This behavior is logical if we think of array indices as some kind of "property", but it can be a bit strange: for example,
+        what happens if we jump ahead, skip some indices, and assign a value? What about the skipped elements? Let's see:
+        </p>
+        <textarea data-lang="js">
+const nums = [1, 2, 3]
+nums[8] = 777 // such an element didn't exist before...
+
+// What happened to indices 4, 5, 6, 7, 8?
+console.log(nums)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>1.2. Mutability</h3>
+        <p>
+          Arrays are <strong>mutable</strong>: that is, after creation, elements can be added, removed, or replaced.
+          (Mutability does not refer to the elements themselves, but to the structure.) This flexibility is convenient,
+          but in larger projects, it is important to follow conventions and rules because if multiple variables point to the same array,
+          modifications are visible everywhere!
+        </p>
+
+        <textarea data-lang="js">
+const a = [1, 2, 3]
+const b = a           // b references the same array
+
+b.push(4)
+
+console.log(a)        // [1, 2, 3, 4]
+console.log(b)        // [1, 2, 3, 4]
+        </textarea>
+
+        <p>
+          If you want a "separate copy", you need to copy it (a simple example will be shown in the <code>slice</code> section).
+        </p>
+      </article>
+
+      <article>
+        <h3>1.3. Modifying elements: <code>push</code>, <code>pop</code>, <code>shift</code>, <code>unshift</code></h3>
+        <p>
+          These methods handle the beginning or end of the array. Operations at the end are generally cheaper (faster),
+          because modifying at the beginning shifts many elements' indices.
+        </p>
+
+        <ul>
+          <li><code>push(x)</code> – add element to the end</li>
+          <li><code>pop()</code> – remove (and return) the last element</li>
+          <li><code>unshift(x)</code> – add element to the beginning</li>
+          <li><code>shift()</code> – remove (and return) the first element</li>
+        </ul>
+
+        <textarea data-lang="js">
+const q = ["Béla", "Kata"];
+
+q.push("Master")
+console.log(q)         // ["Béla", "Kata", "Master"]
+
+const last = q.pop()
+console.log(last)      // "Master"
+console.log(q)         // ["Béla", "Kata"]
+
+q.unshift("First")
+console.log(q)         // ["First", "Béla", "Kata"]
+
+const first = q.shift()
+console.log(first)     // "First"
+console.log(q)         // ["Béla", "Kata"]
+        </textarea>
+      </article>
+
+      <article>
+        <h3>1.4. Slicing and splicing: <code>slice</code> and <code>splice</code></h3>
+        <p>
+          <code>slice</code> <strong>does not modify</strong> the original array: it returns a new array with a sliced part.
+          <code>splice</code>, on the other hand, <strong>modifies</strong> the original array: it can delete and/or insert elements.
+        </p>
+
+        <textarea data-lang="js">
+const a = [10, 20, 30, 40, 50]
+
+const part = a.slice(1, 4) // indices 1..3 (4 is not included)
+console.log(part)          // [20, 30, 40]
+console.log(a)             // [10, 20, 30, 40, 50]  (unchanged)
+
+const b = [10, 20, 30, 40, 50]
+const removed = b.splice(2, 2) // remove 2 elements starting at index 2
+console.log(removed)           // [30, 40]
+console.log(b)                 // [10, 20, 50]
+
+const c = [10, 20, 30, 40]
+c.splice(2, 0, 999, 888)       // at index 2, insert 999 and 888 without deleting
+console.log(c)                 // [10, 20, 999, 888, 30, 40]
+        </textarea>
+
+        <p>
+          Practical rule: if you are "reading/assembling data" only, prefer non-modifying solutions (e.g., <code>slice</code>).
+          If you want to edit "in place", then use <code>splice</code>.
+        </p>
+      </article>
+
+      <article>
+        <h3>1.5. Traversal: <code>for</code> and <code>for...of</code></h3>
+        <p>
+          For arrays, we typically need two types of traversal:
+          either the values themselves or the indices (for example, if you count based on the index).
+        </p>
+
+        <textarea data-lang="js">
+const prices = [1200, 900, 1500]
+
+// Traversing values
+for (const p of prices) {
+  console.log("Price:", p)
+}
+
+// Index traversal (modern)
+for (i in prices) {
+  console.log("Index:", i, "Value:", prices[i])
+}
+
+// Index traversal (classic)
+for (let i = 0; i < prices.length; i++) {
+  console.log("Classic index:", i, "Value:", prices[i])
+}
+
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. General Object</h2>
+      <p>
+        A simple <code>Object</code> is a collection of key-value pairs. The key is called a <strong>property</strong>,
+        and it is typically referenced by a string name. The property value can be anything: number, string, another object,
+        array, or even a function (then it is called a method).
+      </p>
+      <p>The property name does not have to be quoted when creating an object, but it is not forbidden either. If it contains
+      strange characters (like spaces or hyphens), quotes are mandatory.</p>
+
+      <article>
+        <h3>2.1. Accessing properties: dot and square brackets</h3>
+        <p>
+          There are two basic ways to access properties:
+          the <code>obj.name</code> (dot notation) form, and the <code>obj["name"]</code> (bracket notation) form.
+          The second is needed if the key is stored in a variable or if the key is not a "regular" identifier.
+        </p>
+
+        <textarea data-lang="js">
+const user = {
+  name: "Master",
+  age: 32
+}
+
+console.log(user.name)       // "Master"
+console.log(user["age"])     // 32
+
+const key = "name"
+console.log(user[key])       // "Master"
+
+const weird = {
+  "favorite-color": "blue"
+}
+console.log(weird["favorite-color"]) // "blue"
+
+// the following would obviously not be valid:
+// weird.favorite-color
+// because the interpreter would misunderstand.
+        </textarea>
+      </article>
+
+      <article>
+        <h3>2.2. Dynamic addition and modification</h3>
+        <p>
+          You can add new properties or modify existing ones to an object at any time during runtime.
+          This is one of JavaScript's strengths, but in larger projects, following conventions and rules is important.
+        </p>
+
+        <textarea data-lang="js">
+const settings = {}
+settings.theme = "dark"
+settings.fontSize = 16
+
+console.log(settings) // { theme: "dark", fontSize: 16 }
+
+settings.fontSize = 18
+console.log(settings.fontSize) // 18
+        </textarea>
+
+        <p>
+          To delete a property, use the <code>delete</code> operator.
+        </p>
+
+        <textarea data-lang="js">
+const obj = { a: 1, b: 2, c: 3 }
+delete obj.b
+
+console.log(obj) // { a: 1, c: 3 }
+        </textarea>
+      </article>
+
+      <article>
+        <h3>2.3. Nesting</h3>
+        <p>
+          Real data is rarely "flat". It is common for an object to contain other objects or arrays.
+          Accessing such structures is done via "chaining".
+        </p>
+
+        <textarea data-lang="js">
+const order = {
+  id: "A-1001",
+  customer: {
+    name: "Kata",
+    address: { city: "Budapest", zip: "1011" }
+  },
+  items: [
+    { name: "Book", price: 3990 },
+    { name: "Coffee", price: 1490 }
+  ]
+}
+
+console.log(order.customer.name)               // "Kata"
+console.log(order.customer.address.city)       // "Budapest"
+console.log(order.items[0].name)               // "Book"
+console.log(order.items[1].price)              // 1490
+        </textarea>
+      </article>
+
+      <article>
+        <h3>2.4. Listing keys: <code>Object.keys</code>, <code>Object.values</code>, <code>Object.entries</code></h3>
+        <p>
+          If you want to handle an object's properties as "data" (for example, to list or traverse),
+          these built-in functions are the most common tools.
+        </p>
+
+        <textarea data-lang="js">
+const user = { name: "Master", age: 32, active: true }
+
+console.log(Object.keys(user))    // ["name", "age", "active"]
+console.log(Object.values(user))  // ["Master", 32, true]
+console.log(Object.entries(user)) // [["name","Master"], ["age",32], ["active",true]]
+
+for (const [k, v] of Object.entries(user)) {
+  console.log(k, "=", v)
+}
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Date</h2>
+      <p>
+        The <code>Date</code> object is used for handling dates and times. It is most often used for timestamps, logging,
+        deadlines, timers, and "when did it happen" data.
+      </p>
+
+      <article>
+        <h3>3.1. Creation and basic methods</h3>
+        <p>
+          <code>new Date()</code> returns the current date and time. It can also be created from a string or parameters,
+          but care must be taken with date formats in string representations.
+        </p>
+
+        <textarea data-lang="js">
+const now = new Date()
+console.log(now)
+
+console.log(now.getFullYear()) // year
+console.log(now.getMonth())    // 0..11 (0 = January)
+console.log(now.getDate())     // 1..31
+console.log(now.getHours())    // 0..23
+
+console.log(now.toISOString()) // machine-friendly, standard format (UTC)
+        </textarea>
+
+        <p>
+          A common need is to calculate the difference between two dates. For this, it is often enough to convert the Date
+          to a number (milliseconds since 1970-01-01 UTC).
+        </p>
+
+        <textarea data-lang="js">
+const start = new Date()
+const end = new Date(start.getTime() + 90 * 1000) // +90 seconds
+
+const diffMs = end - start
+console.log(diffMs)            // 90000
+console.log(diffMs / 1000)     // 90
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Set</h2>
+      <p>
+        The <code>Set</code> is a collection where each element is <strong>unique</strong>: the same value cannot be added more than once.
+        Typical uses include filtering duplicates or checking if an element has already been seen.
+      </p>
+
+      <article>
+        <h3>4.1. Basic operations</h3>
+        <ul>
+          <li><code>add(x)</code> – add element</li>
+          <li><code>has(x)</code> – check if present</li>
+          <li><code>delete(x)</code> – remove element</li>
+          <li><code>size</code> – number of elements</li>
+        </ul>
+
+        <textarea data-lang="js">
+const s = new Set()
+
+s.add("apple")
+s.add("apple") // duplicate: will not create a second element
+s.add("pear")
+
+console.log(s.size)      // 2
+console.log(s.has("apple"))// true
+
+s.delete("apple")
+console.log(s.has("apple"))// false
+        </textarea>
+
+        <p>
+          Arrays can be easily converted to Sets and back to arrays. This is a quick way to remove duplicates.
+        </p>
+
+        <textarea data-lang="js">
+const data = [1, 1, 2, 3, 3, 3, 4]
+const unique = [...new Set(data)]
+
+console.log(unique) // [1, 2, 3, 4]
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Map</h2>
+      <p>
+        The <code>Map</code> stores key-value pairs, similar to objects, but with more flexible keys:
+        keys can be numbers, objects, functions, etc.
+        It is useful when keys are not "nice property names" or when you want to treat data as a dictionary.
+      </p>
+
+      <article>
+        <h3>5.1. Basic operations</h3>
+        <ul>
+          <li><code>set(key, value)</code> – set value for key</li>
+          <li><code>get(key)</code> – retrieve value</li>
+          <li><code>has(key)</code> – check existence</li>
+          <li><code>delete(key)</code> – delete entry</li>
+          <li><code>size</code> – number of entries</li>
+        </ul>
+
+        <textarea data-lang="js">
+const m = new Map()
+
+m.set("theme", "dark")
+m.set("fontSize", 16)
+
+console.log(m.get("theme")) // "dark"
+console.log(m.has("lang"))  // false
+console.log(m.size)         // 2
+
+m.delete("fontSize")
+console.log(m.size)         // 1
+        </textarea>
+
+        <p>
+          A classic advantage of Map: object can be used as a key. Useful for object-oriented caches and mappings.
+        </p>
+
+        <textarea data-lang="js">
+const user1 = { id: 1, name: "Kata" }
+const user2 = { id: 2, name: "Béla" }
+
+const roles = new Map()
+roles.set(user1, "admin")
+roles.set(user2, "viewer")
+
+console.log(roles.get(user1)) // "admin"
+console.log(roles.get(user2)) // "viewer"
+        </textarea>
+      </article>
+
+      <article>
+        <h3>5.2. Traversal</h3>
+        <p>
+          A Map can be traversed with <code>for...of</code>, and it yields <code>[key, value]</code> pairs by default.
+        </p>
+
+        <textarea data-lang="js">
+const prices = new Map()
+prices.set("apple", 399)
+prices.set("pear", 499)
+
+for (const [product, price] of prices) {
+  console.log(product, "->", price)
+}
+        </textarea>
+      </article>
+      <p>If you don't need highly optimized code, you can do without Map entirely; we just introduced it to familiarize you with it.</p>
+    </section>
+
+    <section>
+      <h2>6. RegExp (Regular Expressions)</h2>
+      <p>
+        The <code>RegExp</code> (regular expression) is used for pattern-based searching and validation of text.
+        In this course, it is only mentioned briefly: the full topic would be a separate lesson (or course).
+      </p>
+
+      <article>
+        <h3>6.1. A short practical example</h3>
+        <p>
+          The example shows how to check if a string contains at least one digit.
+        </p>
+
+        <textarea data-lang="js">
+const hasDigit = /\d/.test("password123")
+console.log(hasDigit) // true
+
+const hasDigit2 = /\d/.test("no_number")
+console.log(hasDigit2) // false
+        </textarea>
+      </article>
+
+      <article>
+        <h3>6.2. What to watch out for?</h3>
+        <p>
+          Regular expressions are very concise but not very readable. Use them when you need to check complex patterns
+          or when you need to specify validation rules dynamically.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>7. Mini exercises (problem solutions)</h2>
+
+      <article>
+        <h3>7.1. Array editing</h3>
+        <p>
+          Create an array with 5 numbers. Add <code>100</code> to the end, remove the last element,
+          then slice out the middle 2 elements as a new array with <code>slice</code>.
+        </p>
+
+        <textarea data-lang="js">
+// 1) create
+const nums = [3, 7, 9, 11, 15]
+
+// 2) add 100 at the end
+nums.push(100)
+
+// 3) remove the last element
+const last = nums.pop()
+
+// 4) slice out the middle 2 elements (new array)
+const middle2 = nums.slice(2, 4)
+
+console.log(nums)
+console.log(last)
+console.log(middle2)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>7.2. Object and nesting</h3>
+        <p>
+          Create a <code>book</code> object (title, author, year), then add a <code>reviews</code> array containing review objects (name + score).
+        </p>
+
+        <textarea data-lang="js">
+const book = {
+  title: "JavaScript Basics",
+  author: "Unknown",
+  year: 2026,
+  reviews: [
+    { name: "Kata", score: 5 },
+    { name: "Béla", score: 4 }
+  ]
+}
+
+console.log(book.reviews[0].name, book.reviews[0].score)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>7.3. Set: filtering duplicates</h3>
+        <p>
+          We have an array of names with duplicates. Convert it so that only unique names remain.
+        </p>
+
+        <textarea data-lang="js">
+const names = ["Kata", "Béla", "Kata", "Master", "Béla"];
+const uniqueNames = [...new Set(names)];
+
+console.log(uniqueNames);
+        </textarea>
+      </article>
+
+      <article>
+        <h3>7.4. Map: fast key-value storage</h3>
+        <p>
+          Create a Map that associates product names with prices, then output the price of a given product.
+        </p>
+
+        <textarea data-lang="js">
+const priceMap = new Map()
+priceMap.set("apple", 399)
+priceMap.set("pear", 499)
+
+const product = "apple"
+console.log(product, "price:", priceMap.get(product))
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>8. Summary</h2>
+      <ul>
+        <li>
+          <strong>Array</strong>: ordered list with indices; mutable; common methods: <code>push</code>, <code>pop</code>,
+          <code>shift</code>, <code>unshift</code>, <code>slice</code>, <code>splice</code>.
+        </li>
+        <li>
+          <strong>Object</strong>: collection of properties; accessed via dot or <code>[]</code>; easily extendable and nestable.
+        </li>
+        <li>
+          <strong>Date</strong>: handling dates and differences; often uses <code>toISOString()</code>.
+        </li>
+        <li>
+          <strong>Set</strong>: collection of unique elements; excellent for duplicate filtering.
+        </li>
+        <li>
+          <strong>Map</strong>: flexible key-value store (keys can be objects, functions, etc.).
+        </li>
+        <li>
+          <strong>RegExp</strong>: pattern-based text processing (only briefly mentioned here).
+        </li>
+      </ul>
+
+      <p>
+        In the next lesson, we will build on these with more advanced language tools:
+        error handling, modules, and prototype-based behavior.
+      </p>
+    </section>
+  </main>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

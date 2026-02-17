@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Language Basics – Lesson 10.1</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+<body>
+  <header>
+    <h1>10.1 – Node.js External Libraries</h1>
+    <p>
+      The built-in modules of Node.js (<code>fs</code>, <code>path</code>, <code>process</code>, <code>child_process</code>, etc.)
+      are sufficient for many tasks. However, the real power of Node lies in its ecosystem:
+      there are many ready-made, reusable packages that can be used to build quite sophisticated automation tools with just a few lines of code.
+    </p>
+    <p>
+      In this section, we will look at some commonly used libraries. The code examples <em>can be run in Node</em>,
+      but for consistent appearance and syntax highlighting, they are placed in code blocks. You cannot run them now in the browser,
+      as they would not execute there.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>0. Installation and Basic Concepts (npm, package.json)</h2>
+      <p>
+        External libraries are installed <strong>using npm</strong> within the project folder.
+        The project's "identity" is stored in <code>package.json</code>, which contains dependencies and also allows you to set
+        whether you are using ES modules (for example, <code>"type": "module"</code>).
+      </p>
+      <p class="info">
+      Besides npm, there are several other package managers (yarn, pnpm, bun, deno). You may encounter them in tutorials.
+      For simplicity, we will stick to <code>npm</code> for now.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// Terminal (command line) – inside the project directory:
+
+npm init -y
+npm install axios commander csv-parse xlsx chokidar execa
+
+// If you want to use ES module syntax (import/export) in .js files:
+/// package.json -> "type": "module"
+      </textarea>
+    </section>
+
+    <section>
+      <h2>1. commander – Elegant CLI from a few lines</h2>
+      <p>
+        Manually parsing command-line (CLI) arguments (<code>process.argv</code>) is simple but can quickly become cumbersome in complex cases:
+        help text, default values, required parameters, subcommands. With <strong>commander</strong>, you can handle all this very easily!
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: tool.mjs
+import { Command } from "commander"
+
+const program = new Command()
+
+program
+  .name("tool")
+  .description("Sample CLI tool")
+  .option("-i, --input <path>", "input file", "input.csv")
+  .option("-o, --output <path>", "output file", "output.xlsx")
+  .option("--dry-run", "do not write file, only log")
+  .parse(process.argv)
+
+const opts = program.opts()
+
+console.log("input:", opts.input)
+console.log("output:", opts.output)
+console.log("dryRun:", Boolean(opts.dryRun))
+      </textarea>
+
+      <p>
+        The commander automatically generates the help message, e.g., <code>node tool.mjs --help</code>.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. axios – HTTP Requests and LLM Calls (prompt → response)</h2>
+      <p>
+        <strong>axios</strong> is a simple HTTP client (a programmable browser-like tool that can download web resources). Since many services provide web APIs,
+        axios allows us to incorporate these into our toolkit.
+      </p>
+
+      <p>Typically, you want to do something like this: 
+      send information to an external system via an API call, receive the response,
+      process it, then save to a file or forward it.
+      </p>
+
+      <p>
+        The example below calls an <strong>OpenAI-compatible</strong> chat API (many providers use such interfaces).
+        We send a prompt, and extract the text from the response.
+        (The specific URL, model name, and response structure may vary by provider, but it’s roughly this simple!)
+      </p>
+      <p>
+      To use web services, you usually need an API key (which you can generate after registration on a web interface),
+      which authorizes you to use the service. You need to send this key with every request.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: llm-ask.mjs
+import axios from "axios"
+
+// Store "secret" info in environment variables:
+//   LLM_API_KEY="..."
+//   LLM_BASE_URL="https://..."
+// Example run:
+//   LLM_API_KEY="xxx" LLM_BASE_URL="https://api.service.com" node llm-ask.mjs
+
+const API_KEY = process.env.LLM_API_KEY
+const BASE_URL = process.env.LLM_BASE_URL
+
+if (!API_KEY || !BASE_URL) {
+  console.error("Missing LLM_API_KEY or LLM_BASE_URL environment variable.")
+  process.exit(1)
+}
+
+const prompt = "Give 3 short ideas on how to create an Excel report from CSV in Node.js."
+
+const res = await axios.post(
+  `${BASE_URL}/v1/chat/completions`,
+  {
+    model: "gpt-4.1-mini", // example model name – may differ by provider
+    messages: [
+      { role: "system", content: "Answer briefly, in list form." },
+      { role: "user", content: prompt }
+    ],
+    temperature: 0.2
+  },
+  {
+    headers: {
+      "Authorization": `Bearer ${API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    timeout: 30_000
+  }
+)
+
+// Extract answer from the complex response data structure:
+const answer = res.data?.choices?.[0]?.message?.content
+console.log(answer)
+      </textarea>
+
+      <p class="info">
+        Security rule: do not include your API key directly in source code! 
+        If you publish it, anyone can use the service in your name!
+      </p>
+
+      <p>
+      Of course, at first glance, it might seem not very useful to write such a program,
+      since you could just type the prompt into a convenient web interface in the browser.
+      But think about what happens if you want to run questions stored in hundreds of files,
+      for example in Excel tables, according to a certain rule system?
+      Or automatically execute an LLM analysis when someone drops a certain type of file into a specific folder!
+      You can do all this easily with this method.
+      </p>
+    </section>
+
+    <section>
+      <h2>3. csv-parse – Reading CSV in a few lines</h2>
+      <p>
+        In engineering practice, data exchange often happens via CSV. The <strong>csv-parse</strong> library quickly and reliably converts
+        CSV text into objects. (In simple cases, writing the code wouldn’t be difficult because CSV is a very simple format,
+        but handling special cases and encodings can be tricky. Using the library is more practical).
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: parse-csv.mjs
+import { parse } from "csv-parse/sync"
+import { readFile } from "node:fs/promises"
+
+const text = await readFile("input.csv", "utf8")
+
+const rows = parse(text, {
+  columns: true,        // first row: column names
+  skip_empty_lines: true,
+  trim: true
+})
+
+console.log("Number of rows:", rows.length)
+console.log("First row as object:", rows[0])
+      </textarea>
+    </section>
+
+    <section>
+      <h2>4. xlsx – Reading/Writing Excel</h2>
+      <p>
+        Many companies still store a lot of data in Excel. The <strong>xlsx</strong> library makes it easy to read and generate spreadsheets.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: write-xlsx.mjs
+import * as XLSX from "xlsx"
+
+// Data as JavaScript objects:
+const data = [
+  { name: "A", value: 10 },
+  { name: "B", value: 42 },
+  { name: "C", value: 7 }
+]
+
+// Create a workbook and a worksheet:
+const wb = XLSX.utils.book_new()
+const ws = XLSX.utils.json_to_sheet(data)
+
+XLSX.utils.book_append_sheet(wb, ws, "Report")
+
+// Write to file:
+XLSX.writeFile(wb, "report.xlsx")
+
+console.log("Done: report.xlsx")
+      </textarea>
+
+      <p>
+        Reading is similarly simple:
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: read-xlsx.mjs
+import * as XLSX from "xlsx"
+
+const wb = XLSX.readFile("report.xlsx")
+const sheetName = wb.SheetNames[0]
+const ws = wb.Sheets[sheetName]
+
+// Worksheet -> JSON (list of objects)
+const rows = XLSX.utils.sheet_to_json(ws)
+
+console.log("Read rows:", rows)
+      </textarea>
+    </section>
+
+    <section>
+      <h2>5. chokidar – File watching: automation "on event"</h2>
+      <p>
+        A common need in automation is to trigger processing when a new file appears in a folder.
+        For example, when something is uploaded or simply copied into the folder.
+        <strong>chokidar</strong> provides a simple and stable solution for this.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: watch-folder.mjs
+import chokidar from "chokidar"
+
+const watchPath = "./inbox"
+
+console.log("Watching this folder:", watchPath)
+
+const watcher = chokidar.watch(watchPath, {
+  ignoreInitial: true
+})
+
+watcher.on("add", (filePath) => {
+  console.log("New file arrived:", filePath)
+  // Here you could start CSV processing, Excel export, etc.
+})
+
+watcher.on("error", (err) => {
+  console.error("Watcher error:", err)
+})
+      </textarea>
+
+      <p class="info">
+        chokidar can be used to monitor entire directory trees and handles platform differences well.
+      </p>
+    </section>
+
+    <section>
+      <h2>6. execa – Running external programs elegantly</h2>
+      <p>
+        Node can be used as an orchestrator. You run external commands and decide based on their output.
+        <strong>execa</strong> is a modern, promise-based, more convenient wrapper around <code>child_process</code>.
+      </p>
+
+      <p>
+        The example below runs a command that works across operating systems:
+        Here, we run Node's own executable (<code>process.execPath</code>) with the <code>-v</code> argument to get the version,
+        but you could run anything installed: AutoCAD, Excel, etc.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: run-external.mjs
+import { execa } from "execa"
+
+try {
+  const { stdout, exitCode } = await execa(process.execPath, ["-v"])
+  console.log("Exit code:", exitCode)
+  console.log("Output:", stdout)
+} catch (err) {
+  // execa throws an error if the command fails
+  console.error("Command execution error:", err.message)
+}
+      </textarea>
+
+      <p>
+        This is a very useful pattern for automating workflows where Node just "connects" steps
+        (e.g., conversion → validation → export).
+      </p>
+    </section>
+
+    <section>
+      <h2>7. Other Useful Packages</h2>
+      <p>
+        Below we list some additional packages worth knowing.
+        They are encountered in many projects, and it’s good to be aware of their existence.
+      </p>
+
+      <ul>
+        <li>
+          <strong>cheerio</strong> – HTML processing in Node (DOM-like API). Useful for extracting data from web pages or analyzing HTML documents.
+        </li>
+        <li>
+          <strong>pdfkit</strong> – Generating PDFs from code. Very useful for automated reporting and report creation.
+        </li>
+        <li>
+          <strong>dayjs</strong> – Easier date/time formatting and calculations than the built-in <code>Date</code>.
+          Typically used for logs, reports, time windows, and time series data.
+        </li>
+      </ul>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

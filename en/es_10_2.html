@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Language Basics – Lesson 10.2</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+<body>
+  <header>
+    <h1>10.2 – Complete Workflow Practice</h1>
+    <p>
+      In this exercise, we will build a mini system that automatically reacts to CSV files dropped into the <code>./inbox</code> folder.
+      It reads the CSV file placed here, optionally sends it for analysis to an LLM, and then creates a <code>.xlsx</code> report from it.
+      Finally, it moves the processed CSV to the <code>./processed</code> folder to prevent reprocessing and to indicate completion.
+    </p>
+    <p class="info">
+      The code will also be in <code>&lt;textarea&gt;</code> blocks, but you need to build the system <strong>locally under Node.js</strong>.
+      So, you will perform the steps on your own machine.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>0. Preparation (to be done once)</h2>
+
+      <h3>0.1. Project folder and dependencies</h3>
+      <p>
+        Create a project folder, initialize npm, and install the packages. Then create two folders:
+        <code>inbox</code> (where you drop CSVs) and <code>processed</code> (where we move processed files).
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// Terminal (inside the project folder):
+
+mkdir node-workflow-demo
+cd node-workflow-demo
+
+npm init -y
+npm install commander chokidar csv-parse xlsx axios execa
+
+mkdir inbox processed
+      </textarea>
+
+      <p>
+        Create a sample file to be later dropped into the <code>inbox</code> folder:
+      </p>
+
+      <p>Sample file: sample.csv  (which can be placed into ./inbox)</p>
+      <textarea data-lang="js" data-readonly>
+name,value
+A,10
+B,42
+C,7
+      </textarea>
+
+      <h3>0.2. LLM API key (optional but recommended)</h3>
+      <p>
+        In step 3, we will call an LLM via HTTP. Usually, an API key is required.
+        Do <strong>not</strong> hardcode the key in the source code; pass it as an environment variable.
+      </p>
+
+      <p>
+        If you don't have such a key (probably not), you can obtain one as follows:
+      </p>
+      <ol>
+        <li>Go to the API platform (e.g., OpenAI, Google), create (or select) a project, then generate a new <em>Secret API key</em>.</li>
+        <li>You see the key in full only once – save it securely.</li>
+        <li>Set it as an environment variable (e.g., <code>OPENAI_API_KEY</code>).</li>
+      </ol>
+
+      <textarea data-lang="js" data-readonly>
+// macOS / Linux (zsh/bash):
+export OPENAI_API_KEY="your_key_here"
+
+// Windows PowerShell:
+setx OPENAI_API_KEY "your_key_here"
+
+// In a new terminal window, verify:
+echo $OPENAI_API_KEY     # macOS/Linux
+echo %OPENAI_API_KEY%    # Windows cmd
+      </textarea>
+
+      <p class="info">
+        If you don't have a key or don't want to register: you can skip step 3. In that case, a mock (fake :)) function will return analysis instead of the real LLM.
+      </p>
+    </section>
+    <section>
+      <h2>Generating an LLM API key</h2>
+
+      <p>
+        All the providers listed below offer programmable LLM APIs.
+        The examples use an OpenAI-compatible chat endpoint, but many systems follow a similar structure.
+      </p>
+
+      <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>API key generation</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>OpenAI</td>
+            <td>
+              <a href="https://platform.openai.com/api-keys" target="_blank">
+                https://platform.openai.com/api-keys
+              </a>
+            </td>
+            <td>
+              GPT models (OpenAI API). Environment variable: <code>OPENAI_API_KEY</code>
+            </td>
+          </tr>
+
+          <tr>
+            <td>Google Gemini (AI Studio)</td>
+            <td>
+              <a href="https://aistudio.google.com/app/apikey" target="_blank">
+                https://aistudio.google.com/app/apikey
+              </a>
+            </td>
+            <td>
+              Gemini models. Usually <code>GEMINI_API_KEY</code> or <code>GOOGLE_API_KEY</code>
+            </td>
+          </tr>
+
+          <tr>
+            <td>Anthropic (Claude)</td>
+            <td>
+              <a href="https://console.anthropic.com/settings/keys" target="_blank">
+                https://console.anthropic.com/settings/keys
+              </a>
+            </td>
+            <td>
+              Claude models. Environment variable: <code>ANTHROPIC_API_KEY</code>
+            </td>
+          </tr>
+
+          <tr>
+            <td>Mistral AI</td>
+            <td>
+              <a href="https://console.mistral.ai/api-keys" target="_blank">
+                https://console.mistral.ai/api-keys
+              </a>
+            </td>
+            <td>
+              Mistral models. Often OpenAI-compatible endpoint.
+            </td>
+          </tr>
+
+          <tr>
+            <td>Together AI</td>
+            <td>
+              <a href="https://api.together.xyz/settings/api-keys" target="_blank">
+                https://api.together.xyz/settings/api-keys
+              </a>
+            </td>
+            <td>
+              Multiple open-source models, OpenAI-compatible endpoint.
+            </td>
+          </tr>
+
+          <tr>
+            <td>Cohere</td>
+            <td>
+              <a href="https://dashboard.cohere.com/api-keys" target="_blank">
+                https://dashboard.cohere.com/api-keys
+              </a>
+            </td>
+            <td>
+              Proprietary chat and generative models.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="info">
+        Note: The example code in 10.2 uses an OpenAI-compatible chat endpoint (<code>/v1/chat/completions</code>). Many providers support a similar structure; usually, only the <code>BASE_URL</code>, model name, and API key name change.
+      </p>
+    </section>
+
+    <section>
+      <h2>1. Step – commander</h2>
+      <p>
+        Let's start with a minimal CLI (command line interface). We monitor the folder but (for now) do not read files, only
+        accept parameters and print what the program will do.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// File: main.mjs
+import { Command } from "commander"
+
+const program = new Command()
+
+program
+  .name("workflow-demo")
+  .description("CSV → (LLM) → XLSX workflow demo")
+  .option("-i, --inbox <path>", "watched folder", "./inbox")
+  .option("-p, --processed <path>", "processed folder", "./processed")
+  .option("-o, --output <path>", "output report", "./report.xlsx")
+  .option("--no-llm", "Skip LLM step (mock / offline mode)")
+  .parse(process.argv)
+
+const opts = program.opts()
+
+console.log("Watched folder:", opts.inbox)
+console.log("Processed folder:", opts.processed)
+console.log("Report file:", opts.output)
+console.log("LLM mode:", opts.llm ? "ON" : "OFF (mock/offline)")
+console.log("Ready, but not monitoring or processing anything yet.")
+      </textarea>
+
+      <p>Run:</p>
+      <textarea data-lang="js" data-readonly>
+// Terminal:
+node main.mjs --help
+node main.mjs
+node main.mjs --no-llm
+      </textarea>
+      <p>
+      If it works, the next step can follow!
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Step – chokidar + CSV reading: react to new inbox files</h2>
+      <p>
+        When a new <code>.csv</code> file arrives, read it,
+        and print the filename and the CSV header (column names).
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// File: main.mjs (replace previous)
+import { Command } from "commander"
+import chokidar from "chokidar"
+import { readFile } from "node:fs/promises"
+import { parse } from "csv-parse/sync"
+import path from "node:path"
+
+const program = new Command()
+
+program
+  .name("workflow-demo")
+  .option("-i, --inbox <path>", "watched folder", "./inbox")
+  .parse(process.argv)
+
+const opts = program.opts()
+
+console.log("Monitoring this folder:", opts.inbox)
+
+const watcher = chokidar.watch(opts.inbox, { ignoreInitial: true })
+
+watcher.on("add", async (filePath) => {
+  if (!filePath.toLowerCase().endsWith(".csv")) return
+
+  try {
+    const baseName = path.basename(filePath)
+    const text = await readFile(filePath, "utf8")
+
+    const rows = parse(text, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true
+    })
+
+    const headers = rows.length > 0 ? Object.keys(rows[0]) : []
+    console.log("New CSV:", baseName)
+    console.log("Header:", headers.join(", "))
+
+  } catch (err) {
+    console.error("CSV processing error:", err.message)
+  }
+})
+
+watcher.on("error", (err) => console.error("Watcher error:", err.message))
+      </textarea>
+
+      <p>Try it out:</p>
+      <textarea data-lang="js" data-readonly>
+// 1) In terminal:
+node main.mjs
+
+// 2) Copy sample.csv into the inbox folder.
+//    The filename and header should appear in the terminal.
+      </textarea>
+    </section>
+
+    <section>
+      <h2>3. Step – LLM integration (axios)</h2>
+      <p>
+        Now we add a function that creates a short summary/analysis from CSV data using an LLM.
+        This part is optional: if you don't have a key or don't want to deal with it, run the program with <code>--no-llm</code>,
+        and it will use a mock (fake) analysis instead of calling an actual LLM.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// File: main.mjs (replace previous)
+import { Command } from "commander"
+import chokidar from "chokidar"
+import { readFile } from "node:fs/promises"
+import { parse } from "csv-parse/sync"
+import path from "node:path"
+import axios from "axios"
+
+const program = new Command()
+
+program
+  .name("workflow-demo")
+  .option("-i, --inbox <path>", "watched folder", "./inbox")
+  .option("--no-llm", "Skip LLM step (mock/offline mode)")
+  .parse(process.argv)
+
+const opts = program.opts()
+
+async function analyzeWithLLM(rows) {
+  // Offline/mock analysis: no API call
+  const headers = rows.length > 0 ? Object.keys(rows[0]) : []
+  return {
+    kind: "mock",
+    summary: `Mock analysis: ${rows.length} rows, columns: ${headers.join(", ")}`
+  }
+}
+
+async function analyzeWithOpenAI(rows) {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    return {
+      kind: "mock",
+      summary: "OPENAI_API_KEY not set, mock analysis executed."
+    }
+  }
+
+  const prompt = [
+    "Briefly analyze the table.",
+    "Provide 2-3 bullet points: what do you see, any suspicious data, and useful report fields.",
+    "",
+    "Data (JSON array):",
+    JSON.stringify(rows.slice(0, 20)) // only sample: do not send too much data!
+  ].join("\\n")
+
+  const res = await axios.post(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      model: "gpt-4.1-mini",
+      messages: [
+        { role: "system", content: "Respond in Hungarian, concisely, in bullet points." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.2
+    },
+    {
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      timeout: 30000
+    }
+  )
+
+  const text = res.data?.choices?.[0]?.message?.content || "(no response)"
+  return { kind: "llm", summary: text }
+}
+
+console.log("Monitoring this folder:", opts.inbox)
+console.log("LLM mode:", opts.llm ? "ON (if key exists)" : "OFF (mock/offline)")
+
+const watcher = chokidar.watch(opts.inbox, { ignoreInitial: true })
+
+watcher.on("add", async (filePath) => {
+  if (!filePath.toLowerCase().endsWith(".csv")) return
+
+  try {
+    const baseName = path.basename(filePath)
+    const text = await readFile(filePath, "utf8")
+    const rows = parse(text, { columns: true, skip_empty_lines: true, trim: true })
+
+    console.log("\\nNew CSV:", baseName)
+    console.log("Rows:", rows.length)
+
+    const analysis = opts.llm
+      ? await analyzeWithOpenAI(rows)
+      : await analyzeWithLLM(rows)
+
+    console.log("Analysis type:", analysis.kind)
+    console.log("Analysis:", analysis.summary)
+
+  } catch (err) {
+    console.error("Error:", err.message)
+  }
+})
+      </textarea>
+
+      <p class="info">
+        To skip LLM: <code>node main.mjs --no-llm</code>. If you have a key, set it as <code>OPENAI_API_KEY</code> and run normally.
+      </p>
+    </section>
+
+    <section>
+      <h2>4. Step – XLSX report + move processed file</h2>
+      <p>
+        Finally, generate a simple Excel report, then move the processed CSV into the <code>processed</code> folder,
+        to avoid reprocessing.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// File: main.mjs (replace previous)
+import { Command } from "commander"
+import chokidar from "chokidar"
+import { readFile, mkdir, rename } from "node:fs/promises"
+import { parse } from "csv-parse/sync"
+import path from "node:path"
+import axios from "axios"
+import * as XLSX from "xlsx"
+// import { execa } from "execa" // optional: for external program execution (see below)
+
+const program = new Command()
+
+program
+  .name("workflow-demo")
+  .option("-i, --inbox <path>", "watched folder", "./inbox")
+  .option("-p, --processed <path>", "processed folder", "./processed")
+  .option("-o, --output <path>", "output report", "./report.xlsx")
+  .option("--no-llm", "Skip LLM step (mock / offline mode)")
+  .parse(process.argv)
+
+const opts = program.opts()
+
+async function analyzeWithLLM(rows) {
+  const headers = rows.length > 0 ? Object.keys(rows[0]) : []
+  return {
+    kind: "mock",
+    summary: `Mock analysis: ${rows.length} rows, columns: ${headers.join(", ")}`
+  }
+}
+
+async function analyzeWithOpenAI(rows) {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    return { kind: "mock", summary: "OPENAI_API_KEY not set, mock analysis executed." }
+  }
+
+  const prompt = [
+    "Briefly analyze the table.",
+    "Provide 2-3 bullet points in Hungarian.",
+    "",
+    "Sample rows (JSON):",
+    JSON.stringify(rows.slice(0, 20))
+  ].join("\\n")
+
+  const res = await axios.post(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      model: "gpt-4.1-mini",
+      messages: [
+        { role: "system", content: "Respond in Hungarian, concisely, in bullet points." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.2
+    },
+    {
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      timeout: 30000
+    }
+  )
+
+  const text = res.data?.choices?.[0]?.message?.content || "(no response)"
+  return { kind: "llm", summary: text }
+}
+
+function writeReport(reportPath, item) {
+  const wb = XLSX.utils.book_new()
+
+  const summaryRows = [
+    {
+      file: item.file,
+      rowCount: item.rowCount,
+      analysisKind: item.analysisKind,
+      analysis: item.analysis
+    }
+  ]
+  const wsSummary = XLSX.utils.json_to_sheet(summaryRows)
+  XLSX.utils.book_append_sheet(wb, wsSummary, "Summary")
+
+  const wsData = XLSX.utils.json_to_sheet(item.rows)
+  XLSX.utils.book_append_sheet(wb, wsData, "Data")
+
+  XLSX.writeFile(wb, reportPath)
+}
+
+console.log("Monitoring:", opts.inbox)
+console.log("Processed:", opts.processed)
+console.log("Output:", opts.output)
+console.log("LLM mode:", opts.llm ? "ON (if key exists)" : "OFF (mock/offline)")
+
+await mkdir(opts.processed, { recursive: true })
+
+const watcher = chokidar.watch(opts.inbox, { ignoreInitial: true })
+
+watcher.on("add", async (filePath) => {
+  if (!filePath.toLowerCase().endsWith(".csv")) return
+
+  try {
+    const baseName = path.basename(filePath)
+    const text = await readFile(filePath, "utf8")
+    const rows = parse(text, { columns: true, skip_empty_lines: true, trim: true })
+
+    console.log("\\nNew CSV:", baseName, " (rows:", rows.length, ")")
+
+    const analysis = opts.llm
+      ? await analyzeWithOpenAI(rows)
+      : await analyzeWithLLM(rows)
+
+    writeReport(opts.output, {
+      file: baseName,
+      rowCount: rows.length,
+      analysisKind: analysis.kind,
+      analysis: analysis.summary,
+      rows
+    })
+    console.log("Report generated:", opts.output)
+
+    // Optional: open with Excel/LibreOffice (just a sample!)
+    // Not run automatically, as we don't know what's installed.
+    // If you have such a program, remove the comments above.
+    //
+    // Windows:
+    // await execa("cmd", ["/c", "start", "", opts.output])
+    //
+    // macOS:
+    // await execa("open", [opts.output])
+    //
+    // Linux:
+    // await execa("xdg-open", [opts.output])
+
+    const targetPath = path.join(opts.processed, baseName)
+    await rename(filePath, targetPath)
+    console.log("Moved to:", targetPath)
+
+  } catch (err) {
+    console.error("Error:", err.message)
+  }
+})
+      </textarea>
+
+      <p>Test:</p>
+      <textarea data-lang="js" data-readonly>
+// Terminal:
+node main.mjs --no-llm
+
+// Then drop a CSV into the inbox.
+// At the end, the file should move to the processed folder,
+// and report.xlsx should be created (or updated).
+      </textarea>
+    </section>
+
+    <section>
+      <h2>Extra: How to finish this quickly?</h2>
+      <p>
+        This script can be generated very quickly with an LLM. Try it! The task is to read the generated code,
+        and compare it step-by-step with what we've built.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// Example prompt for LLM (copy as a whole):
+
+Write a Node.js (ESM) mini project that does the following:
+
+- Uses the commander, chokidar, csv-parse, xlsx, axios packages.
+- Has a main.mjs entry point.
+- CLI options:
+  --inbox (default: ./inbox)
+  --processed (default: ./processed)
+  --output (default: ./report.xlsx)
+  --no-llm (if provided, do not call LLM)
+- The program watches the inbox folder (ignoreInitial), and when a new .csv file arrives:
+  1) read and parse the file (columns: true)
+  2) if --no-llm is not set and OPENAI_API_KEY env var exists, call an OpenAI-compatible chat endpoint
+     (https://api.openai.com/v1/chat/completions) and request a short Hungarian bullet point analysis based on sample rows
+     (send max 20 rows)
+     if no key / offline mode, return a mock analysis
+  3) generate a report.xlsx with two sheets: Summary (file, rowCount, analysisKind, analysis),
+     and Data (the full table)
+  4) move the processed CSV into the processed folder to avoid reprocessing
+
+Add precise installation and run steps (npm init, npm install, create folders).
+Keep the code minimal but functional. Do not hardcode the key, only read from env.
+      </textarea>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

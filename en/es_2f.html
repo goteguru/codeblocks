@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Language Basics – Lesson 2 – Practice Exercises</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+
+<body>
+  <header>
+    <h1>Lesson 2 – Practice Exercises</h1>
+    <p>
+      Try to solve the exercises below! If you get stuck, you can ask for help from an LLM (large language model or "AI"),
+      but if possible, try to solve it on your own.
+    </p>
+    <p>
+      The code blocks are executable if you complete them correctly. Missing parts are marked with <code>...TODO...</code>.
+      Fix and run the block, check the console output, then correct or complete until the output makes sense.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Exercises</h2>
+
+      <article>
+        <h3>1) Calculator</h3>
+        <p>
+          Calculate how much the numbers stored in the <code>ns</code> array:
+          <ul>
+            <li>Product,</li>
+            <li>Sum of remainders when divided by 7!</li>
+          </ul>
+        </p>
+
+        <textarea data-lang="js">
+
+const ns = [11, 45, 32, 22, 7]
+
+// product of numbers
+product = 1
+for (i = 0; i < ns.length; i++) {
+  console.log(ns[i], " * current_product")
+  // ...TODO...
+}
+
+
+// sum of remainders when dividing by 7
+remainder_sum = 0
+for (i = 0; i < ns.length; i++) {
+  console.log("current sum +", ns[i], "remainder when divided by 7")
+  // ...TODO...
+}
+
+
+// tests:
+console.log('product:', product !== 2439360 ? "INCORRECT" : "OK") 
+console.log('remainder:', remainder_sum !== 12 ? "INCORRECT" : "OK") 
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+          The modulus operator: %. If you want to increase something, you can use <code>sum += increment</code>. The same works with multiplication!
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>2) Fix the type error!</h3>
+        <p>
+          Our code reads a value from the user, but for some reason it doesn't work correctly! Modify it so that the final result is correct.
+        </p>
+
+        <form>Value: <input type="text" id="numinput" value="40"/></form>
+        <textarea data-lang="js">
+// as you see, the user has entered something in the input field above.
+// query what was entered (currently 40)
+const input = document.getElementById("numinput").value
+
+// Calculate the value increased by the safety factor:
+// ...TODO... convert it so that result should be 42
+const result = input + 2
+
+console.log("With safety factor:", result)
+console.log("For 40, the result should be 42")
+// console.log("Hint: typeof result:", typeof result)
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+          User inputs often arrive as text!
+            Use explicit conversion: <code>Number(...)</code>.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>3) Strict comparison: login verification</h3>
+        <p>
+          Complete the condition so that it only prints "Login OK" if the name matches exactly,
+          and the PIN matches <strong>type-sensitively</strong>. Use <code>===</code> and logical operators.
+        </p>
+
+        <textarea data-lang="js">
+function login(user, pin) {
+  const expectedUser = "admin"
+  const expectedPin = 1234
+
+  // ...TODO... should be true only if both match AND are type-correct
+  const authorized = ...TODO...
+
+  if (authorized) {
+    console.log("LOGIN GRANTED!")
+  } else {
+    console.log("LOGIN DENIED!")
+  }
+}
+
+// Tests (do not modify these)
+login("admin", 1234)   // Only this should be allowed! 
+login("admin", "1234") // NOT OK (string!)
+login("Admin", 1234)   // NOT OK (wrong name)
+login("admin", 123)    // NOT OK (wrong code)
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            It's worth explicitly testing both: <code>user === expectedUser && pin === expectedPin</code>
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>4) Truthy / falsy and default value</h3>
+        <p>
+          Complete the code so that if <code>value</code> is falsy (e.g., <code>0</code>, <code>""</code>, <code>null</code>),
+          the result is <code>42</code>. If truthy, use the original value.
+        </p>
+
+        <textarea data-lang="js">
+// this should be a function that
+// returns 42 if null, null, or empty string is given,
+// otherwise returns the value received
+function withDefault42(value) {
+  // ...TODO... use the || operator for default
+  return calculated
+}
+
+// check
+
+function check(data, expected) {
+  const actual = withDefault42(data)
+  const ok = actual === expected
+  console.log((ok ? "OK " : "ERROR "), "returned:", actual, "(expected:", expected + ")")
+}
+
+check( null, 42)
+check( "", 42)
+check( 0, 42)
+check( 100, 100)
+check( "hello", "hello")
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            Think of this: <code>value || 42</code>. Notice: <code>0</code> is falsy, so the OR operator returns 42.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>5) For loop: summation and counting</h3>
+        <p>
+          Goal: complete the loop to calculate the sum and also count how many even numbers there are.
+          Focus on using <code>for...of</code> and operators.
+        </p>
+
+        <textarea data-lang="js">
+const nums = [9, 23, 22, 11, 7, 8, 10]
+
+let sum = 0
+let evenCount = 0
+
+for (const n of nums) {
+  // ...TODO... add n to the sum
+  ...TODO...
+
+  // ...TODO... if n is even, increment evenCount by 1
+  ...TODO...
+}
+
+// --------- verification ------------
+function check(label, actual, expected) {
+  const ok = actual === expected
+  console.log((ok ? "OK " : "ERROR "), label, "=>", actual, "(expected:", expected + ")")
+}
+
+check("sum", sum, 90)
+check("evenCount", evenCount, 3)
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            Check for even: <code>n % 2 === 0</code>. Increment: <code>evenCount++</code> or <code>evenCount += 1</code>.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>6) While loop: search until found</h3>
+        <p>
+          This program searches for the first <code>"STOP"</code> element in a list.
+          It should do this. Complete the <code>while</code> condition
+          and the increment so that there is no infinite loop and it prints the correct index at the end!
+        </p>
+
+        <textarea data-lang="js">
+const stream = ["OK", "OK", "OK", "STOP", "OK"]
+let i = 0
+
+// repeat while i is less than the length of stream AND current element is not "STOP"
+while ( ...TODO...) {
+  console.log("checking:", stream[i])
+  // ...TODO... increase i, otherwise infinite loop!
+}
+
+console.log("Stopped at index:", i, "value:", stream[i])
+
+console.log("index", i === 3 ? "yes, this is the correct": "surely this is the right index?")
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            The condition could be: <code>i &lt; stream.length &amp;&amp; stream[i] !== "STOP"</code>.
+            The increment: <code>i++</code>.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>7) While loop: search until found</h3>
+        <p>
+          This program searches for the first <code>"STOP"</code> element in a list.
+          It should do this. Complete the <code>while</code> condition
+          and the increment so that there is no infinite loop and it prints the correct index at the end!
+        </p>
+
+        <textarea data-lang="js">
+const stream = ["OK", "OK", "OK", "STOP", "OK"]
+let i = 0
+
+// repeat while i is less than the length of stream AND current element is not "STOP"
+while ( ...TODO...) {
+  console.log("checking:", stream[i])
+  // ...TODO... increase i, otherwise infinite loop!
+}
+
+console.log("Stopped at index:", i, "value:", stream[i])
+
+console.log("index", i === 3 ? "yes, this is the correct": "surely this is the right index?")
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            The condition could be: <code>i &lt; stream.length &amp;&amp; stream[i] !== "STOP"</code>.
+            The increment: <code>i++</code>.
+          </p>
+        </details>
+      </article>
+    </section>
+
+    <section>
+      <h2>Extra (if you have time)</h2>
+      <p>
+        If you finish everything, try changing the inputs in the exercises above (different numbers, different arrays),
+        and see if the code still works correctly in general.
+      </p>
+    </section>
+  </main>
+
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

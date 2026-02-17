@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Language Basics - Lesson 6 - Practice Tasks</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+
+<body>
+  <header>
+    <h1>Lesson 6 - Asynchronous JavaScript and Events - Practice Tasks</h1>
+    <p>
+      5 tasks. Most of the code blocks are pre-filled, you only need to complete / rewrite / define the <strong>...TODO...</strong> parts.
+      For logging in asynchronous callbacks, use the <code>logger</code> function (a "saved" version of <code>console.log</code>).
+    </p>
+  </header>
+
+  <main>
+    <section aria-labelledby="playground-title">
+      <h2 id="playground-title">Common "Playground" Elements</h2>
+
+      <article>
+        <h3>Visual Feedbacks</h3>
+        <p>
+        In the HTML source of this task series, we have defined some helper functions that can be used for solutions.
+          The tasks will refer to these elements: status text, a "box" with color change, a list, and an input field.
+        </p>
+        <ul>
+          <li><code>testFetch()</code>: async function that returns three code words (network simulation)</li>
+          <li><code>sleep(t)</code>: async function that waits for <code>t</code> milliseconds and then continues.</li>
+        </ul>
+        <p class="info">Where you see that we save the console.log function and use it for logging (<code>const logger = console.log</code>), it is because the normal <code>console.log</code> actually writes to the console, but in the code block, the console.log in effect writes to the field below the code block. If you don't save it to a variable (just use console.log directly), the original runs and you will only see the message in the console (F12).</p>
+
+        <p>Example:</p>
+        <textarea data-lang="js">
+// Save the logging function written in this code block
+const logger = console.log
+
+async function test() {
+  // Request something from the "network" and wait for the result:
+  const result = await testFetch()
+  logger("Test1:", result)
+
+  await sleep(500) // wait a bit
+  // Of course, you can do it in one line:
+  logger("Test2:", await testFetch())
+}
+
+// Start:
+test()
+        </textarea>
+      </article>
+    </section>
+
+    <section aria-labelledby="task1-title">
+      <h2 id="task1-title">1. Countdown with Button and UI Update</h2>
+      <p>
+        When clicked, start a countdown 3→2→1 (every 500ms), during which the button is disabled,
+        at the end, display "Start!" as the status and re-enable the button.
+      </p>
+      <p>The button has id <code>btnStart</code>. (This part of the code is already ready). 
+      Also, since this is async code, when using async functions
+      (e.g., <code>sleep()</code>), you must wait for their results (<code>await</code>),
+      otherwise execution will continue immediately!</p> 
+      <div>
+        <button type="button" id="btnStart" style="font-size: 1.5rem">Start</button>
+      </div>
+
+      <textarea data-lang="js">
+const btnStart = document.querySelector("#btnStart")
+const logger = console.log
+btnStart.disabled = false // in case it was accidentally disabled
+
+btnStart.onclick = async () => {
+  // you can disable the button like this: btnStart.disabled = true
+  logger("Countdown starts...")
+  await sleep(500)
+
+  // ...TODO... log in order: 3, 2, 1 (every 500ms)
+
+  logger("Raaaaaajt!...")
+  // ...TODO... at the end, don't forget to re-enable the button
+}
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Use the <code>await sleep(700)</code> pattern. The simplest way:
+          <code>logger("3")</code> → <code>await sleep(700)</code> → <code>logger("2")</code> → ...
+          Finally, set <code>btnStart.disabled = false</code> to make the button clickable again.
+        </p>
+      </details>
+    </section>
+
+    <section aria-labelledby="task2-title">
+      <h2 id="task2-title">2. Promise.all: Multiple Asynchronous Operations in Parallel</h2>
+      <p>
+        The code simulates four "network requests". Modify it so that they start <strong>in parallel</strong> and only update the UI (log) when all four are completed. Log the final result with <code>logger</code>.
+      </p>
+      <p>
+      Currently, the code works as intended, but it's quite slow.
+      Since the four requests take a total of 2000ms, we need to wait two full seconds
+      for the responses (since each is awaited separately). 
+      </p>
+      <p>
+      The network requests (including this simulated one) can run in parallel,
+      so we only need to wait about 600ms for the slowest to arrive! The solution is simple: 
+      do not await each separately with <code>await</code>, just start them,
+      store the Promises (so they run in parallel), and wait for all of them together using <code>Promise.all()</code>.
+      </p>
+      <p>The <code>Promise.all(promises)</code> itself returns a Promise, so you need to await it.
+      The <code>promises</code> parameter is just a list of Promise objects.
+      <p class="info">Sure, you could reduce the simulated times, but that would be cheating. :)
+      For real fetch requests, you can't influence how long it takes to download data...</p>
+      <div>
+        <button type="button" id="btnLoad" style="font-size: 1.5rem">Load</button>
+      </div>
+      <textarea data-lang="js">
+const logger = console.log
+const btnLoad = document.querySelector("#btnLoad")
+
+btnLoad.onclick = async function () {
+  logger("Loading...")
+  const a = await testFetch(400) // response arrives in ~400ms
+  const b = await testFetch(550) // response arrives in ~550ms
+  const c = await testFetch(450)
+  const d = await testFetch(600)
+
+  // ...TODO... wait for all four at once (Promise.all)
+
+  logger("Done:", results)
+}
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          The <code>testFetch</code> Promise returns a value, and <code>await</code> extracts it.
+          Simply don't extract the result (remove the await) when starting the fetch, so it remains a Promise.
+          Then, wait for all with:
+          <code>const results = await Promise.all([a, b, etc])</code>.
+        </p>
+      </details>
+    </section>
+
+    <section aria-labelledby="task3-title">
+      <h2 id="task3-title">3. Async Error Handling and finally</h2>
+      <p>
+      Look at the beginning of the code. As you see, <code>riskyOperation</code> is a function that
+      waits a bit, then 70% of the time returns "Success", but 30% of the time throws an error.
+      </p>
+      <p>
+      The click handler for the RiskyRun button is written to call this risky
+      function.
+      </p>
+      <p>
+      When you run the code (so that the button does something at all),
+      you will notice that repeatedly clicking the button usually logs "success",
+      but after some time (or the first time), the button stops responding and gets stuck!
+      (If it gets stuck, just restart the code to reset it).
+      </p>
+      <p>Guess why the button gets stuck and fix the code
+      so it doesn't get stuck (always run <code>btnRisky.disabled=false</code>) and give feedback on errors (e.g., "not successful").</p>
+      <p>Hint: If you open the console (F12), you can see what happens when it gets stuck!</p>
+
+      <button type="button" id="btnRisky" style="font-size: 1.5rem">RiskyRun</button>
+      <textarea data-lang="js">
+const logger = console.log
+const riskyOperation = async () => {
+  sleep(700)
+  if (Math.random() > 0.3) return "Success"
+  else throw new Error("An error occurred")
+}
+
+const btnRisky = document.querySelector("#btnRisky")
+btnRisky.disabled = false
+btnRisky.onclick = async function () {
+  btnRisky.disabled = true
+  //...TODO...
+  const result = await riskyOperation() 
+  logger(result)
+  btnRisky.disabled = false
+}
+console.log("Button enabled!")
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+        Why does the button get stuck? Well, while the code runs, we disable the button,
+        and re-enable it at the end. That's fine. But, <code>riskyOperation</code>
+        can throw an error, and if it does, an error occurs on that line
+        and subsequent lines do not run (including re-enabling the button).
+        </p>
+        <p>
+        Solution: Use a try/catch block to catch the error, and in the finally
+        block, always re-enable the button!
+        </p>
+      </details>
+    </section>
+
+    <section aria-labelledby="task5-title">
+      <h2 id="finish-title">Tips for Debugging</h2>
+      <ul>
+        <li>Errors in async calls may not be visible in the code block. Open the console and you will see them (F12 or ctrl+shift+i)</li>
+      </ul>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+<script language="javascript">
+
+async function sleep (ms) {
+	return new Promise(resolve => {
+  		setTimeout(resolve, ms)
+	})
+}
+
+const testFetch = async (t) => {
+  if (!t) t = Math.random() * 500 + 500
+  await sleep(t)
+	  
+  const words = [ "Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf",
+  "Hotel", "India", "Juliet", "Kilo", "Lima", "Mike", "November", "Oscar",
+  "Papa", "Quebec", "Romeo", "Sierra", "Tango", "Uniform", "Victor", "Whisky",
+  "X-ray", "Yankee", "Zulu" ]
+  const randWord = () => words[Math.floor(Math.random() * words.length)]
+  return randWord() + " " + randWord() + " " + randWord()
+}
+
+</script>
+</html>

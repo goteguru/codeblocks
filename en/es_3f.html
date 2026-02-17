@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Language Basics – Lesson 3 – Practice Tasks</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+
+<body>
+  <header>
+    <h1>Lesson 3 – Practice Tasks (functions, this, events, callbacks, generators)</h1>
+    <p>
+      Most of the code in the tasks is already prepared. You only need to complete / modify / define something at the <code>...TODO...</code> markers.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Task – Return value and control</h2>
+      <p>
+        Complete the <code>calcTotal</code> function so that it returns the total amount:
+        add VAT to the base price, then subtract the discount (percentage).
+      </p>
+
+      <textarea data-lang="js">
+// write a calcTotal function with three parameters:
+// net price (e.g., 10000)
+// VAT (e.g., 0.27)
+// discount rate (e.g., 0.10)
+
+// ...TODO... 
+// const gross = netPrice * (1 + vatRate) * (1 - discountRate)
+
+
+// and so it can be used like this (for 27% VAT and 10% discount):
+console.log(calcTotal(10000, 0.27, 0.10)) // expected: 11430
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          You can define the function as a arrow function: <code>const calcTotal = (netPrice, vatRate, discountRate) =&gt; ...</code>
+          or as a function object: <code>const calcTotal = function(netPrice, vatRate, discountRate) { ... }</code>
+          or simply as a function declaration: <code>
+              function calcTotal(netPrice, vatRate, discountRate) {
+                 ... 
+              }
+          </code>
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>2. Task – Convert to arrow function</h2>
+      <p>
+        Convert the <code>formatName</code> function to an arrow function so that it still works.
+        If possible, use implicit return (i.e., without the return keyword).
+      </p>
+
+      <textarea data-lang="js">
+const formatName = function (firstName, lastName) {
+  return lastName.toUpperCase() + ", " + firstName
+}
+
+// ...TODO... convert the above function expression to an arrow function
+
+console.log(formatName("Anna", "Kiss")) // "KISS, Anna"
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          The goal is something like: <code>const formatName = (a, b) =&gt; ...</code>.
+          If you use curly braces, you need to include <code>return</code>. If it's a single expression, you can omit it.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>3. Task – Write a callback</h2>
+      <p>
+        Define a callback function that takes a number and returns its square.
+        Use the existing <code>transform</code> function so that you get a list of squares.
+      </p>
+
+      <textarea data-lang="js">
+// this function applies a given callback to each element of a list!
+
+function transform(numbers, callback) {
+  const out = []
+  for (const n of numbers) {
+    out.push(callback(n))
+  }
+  return out
+}
+
+// these are the base data (for example)
+const data = [2, 3, 4]
+
+// We could use the transform function to add exclamation marks
+// to the end of each number, just define an "exclaimer" function:
+function addExclamation(x) {
+	return x + '!'
+}
+console.log(transform(data, addExclamation))
+
+// ...TODO... define the square callback
+// but do it elegantly!
+// if possible, use an arrow function!
+
+const squares = transform(data, ...TODO...)
+console.log(squares) // [4, 9, 16]
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          The callback is a function that takes one parameter (n) and returns something.
+          For example: <code>n => n * n</code>.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>4. Task – this and methods</h2>
+      <p>
+        Fix the code so that <code>schedule</code> actually logs the user's name.
+        Currently, the method is "detached" from the object, so <code>this</code> breaks.
+        Solve it so that <code>this</code> remains correct.
+      </p>
+
+      <p>This nice button belongs to the code: <button id="f4">Run</button></p>
+      <textarea data-lang="js">
+// keep this (it's needed to always write here)
+const logger = console.log
+
+// this is our object
+const user = {
+  name: "Béla",
+  greet: function () {
+    logger("Hi, " + this.name + "!")
+  }
+}
+
+// we detached the function from the object: the connection is lost!
+// inside the function, this is no longer the object.
+const f = user.greet
+// ...TODO... modify so that it correctly logs "Hi, Béla!"
+
+// assign the function to the button click event.
+document.getElementById("f4").onclick = f
+undefined
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Look for a solution that "binds" <code>this</code> to the <code>user</code> object.
+          In JavaScript, typical tools are <code>bind</code>, or a wrapper function:
+          <code>() =&gt; user.greet()</code>.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>5. Task – Event handling</h2>
+      <p>
+        Complete the code so that clicking increases the counter and updates the display.
+        You don't need to write the HTML, only the JavaScript. (Assumption: there is a <code></code> button and a <code>#value</code> element.)
+      </p>
+      <p>This is the button for the task: <button id="incBtn">Increase</button> and this is the value: <strong id="value">0</strong></p>
+      <textarea data-lang="js">
+// get the button and the display element from HTML:
+const btn = document.querySelector("#incBtn")
+const value = document.querySelector("#value")
+
+// this will be our counter:
+let count = 0
+
+// this function updates the display with the current count
+function render() {
+  value.textContent = String(count)
+}
+
+// write the event handler that:
+// 1. increases the counter by 1
+// 2. calls the render() function to update the display
+event_handler = () => {
+	// TODO...
+}
+
+// assign the event handler to the button click
+btn.addEventListener("click", event_handler)
+render()
+
+// if you wrote it correctly (and didn't forget to run this block!)
+// clicking the button should now count!
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Use: <code>btn.addEventListener("click", () =&gt; { ... })</code>.
+          To increase the counter: <code>count = count + 1</code> (or <code>count += 1</code>).
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>6. Task – Generator and yield</h2>
+      <p>
+        Complete the generator function so that it yields all integers from a to b (inclusive).
+      </p>
+
+      <textarea data-lang="js">
+function* range(a,b) {
+  // ...TODO... yield all integer values from a to b (inclusive)
+}
+
+// check
+const it = range(10,15)
+
+console.log(it.next().value) // 10
+console.log(it.next().value) // 11
+
+// or generate many at once
+c = []
+for (const x of range(100,102)) c.push(x)
+console.log(c) // [100, 101, 102]
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Use a loop: <code>for (let i = 1; i &lt;= n; i += 1) { yield i }</code>.
+          A generator "pauses" at <code>yield</code> and resumes at the next <code>next()</code>.
+        </p>
+      </details>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Language Basics – Lesson 4 – Practice Tasks</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+
+<body>
+  <header>
+    <h1>Lesson 4 – Object Types - Practice Tasks</h1>
+    <p>
+      Let's look at some examples of using arrays (<code>Array</code>), objects (<code>Object</code>),
+      dates (<code>Date</code>), sets (<code>Set</code>), and key-value storage (<code>Map</code>)! (As before, <strong>...TODO...</strong> indicates the place where you need to modify the code.)
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Tasks</h2>
+
+      <article>
+        <h3>1. Removing Negative Numbers</h3>
+        <p>
+        We want to remove negative numbers from an array. This can be very simply done, for example,
+        using a filter function:
+        </p>
+<textarea data-lang="js">
+const data = [3, -1, 5, -7, -2, 9, 0, -4]
+const filtered = data.filter(x => x >= 0)
+console.log(filtered) // expected: [3, 5, 9, 0]
+</textarea>
+        <p>
+        However, the above code makes a copy and does not modify the original array directly,
+        but we (assuming) have huge arrays and do not want copies of them.
+        We decided to go through the array elements with a good old loop and delete the negatives.
+        </p>
+        <p>
+          The task: complete the <code>removeNegatives</code> function so that it <strong>in-place</strong>
+          removes negative numbers from the array using <code>splice</code>.
+        </p>
+        <p>Helpful link: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice">splice documentation</a>.</p>
+
+        <textarea data-lang="js">
+function removeNegatives(arr) {
+  let i = 0
+
+  while (i &lt; arr.length) {
+	// ...TODO... 
+ 	// remove the current element if it is negative
+	// increase i if not (move to the next element)
+  }
+  return arr
+}
+
+const data = [3, -1, 5, -7, -2, 9, 0, -4]
+console.log(removeNegatives(data)) // expected: [3, 5, 9, 0]
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            <code>arr.splice(i, 1)</code> deletes the i-th element. When deleting, <strong>do not</strong> increase <code>i</code>,
+            because the next element shifts into the current position!
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>2. Copying an Array to Avoid Referencing the Same Object</h3>
+        <p>
+          Modify the code so that <code>backup</code> is a <strong>independent</strong> copy,
+          and modifications to <code>primary</code> do not change the content of <code>backup</code>!
+        </p>
+        <p>
+        If you run the current code, you'll see that this is not the case now!
+        </p>
+
+        <textarea data-lang="js">
+const primary = ["apple", "pear", "peach"]
+
+// ...TODO... modify this line so that backup does not point to the same array
+const backup = primary
+
+// modify one of them
+primary.push("plum")
+
+// obviously, it has changed:
+console.log("primary:", primary) // ["apple","pear","peach","plum"]
+// but the backup should remain in its original state:
+console.log("backup:", backup)   // expected: ["apple","pear","peach"]
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            You can use the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice"><code>slice()</code> method</a> without parameters, or as learned, the spread operator: <code>[...primary]</code>.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>3. Setting a Property Dynamically</h3>
+        <p>
+          We decided to create a function called <code>setField</code> that can set any property of an object to a value,
+          but <strong>only if the property does not already exist</strong> on the object!
+        </p>
+        <p>
+        Since we have some unusual data (for example, hyphenated like "favorite-color"), we want to handle such cases as well.
+        </p>
+
+        <textarea data-lang="js">
+
+function setField(obj, key, value) {
+  // ...TODO... set the appropriate property of obj
+  // but only if it does not already exist!
+  return obj
+}
+
+const user = { name: "Kata", age: 22 }
+
+setField(user, "age", 33) // should do nothing (because age exists)
+setField(user, "favorite-color", "blue") // should add the favorite color
+setField(user, "favorite-color", "red") // should do nothing again
+
+console.log(user.age)                // 22
+console.log(user["favorite-color"])  // "blue"
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+	  Use the form <code>obj[key] = value</code>. The dot notation (<code>obj.key</code>) always accesses the property named "key". To check if the property exists, you can do: <code>"propertyname" in obj</code>.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>4. Date Difference in Days</h3>
+        <p>
+          Complete the <code>daysBetween</code> function so that it returns the number of days (integer)
+          between two dates, using the difference in milliseconds.
+        </p>
+
+        <textarea data-lang="js">
+function daysBetween(a, b) {
+  const msA = a.getTime() // time in ms
+  const msB = b.getTime()
+
+  // ...TODO... calculate the absolute difference in days, then floor the result
+}
+
+const d1 = new Date("2026-01-01T00:00:00Z")
+const d2 = new Date("2026-01-29T12:00:00Z")
+
+console.log(daysBetween(d1, d2)) // expected: 28
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            One day: <code>24 * 60 * 60 * 1000</code> ms. You can use these functions: <code>Math.abs(msB - msA)</code> and <code>Math.floor(...)</code>.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>5. Collecting Unique Elements with Set</h3>
+        <p>
+          Define the <code>uniqueWords</code> function: it takes a text and returns an array of unique words
+          in lowercase, without punctuation (only letters and numbers remain). The more difficult part is already filled in; you need to implement the Set part.
+        </p>
+
+        <textarea data-lang="js">
+function normalize(text) {
+  return text
+    .toLowerCase()	// convert to lowercase
+    .replace(/[^\p{L}\p{N}\s]+/gu, " ")
+    .split(/\s+/) // split at whitespace into array
+    .filter(Boolean) // keep only truthy values
+}
+
+function uniqueWords(text) {
+  const words = normalize(text)
+
+  // ...TODO... create a Set from words, then return as array
+  return words
+}
+
+// noisy text:
+const text = "Apple, pear! apple... PEAR? peach; peach."
+// filtered, unique words:
+console.log(uniqueWords(text)) // expected (order may vary): ["apple","pear","peach"]
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            Use <code>new Set(words)</code> and convert back to array with <code>[...set]</code>.
+          </p>
+        </details>
+      </article>
+
+      <article>
+        <h3>6. Counting Occurrences with Map</h3>
+        <p>
+          Modify or complete the <code>countBy</code> function to use a Map for counting occurrences.
+          The goal: return a Map where the key is the element, and the value is the number of times it appears.
+        </p>
+
+        <textarea data-lang="js">
+function countBy(items) {
+  const counts = new Map()
+
+  for (const item of items) {
+    // ...TODO... if the key exists, increment; if not, start at 1
+  }
+
+  return counts
+}
+
+const events = ["click", "move", "click", "scroll", "click", "move"]
+const counts = countBy(events)
+
+console.log(counts.get("click"))   // 3
+console.log(counts.get("move"))    // 2
+console.log(counts.get("scroll"))  // 1
+        </textarea>
+
+        <details>
+          <summary>Hint</summary>
+          <p>
+            Use <code>counts.has(item)</code>, <code>counts.get(item)</code>, <code>counts.set(item, value)</code> methods.
+            e.g.: <code>counts.set(item, (counts.get(item) ?? 0) + 1)</code>.
+          </p>
+        </details>
+      </article>
+    </section>
+
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="codeblocks.js"></script>
+</body>
+</html>

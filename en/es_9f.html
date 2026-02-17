@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Language Basics – Lesson 9.2</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+<body>
+  <header>
+    <h1>9.2 – Mini project (core modules): Library statistics generator</h1>
+    <p>
+      In this mini project, we will build a command-line Node.js program step by step.
+      Let's assume we want to generate statistics about files in a folder.
+      Design a program that traverses a directory (e.g., <code>./demo</code>),
+      and meanwhile collects statistics about the files (count, total size, extensions),
+      then at the end saves the result into a <code>report.txt</code> file.
+    </p>
+    <p class="info">
+      The code will still be in the usual <code>&lt;textarea&gt;</code> format,
+      but you need to run these on your own machine in Node.js (or online environment).
+      Feel free to copy and extend the code snippets where necessary (or where you want).
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>0. Preparation</h2>
+      <p>
+        Create a new folder for the project, and inside it, add some test files/folders to traverse.
+        (Or the easiest way is to copy existing ones, or use an existing folder like the Documents directory).
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// In terminal:
+
+mkdir dir-stats-demo
+cd dir-stats-demo
+
+mkdir demo
+mkdir demo/sub
+echo "hello" > demo/a.txt
+echo "world" > demo/b.txt
+echo "console.log('x')" > demo/c.js
+echo "apple,pear" > demo/sub/data.csv
+      </textarea>
+
+      <p>
+      The echo commands create files; if you have no other idea, you can use these, or copy some files and folders here.
+      </p>
+      <p>
+        Our program will be in the root of the project, for example named <code>main.mjs</code>, and it will analyze the <code>demo</code> folder.
+        (Or whatever you specify).
+      </p>
+    </section>
+
+    <section>
+      <h2>1. Step - CLI: Reading target directory</h2>
+      <p>
+        First, focus on having the program read a target directory as an argument. If none is provided,
+        default to <code>./demo</code>.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: main.mjs
+import path from "node:path"
+
+const args = process.argv.slice(2)
+const targetDir = // todo: figure out what to write here...
+// remember: slice already removed 'node' and script name
+
+console.log("Target directory:", targetDir)
+console.log("Absolute path:", path.resolve(targetDir))
+
+console.log("Next step: list files in this directory.")
+      </textarea>
+
+      <p>Execution:</p>
+      <textarea data-lang="js" data-readonly>
+// Terminal:
+node main.mjs
+node main.mjs ./demo
+      </textarea>
+      <p>If done correctly, it should print the name of the directory to analyze.
+    </section>
+
+    <section>
+      <h2>2. Step - Listing directory contents (single level)</h2>
+      <p>
+        Now list the immediate contents of the target directory. We won't go into subfolders yet, just show
+        how <code>fs.promises.readdir</code> works.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// file: main.mjs (replace previous)
+import path from "node:path"
+import { readdir } from "node:fs/promises"
+
+const args = process.argv.slice(2)
+// if you did it differently and it works, that's fine too...
+const targetDir = args[0] ?? "./demo"
+const abs = path.resolve(targetDir)
+
+console.log("Target directory:", abs)
+
+const entries = await readdir(abs, { withFileTypes: true })
+
+for (const e of entries) {
+  const kind = e.isDirectory() ? "DIR " : "FILE"
+  // here, print the type (kind) and the filename (e.name)
+  // TODO: print output
+}
+
+      </textarea>
+
+      <p>Execution:</p>
+      <textarea data-lang="js" data-readonly>
+node main.mjs
+      </textarea>
+    </section>
+
+    <section>
+      <h2>3. Step - Recursive traversal + basic statistics (count, size)</h2>
+      <p>
+        Now comes an exciting step: recursion.
+        Create an asynchronous function from this directory listing code.
+        (Because readdir() is asynchronous, we need to await its completion.)
+      </p>
+      <textarea data-lang="js" data-readonly>
+
+async function listDir(dir) {
+  console.log(dir)
+  const entries = await readdir(dir, { withFileTypes: true })
+  for (const e of entries) {
+    const kind = e.isDirectory() ? "DIR " : "FILE"
+  }
+}
+
+// usage:
+await listDir("./demo")
+      </textarea>
+      <p>
+      Now we essentially have a function that lists a directory. But what if it finds a directory inside?
+      No problem! Call the listing function recursively on that directory as well.
+      </p>
+      <p>
+      Call the function within itself? Is that possible? If done carefully, absolutely.
+      That's recursion! Of course, you should only list elements that are directories,
+      since files don't contain further files (only data). So, filter them accordingly.
+      </p>
+      <textarea data-lang="js" data-readonly>
+
+import path from "node:path"
+import { readdir } from "node:fs/promises"
+
+async function listDir(dir) {
+  console.log(dir)
+  const entries = await readdir(dir, { withFileTypes: true })
+  for (const e of entries) {
+    if (e.isDirectory()) 
+      await listDir(path.join(dir, e.name))
+  }
+}
+
+await listDir("./demo")
+      </textarea>
+
+      <p>
+      Great. But there's a small problem! This function currently only prints filenames to the console,
+      but we need to collect statistics (e.g., file size).
+      </p>
+      <p>
+      These statistics need to be stored somewhere, because the function's internal variables are "forgotten".
+      So, we need a structure (e.g., <code>{ dirCount: 0, fileCount: 0 }</code>) to keep track of results.
+      Pass this as a parameter to the function, say as <code>acc</code> (accumulator), and you'll have a place to store results!
+      </p>
+
+<textarea data-lang="js" data-readonly>
+async function listDir(dir, acc) {
+  console.log(dir)
+  const entries = await readdir(dir, { withFileTypes: true })
+  for (const e of entries) {
+    if (e.isDirectory()) {
+      await listDir(path.join(dir, e.name), acc)
+      acc.dirCount++
+    } else {
+      acc.fileCount++
+    }
+  }
+}
+
+// this will be the storage
+const acc = { dirCount: 0, fileCount: 0 }
+// call the function:
+await listDir("./data", acc)
+</textarea>
+      <p class="info">
+      Of course, we could also avoid passing the accumulator explicitly by relying on the outer variable,
+      since the inner function "sees" the outer variable. But this is a "bad" practice,
+      it's always better to explicitly pass where to store results.
+      Imagine what would happen if you started two instances (analyzing two different directories)!
+      If they both write to the same global variable, you'd only get the combined result.
+      If you pass separate objects, each can store its own results.
+      </p>
+      <textarea data-lang="js" data-readonly>
+const acc1 = { dirCount: 0, fileCount: 0 }
+const acc2 = { dirCount: 0, fileCount: 0 }
+
+// since they don't run "in parallel"...
+listDir("./path1", acc1)
+listDir("./path2", acc2)
+      </textarea>
+      <p>
+      Equip the function with additional capabilities:
+      For example, exclude certain files or types (use a Set).
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+import path from "node:path"
+import { readdir, stat } from "node:fs/promises"
+
+const args = process.argv.slice(2)
+const targetDir = args[0] ?? "./demo"
+const root = path.resolve(targetDir)
+
+// What to ignore?
+const IGNORE = new Set(["node_modules", ".git"])
+
+async function listDir(dir, acc) {
+  const entries = await readdir(dir, { withFileTypes: true })
+
+  for (const e of entries) {
+    if (IGNORE.has(e.name)) continue
+
+    const fullPath = path.join(dir, e.name)
+
+    if (e.isDirectory()) {
+      acc.dirCount += 1
+      await listDir(fullPath, acc)
+    } else if (e.isFile()) {
+      const s = await stat(fullPath)
+      acc.fileCount += 1
+      acc.totalBytes += s.size
+    }
+  }
+}
+
+const acc = { dirCount: 0, fileCount: 0, totalBytes: 0 }
+
+console.log("Starting traversal:", root)
+await listDir(root, acc)
+
+console.log("Directories:", acc.dirCount)
+console.log("Files:", acc.fileCount)
+console.log("Total size (bytes):", acc.totalBytes)
+      </textarea>
+    </section>
+
+    <section>
+      <h2>4. Step – Extension statistics + save report.txt</h2>
+      <p>
+        Now extend the collection: count files by extension, then save a simple text report.
+        The report format should be human-readable.
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+function formatBytes(bytes) {
+  // Minimalist: human-readable size (KB/MB/GB)
+  const units = ["B", "KB", "MB", "GB", "TB"]
+  let v = bytes
+  let i = 0
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024
+    i += 1
+  }
+  return `${v.toFixed(i === 0 ? 0 : 2)} ${units[i]}`
+}
+
+const acc = { dirCount: 0, fileCount: 0, totalBytes: 0, extCounts: {} }
+await listDir(root, acc)
+
+// Sort extensions by count descending
+const extLines = Object.entries(acc.extCounts)
+  .sort((a, b) => b[1] - a[1])
+  .map(([ext, count]) => `${ext.padEnd(10)} ${String(count).padStart(6)} files`)
+  .join("\n")
+
+const report = [
+  "Directory statistics report",
+  "==========================",
+  "",
+  `Target:   ${root}`,
+  `Dirs:     ${acc.dirCount}`,
+  `Files:    ${acc.fileCount}`,
+  `Total:    ${acc.totalBytes} bytes (${formatBytes(acc.totalBytes)})`,
+  "",
+  "By extension:",
+  "------------",
+  extLines || "(no files)",
+  "",
+].join("\n")
+
+await writeFile(reportPath, report, "utf8")
+
+console.log("Report generated:", reportPath)
+      </textarea>
+
+      <p>Run and check the result:</p>
+      <textarea data-lang="js" data-readonly>
+// Terminal:
+node main.mjs ./demo
+
+// Check report.txt (with any text editor).
+      </textarea>
+
+      <p class="info">
+        Tip: when analyzing large folders, it's often useful to exclude directories with too many files (as done in the code).
+      </p>
+    </section>
+
+    <section>
+      <h2>Optional task – Think about it: report.json instead of report.txt</h2>
+      <p>
+        In this code, we used a text report. But in many automation processes,
+        it's more practical to use JSON, because other programs can easily read it.
+      </p>
+      <p>
+        <strong>Task:</strong> consider how the output of this program would look like as <code>report.json</code>.
+        For example, with a structure like:
+      </p>
+
+      <textarea data-lang="js" data-readonly>
+// Example idea (not a complete solution):
+// {
+//   "target": "...",
+//   "dirCount": 12,
+//   "fileCount": 140,
+//   "totalBytes": 123456,
+//   "extCounts": { ".txt": 10, ".js": 5, "(no-ext)": 2 }
+// }
+      </textarea>
+
+      <p>
+        Tip: use <code>JSON.stringify(obj, null, 2)</code> and then <code>writeFile(...)</code> to save.
+      </p>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

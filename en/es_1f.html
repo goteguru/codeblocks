@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+  <title>Lesson 1 – Practice Exercises (JavaScript Basic Model)</title>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Lesson 1 – Practice Exercises</h1>
+      <p>
+        Try to solve the exercises below! If you get stuck, you can ask for help from an LLM (large language model or "AI"), but if possible, try to do it on your own.
+      </p>
+      <p>
+        In the code, <strong>...</strong> indicates what you need to fill in or modify.
+        If there are complete code snippets, feel free to leave them as they are. If it's not (completely) clear
+        what they do, that's okay; there will be more explanation later. The main point here is that
+        you know what (and how) to write in the dotted parts.
+      </p>
+    </header>
+
+    <section>
+      <h2>1) Recognizing and completing types</h2>
+      <p>
+        Complete the missing values so that the variables receive the specified types.
+      </p>
+
+      <textarea data-lang="js">
+// 1) Fill in the missing values with the appropriate types
+
+let a = 42		// number (this is already done)
+let b = ...		// string (for example, "Lajosmizse")
+let c = ...		// boolean
+let d = ...		// bigint
+
+let e = ...               // undefined (not a string!)
+let f = ...               // null
+
+// print the types to see if you did it correctly:
+console.log(typeof a, a)
+console.log(typeof b, b)
+console.log(typeof c, c)
+console.log(typeof d, d)
+console.log(typeof e, e)
+// typeof says object for null (JavaScript quirk).
+// so, we check this case differently:
+console.log(f === null ? "really null" : "not null")
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <ul>
+          <li><code>undefined</code> is created when a variable has no value or you explicitly assign <code>undefined</code>.</li>
+          <li><code>null</code> is a specific "deliberately empty" value.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section>
+      <h2>2) Statement or expression? (modification)</h2>
+      <p>
+        The program is incorrect because an expression is used in the wrong place as a "statement".
+        Its result (although it is created) gets lost. Rewrite it so that the code runs and also outputs the result!
+      </p>
+
+      <textarea data-lang="js">
+
+// basic data
+let x = 10
+let y = 5
+
+// This is an expression, but it does nothing useful.
+// Rewrite it so that the result is stored in a variable!
+x + y
+
+// Then print:
+console.log("Sum:", ...)
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          If you want to use the value of the expression later, assign it to a variable!
+          We use the equals sign for this: variable = expression
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>3) Object properties</h2>
+      <p>
+        The task: in a <code>book</code> object, some important properties are missing.
+        Complete it so that the output works and makes sense.
+      </p>
+
+      <textarea data-lang="js">
+// 3) Complete the book object with the missing properties
+
+let book = {
+  title: "The Little Prince",
+  // author (string)
+  // pages (number)
+  // isAvailable (boolean)
+}
+
+console.log("Title:", book.title)
+console.log("Author:", book.author)
+console.log("Number of pages:", book.pages)
+console.log("Available for borrowing:", book.isAvailable)
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Properties are separated by commas, and after the key comes a colon: <code>key: value</code>.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>4) Adding a method</h2>
+      <p>
+        The task: add a <code>greet</code> method (function property) to the <code>person</code> object,
+        which prints to the console: <code>&lt;name&gt; today is &lt;year&gt; years old!</code>, e.g., "Anna today is 30 years old!".
+      </p>
+
+      <textarea data-lang="js">
+
+let person = {
+  name: "Anna",
+  age: 30,
+  // greet method
+}
+
+person.greet()
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          You can define the method like this: <code>greet: function () { ... }</code>
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>5) Function call and arguments</h2>
+      <p>
+        The task: <code>console.log</code> is a function that takes arguments.
+        The program should output a sentence based on the name and age.
+        Correct / complete the ...TODO... part so that you get a meaningful output.
+      </p>
+
+      <textarea data-lang="js">
+// We should see:
+// "Zoli is 28 years old."
+
+let name = "Zoli"
+let age = 28
+
+console.log(...TODO...)
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          <code>console.log</code> can accept multiple arguments, and it prints them separated by spaces. So, just list them separated by commas.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>6) Defining and using your own function</h2>
+      <p>
+        The task: define a function called <code>describeValue</code> that takes a value,
+        and prints to the console the type of the value and the value itself.
+      </p>
+
+      <textarea data-lang="js">
+// 6) Define the function: describeValue(value)
+// Example output: "Type: string, value: Hello"
+
+function describeValue(value) {
+...TODO: write the body...
+}
+describeValue(123)
+describeValue("Hello")
+describeValue(true)
+describeValue(null)
+describeValue(undefined)
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Use the <code>typeof</code> operator: <code>typeof value</code>. You can also refer to the above for help.
+        </p>
+      </details>
+    </section>
+
+  </main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</body>
+</html>

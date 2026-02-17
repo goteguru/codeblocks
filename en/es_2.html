@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Language Basics – Lesson 2</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+<body>
+  <header>
+    <h1>Lesson 2 - Operators, Type Conversion, and Control Structures</h1>
+    <p>
+      In this lesson, we learn how JavaScript "works" with values: how it performs calculations,
+      how it compares, how it makes decisions, and how it repeats. These are the fundamental tools
+      of the language that allow the program not just to be a series of instructions, but to behave
+      differently depending on the situation.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Statements, Expressions, Operators</h2>
+      <p>
+        An <strong>operator</strong> is a symbol (for example, <code>+</code> or <code>===</code>) that performs
+        some operation on one or more values. With operators, we typically write <em>expressions</em>:
+        parts that have a result (value).
+      </p>
+      <p>
+        For example, <code>10 + 5</code> is an expression: after evaluation, the result is <code>15</code>. In contrast,
+        <code>let x = 10</code> is more of a statement: it creates/sets something, not "by itself a value". 
+        Translated into Hungarian, we would read it as "x should have the value 10".
+      </p>
+
+      <article>
+        <h3>1.1. Arithmetic Operators</h3>
+        <p>
+          Arithmetic operators perform calculations. Most of these are familiar from mathematics, but some are
+          specifically for programming purposes (for example, the remainder operation).
+        </p>
+
+        <ul>
+          <li><code>+</code> addition</li>
+          <li><code>-</code> subtraction</li>
+          <li><code>*</code> multiplication</li>
+          <li><code>/</code> division</li>
+          <li><code>%</code> modulus (remainder of division)</li>
+          <li><code>**</code> exponentiation</li>
+        </ul>
+
+        <textarea data-lang="js">
+console.log(10 + 5);   // 15
+console.log(10 - 5);   // 5
+console.log(10 * 5);   // 50
+console.log(10 / 5);   // 2
+console.log(10 % 3);   // 1 (10 divided by 3: 3*3=9, remainder 1)
+console.log(2 ** 3);   // 8
+        </textarea>
+
+        <p>
+          An important property is that the <code>+</code> operator does not only work with numbers: with strings,
+          it performs <strong>concatenation</strong>.
+        </p>
+
+        <textarea data-lang="js">
+console.log("Hello" + " world");   // "Hello world"
+console.log("5" + 2);                // "52" (string + number -> string)
+        </textarea>
+
+        <p>
+          This behavior is a common source of bugs: if we want to perform a calculation but the data is actually
+          a string, then <code>+</code> easily "pushes" the result into the string direction and concatenates
+          instead of adding. We will talk more about type conversion later.
+        </p>
+      </article>
+
+      <article>
+        <h3>1.2. Assignment Operators</h3>
+        <p>
+          The <code>=</code> sign in programming means <strong>assignment</strong>: we "put" the value on the right
+          into the variable on the left. This is not a comparison, but an assertion.
+        </p>
+
+        <textarea data-lang="js">
+let x = 10;
+console.log(x); // 10
+        </textarea>
+        <p>The actual situation is a bit more complex, because in JavaScript, assignment is also an operator,
+        since the expression <code>x = 183</code> has a value: the value of the left side. 
+        This allows us to assign the same value to multiple variables at once!</p>
+        <textarea data-lang="js">
+const x = y = z = 0;
+console.log(x, y, z);
+        </textarea>
+        <p>
+        This is essentially something like: <code>x = (y = (z = 0))</code>. The innermost part assigns zero to z,
+        but the expression's value is also 0, which is assigned to y, which as an expression also has value 0,
+        and this is assigned to x.
+        </p>
+
+        <p>
+          Shortened assignment operators are common and conveniently combine an operation and an assignment.
+        </p>
+
+        <textarea data-lang="js">
+let x = 10;
+
+x += 5; // x = x + 5
+console.log(x); // 15
+
+x -= 2; // x = x - 2
+console.log(x); // 13
+        </textarea>
+
+        <p>
+          We use these because they express the intention: "increase", "decrease", "accumulate" the value.
+        </p>
+
+        <p>Since it's quite common to want to increment or decrement by exactly 1 (for example, counting something),
+        there are even simpler notations: the <code>++</code> and <code>--</code> operators. Their peculiarity is that
+        the interpreter first looks at the value and only <em>then</em> increases it. So where we wrote it, the old value is still valid:</p>
+
+        <textarea data-lang="js">
+let c = 10;
+
+console.log(c++); // here, the value of (c++) is still 10
+console.log(c); // but here, it is 11
+c++; // if we write it alone, it doesn't matter
+console.log(c); // now it is 12
+        </textarea>
+
+        <p>When we write <code>let x=40</code>, we are actually doing two things! First, creating a variable named x, then assigning a value to it. 
+        We can do this separately. We can create the variable only once (a second <code>let x</code> would be an error), but we can assign values to it as many times as we want!</p>
+        <textarea data-lang="js">
+let x; // create x, its value is undefined here
+x = 7; // x is now 7
+x = "hello"; // or rather, now it is "hello"
+console.log(x);
+        </textarea>
+        <p>Sometimes, we explicitly do not want the value assigned to a name to be changeable. That is, we do not want a variable,
+        but a constant value. In this case, instead of the <code>let</code> keyword, we use the <code>const</code> keyword. 
+        Then, changing the value of the name will cause an error!</p>
+        <textarea data-lang="js">
+const e = 2.71828;
+e = 42; // this is no longer allowed!
+        </textarea>
+        <p>If you run the code block, you will see that the interpreter complains: constant values cannot be changed!</p>
+        <p>You probably guessed that it makes no sense to write <code>const k</code> without assigning a value immediately,
+        because then a <code>k</code> name would be created with <code>undefined</code> value, but we could never change it.
+        The interpreter will also throw an error in such cases.</p>
+      </article>
+
+      <article>
+        <h3>1.3. Comparison Operators</h3>
+        <p>
+          When comparing, the result is always a logical value: <code>true</code> or <code>false</code>. We use these,
+          for example, in <code>if</code> conditions and loop termination conditions.
+        </p>
+
+        <ul>
+          <li><code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code> (greater/less)</li>
+          <li><code>==</code>, <code>!=</code> (loose equality/inequality)</li>
+          <li><code>===</code>, <code>!==</code> (strict equality/inequality)</li>
+        </ul>
+
+        <textarea data-lang="js">
+console.log(5 > 3);     // true
+console.log(5 < 3);     // false
+console.log(5 >= 5);    // true
+console.log(5 <= 4);    // false
+        </textarea>
+
+        <p>
+          The most important difference between <code>==</code> and <code>===</code>:
+          <code>===</code> <strong>also considers type</strong>, while <code>==</code> tries to convert types in the background
+          to compare them.
+        </p>
+
+        <textarea data-lang="js">
+console.log(5 == "5");   // true  (JavaScript converts something in the background)
+console.log(5 === "5");  // false (different types: number vs string)
+
+console.log(0 == false);   // true  (may be surprising)
+console.log(0 === false);  // false
+        </textarea>
+
+        <p>
+          Practical rule: if you want to be sure, always use <code>===</code> and <code>!==</code>. 
+          This helps avoid many misunderstandings and hidden bugs.
+        </p>
+      </article>
+
+      <article>
+        <h3>1.4. Logical Operators</h3>
+        <p>
+          Logical operators allow us to combine multiple conditions. A typical case is when a decision
+          requires more than one comparison.
+        </p>
+
+        <ul>
+          <li><code>&amp;&amp;</code> (AND): true only if both sides are true</li>
+          <li><code>||</code> (OR): true if at least one side is true</li>
+          <li><code>!</code> (NOT): reverses the true/false value</li>
+        </ul>
+
+        <textarea data-lang="js">
+const age = 20;
+const hasTicket = true;
+
+console.log(age >= 18 && hasTicket); // true (both are true)
+console.log(age < 18 || hasTicket);  // true (at least one is true)
+console.log(!hasTicket);             // false
+        </textarea>
+
+        <p>
+          Logical operators are fundamental in everyday programming: permission checks, form validation,
+          "if this and that are true, then ..." business rules are all built with them.
+        </p>
+      </article>
+      <article>
+        <h3>1.5. Special Operators</h3>
+        <p>
+          In JavaScript, we encounter several operators that don't have much mathematical meaning but help
+          in structuring and writing code. We will see more of these later!
+        </p>
+
+        <ul>
+          <li><code>[]</code> selecting string property</li>
+          <li><code>.</code> selecting object property</li>
+          <li><code>?.</code> optional chaining for object property</li>
+          <li><code>??</code> if the left side is null/undefined, then use the right side</li>
+        </ul>
+
+        <p>
+          Among these, the <code>.</code> operator is encountered constantly (we've already used it many times). 
+          It is used to access a property of an object. For example, when we wrote <code>Math.sin</code>, 
+          we applied the <code>.</code> operator to the Math object and selected the sin property, which happens to be a function.
+        </p>
+
+        <p>
+          Moreover, this operator is often "chained" together, and you can see entire lines of it! 
+          It is easiest to understand it on a hierarchical object, but it is also used when a method (or any function)
+          returns an object!
+        </p>
+        <textarea data-lang="js">
+const company = {
+	name: "Google",
+	address: {
+		city: "Mountain View",
+		state: "CA"
+	}
+}
+console.log(company.address.state);
+        </textarea>
+
+        <p>
+          The company is an object, and its address property is also an object. In the console.log, we retrieve
+          the address property of the company object (which is an object), and then get its state property.
+        </p>
+
+        <p>
+          Similarly, if a function returns an object, the console.log will show the function's property.
+        </p>
+        <textarea data-lang="js">
+// this function returns an object!
+function createCompany(name, city, state) {
+  return {
+    name: name,
+    address: {
+      city: city,
+      state: state
+    }
+  };	
+}
+
+createCompany("Google", "Mountain View", "CA").address.state;
+        </textarea>
+        <p> The <code>?.</code> operator is essentially the same as <code>.</code> but helps us avoid errors when the left side is null or undefined. 
+        If the left side is null, it is not an object, so it has no properties, even if we try to access them.</p>
+
+        <p>Why would we want to access a property of a null value? Well, quite often, we do. Because, as we know,
+        null means "unknown". And it can very well be that where an object is expected, it is simply not known!</p>
+        <textarea data-lang="js">
+const company = {
+	name: "SuperSecretCompany",
+	address: null, // we don't know where it is
+}
+
+// we can't know in advance if the address is known or not,
+// so we try to access:
+company_state = company.address?.state;
+
+console.log(typeof company_state); // what type is company_state?
+        </textarea>
+        <p>
+        Since <code>company.address</code> is null, trying to access its property will cause a big error because it doesn't exist.
+        Here, <code>?.</code> helps us! Change the program so that instead of a dot, you put a question mark (write a question mark before the dot), and the error disappears:
+        You get what you expect: <code>company_state</code> will just be <code>undefined</code>.
+        </p>
+
+        <p>
+        The <code>??</code> operator does something very similar, but the left side doesn't have to be an object; it can be any value. 
+        If the left side is something not defined, it returns the right side; if it has a value, it keeps it. 
+        You will encounter it often in modern code because it is very practical for handling missing values!
+        </p>
+        <textarea data-lang="js">
+const demoConfig = { title: "Demo", debug: true };
+const liveConfig = { title: "Production", version: 1.2 };
+
+config = demoConfig; // change to liveConfig and see!
+
+console.log(config?.title, "configuration:");
+console.log('debug:', config?.debug ?? false); // debugging is off by default
+console.log('version:', config?.version ?? 0); // default to 0 if no version provided
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Type Conversion</h2>
+      <p>
+        JavaScript is a "dynamically typed" language: a variable can store different types of values at different times.
+        So even if a variable currently holds a number, you can later put a string or an array into it. It is also common
+        for the language to automatically try to convert types. This is called <strong>type conversion</strong>.
+      </p>
+
+      <article>
+        <h3>2.1. Implicit Conversion (Automatic Type Coercion)</h3>
+        <p>
+          In implicit conversion, JavaScript "guesses" what type is needed for the operation. This usually happens when
+          the operation (operator) we use wants to work with a specific type, but we pass something else. 
+          Then it tries to convert the other thing to the desired type. This is convenient but can also be dangerous,
+          because the rules are not always intuitive.
+        </p>
+
+        <textarea data-lang="js">
+console.log("5" * 2);   // 10  (JavaScript converts "5" to a number)
+console.log("5" - 2);   // 3
+console.log("5" / 2);   // 2.5
+
+console.log("5" + 2);   // "52" (string + number -> string concatenation)
+        </textarea>
+
+        <p>
+          It is visible that <code>*</code>, <code>-</code>, <code>/</code> convert to numbers because these operators are not defined for strings,
+          whereas <code>+</code> "pushes" the result into the string direction, since addition is also defined for strings (concatenation). 
+          Therefore, it is especially important to be aware of input types during calculations.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.2. Explicit Conversion (Intentional Type Casting)</h3>
+        <p>
+          With explicit conversion, we clearly specify what we want. This is more readable and reliable,
+          especially when input comes from external sources (user forms, files, APIs).
+        </p>
+
+        <textarea data-lang="js">
+console.log(Number("5"));     // 5
+console.log(String(123));     // "123"
+console.log(Boolean(1));      // true
+console.log(Boolean(0));      // false
+        </textarea>
+
+        <p class="info">
+          <code>Number("something")</code> does not always convert to a meaningful number. In such cases,
+          the result will be <code>NaN</code> (Not-a-Number), which is also a special numeric value.
+        </p>
+
+        <textarea data-lang="js">
+console.log(Number("apple")); // NaN
+console.log(Number("fortytwo")); // not in Hungarian
+console.log(Number("fourty two")); // but also not in English
+console.log(Number("-42.0")); // only from numeric string to number
+        </textarea>
+      </article>
+
+      <article>
+        <h3>2.3. Truthy and Falsy Values</h3>
+        <p>
+          In many situations, JavaScript does not require the condition to be exactly <code>true</code> or <code>false</code>.
+          Instead, it considers a value "truthy" or "falsy". These are called <strong>truthy</strong> and
+          <strong>falsy</strong> values.
+        </p>
+
+        <p>
+          The most important <strong>falsy</strong> values:
+        </p>
+        <ul>
+          <li><code>false</code></li>
+          <li><code>0</code></li>
+          <li><code>""</code> (empty string)</li>
+          <li><code>null</code></li>
+          <li><code>undefined</code></li>
+          <li><code>NaN</code></li>
+        </ul>
+
+        <p>
+          All other values are <strong>truthy</strong>. This is useful because often you just need to check:
+          "Is there a value?", "Is it not empty?", "Did it succeed?".
+        </p>
+
+        <textarea data-lang="js">
+console.log(Boolean(""));       // false
+console.log(Boolean("hello"));  // true
+
+console.log(Boolean(0));        // false
+console.log(Boolean(42));       // true
+
+console.log(Boolean(null));     // false
+console.log(Boolean(undefined));// false
+        </textarea>
+      </article>
+      <article>
+        <h3>2.4. Shortcut (Short-Circuit Evaluation)</h3>
+        <p>Notice that logical operators do not convert their parameters to boolean (true/false) before deciding the result, but treat them as truthy/falsy values, and return one of the parameters instead!</p>
+        <textarea data-lang="js">
+console.log(34 || 56); // this is 34, not true
+console.log(34 && 0); // this is 0, not false
+        </textarea>
+
+        <p>It may seem pointless, but it actually has many uses.</p>
+        <p>
+          In JavaScript, logical operators (<code>&&</code>, <code>||</code>) are called short-circuit operators. 
+          This means that if the first operand's value can determine the result, the second operand is not evaluated (not executed).
+          For example, if you write <code>20 || 8</code>, it immediately sees 20 is truthy and knows the whole expression is true,
+          so it doesn't need to evaluate the second part. This allows for very concise conditional execution!
+        </p>
+
+        <textarea data-lang="js">
+let log = true;
+log && console.log("Important log message!");
+log && console.log("Important log message 2!");
+"other program output"
+        </textarea>
+        <p>The above code will only print the important log message if <code>log</code> is <code>true</code>. (Because if <code>false</code>,
+        there's no point in checking the part after <code>&&</code>, since the whole expression is obviously false!). Try it: change the value of <code>log</code> to false in the code above!</p>
+        <textarea data-lang="js">
+let value = null; // for example, from a database or user input
+// ...
+let calculated = value || 42;
+calculated;
+        </textarea>
+        <p>This pattern is used to provide default values. If <code>value</code> is missing (e.g., undefined or null), then the default value is used.
+        But if you change <code>value</code> to a truthy value (like 100), then that will be used instead!
+        </p>
+        <p>Reading this, it essentially says: "Let the calculated value be the same as <code>value</code> or, if it is not present, 42".</p>
+        <p>You will encounter these expressions very often in JavaScript programs.</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Program Execution Order</h2>
+      <p>
+        By default, JavaScript runs <strong>sequentially</strong>: top to bottom, executing instructions one after another.
+        This is the "normal" operation, but real programs need branches and loops to react to different situations.
+      </p>
+
+      <article>
+        <h3>3.1. Sequential Execution</h3>
+        <p>
+          In sequential code, the program "does not think", it just executes steps one after another.
+        </p>
+
+        <textarea data-lang="js">
+console.log("First step");
+console.log("Second step");
+console.log("Third step");
+        </textarea>
+      </article>
+      
+      <article>
+        <h3>3.2. Code Blocks</h3>
+        <p>
+          Multiple instructions can be grouped into a single "instruction block" if enclosed in curly braces. 
+          Traditionally, the code inside braces is indented a bit, but the interpreter doesn't care about indentation.
+        </p>
+
+        <textarea data-lang="js">
+{
+	console.log("First step");
+	console.log("Second step");
+}
+        </textarea>
+        <p>
+        Code blocks are useful for two reasons. First, they allow us to specify that a condition or loop (see below)
+        applies not just to a single instruction but to a whole block of code. Second, variables defined with <code>let</code> or <code>const</code>
+        inside the block are only visible within that block. This is called "block scope".
+        </p>
+        <textarea data-lang="js">
+let common = 100;
+{
+	let alpha = 1;
+	// the common variable is visible inside this block too!
+	console.log(common, alpha);
+}
+
+// here, we get an error because alpha is not visible outside!
+console.log(common, alpha);
+        </textarea>
+        <p>So, the rule is: if we define something somewhere, it is accessible everywhere "below" that point, but if we define something inside a block, it is not visible outside that block.</p>
+        <p>If you think about it, this is exactly how functions work too. We give them a name, parameters,
+	and a code block (inside curly braces) describing what they do. The "scope" rule applies to them as well.</p>
+      </article>
+
+      <article>
+        <h3>3.3. Conditional Branching</h3>
+        <p>
+          Branching allows the program to choose a path based on a condition. This makes it possible for the same code
+          to produce different results for different inputs.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.4. Loops</h3>
+        <p>
+          Loops execute a sequence of operations multiple times. This is essential when processing lists, sequences,
+          or large amounts of data. One of the greatest strengths of programming is that the machine does not "tire" of looping.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.5. Looking Ahead: Asynchronous Execution</h3>
+        <p>
+          Later, we will learn that JavaScript can perform certain tasks not immediately, not sequentially (for example,
+          network requests, timing, event handling). This is called <strong>asynchronous</strong> operation.
+          For now, it is enough to understand that not every program runs "strictly linearly"; there can be situations
+          where (at least logically) two code segments run in parallel.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Control Structures</h2>
+      <p>
+        Control structures are tools that direct the flow of the program: making decisions (<code>if</code>) or repeating (<code>for</code>, <code>while</code>).
+        Usually, each involves a code block that the control applies to.
+      </p>
+
+      <article>
+        <h3>4.1. if / else</h3>
+        <p>
+          The <code>if</code> is a condition check. The expression inside parentheses is evaluated by JavaScript,
+          and if its value is <code>true</code> or truthy, the statement or code block following the parentheses is executed
+          (possibly multiple instructions).
+        </p>
+        <p>
+        If the result is <code>false</code> (or falsey), and we want to do something else, we can continue the structure
+        with an <code>else</code> branch.
+        </p>
+
+        <textarea data-lang="js">
+if (screen.width > 1200) 
+	console.log("Your screen is wider than 1200 pixels.");
+
+if (window.innerWidth >= 1200) {
+  console.log("Multiple instructions");
+  console.log("Wide window");
+} else {
+  console.log("Narrow window");
+}
+        </textarea>
+        <p>
+        Here, we check the width of the screen and the browser window, and print something depending on the result! (Try resizing the window to be narrower and run again).
+        </p>
+        <p>
+        If the condition involves only a single instruction, no block (curly braces) is needed, but many programmers always include the braces to make it clear what belongs to the condition (we did this in the else branch). Traditionally, the part that the condition (or the alternative) applies to is indented for readability.
+        </p>
+
+        <p>
+        For more complex decisions, the <code>else if</code> structure is common.
+        </p>
+
+        <textarea data-lang="js">
+const score = 72;
+
+if (score >= 90) {
+  console.log("Excellent");
+} else if (score >= 70) {
+  console.log("Good");
+} else if (score >= 50) {
+  console.log("Average");
+} else {
+  console.log("Fail");
+}
+        </textarea>
+
+        <p>
+          With <code>if</code> blocks, the program's behavior varies depending on input. This is the basis of all "business logic" (i.e., decision algorithms that determine how the program reacts to different situations).
+        </p>
+      </article>
+
+      <article>
+        <h3>4.2. for Loop</h3>
+        <p>
+          The <code>for</code> loop is used when the number of repetitions is known in advance. It consists of three parts:
+        </p>
+
+        <ol>
+          <li><strong>Initialization</strong> (e.g., <code>let i = 0</code>)</li>
+          <li><strong>Condition</strong> (e.g., <code>i &lt; 5</code>)</li>
+          <li><strong>Increment</strong> (e.g., <code>i++</code>)</li>
+        </ol>
+
+        <textarea data-lang="js">
+for (let i = 0; i < 5; i++) {
+  console.log("Value of i:", i);
+}
+        </textarea>
+
+        <p>
+          The loop runs as long as the condition is true. At the end of each iteration, the increment runs.
+          This simple syntax is inherited from the C language. It is flexible and fast, but not very readable.
+          Fortunately, modern versions include more readable loop structures.
+        </p>
+        <textarea data-lang="js">
+let data = [9, 23, 22, 11, 7];
+for (let item of data) {
+  console.log(item * 2);
+}
+        </textarea>
+        <p>The above code iterates over the array elements, and the variable <code>item</code> takes on each value, then prints its double.</p>
+        <p>If you want to repeat only a single instruction, braces are not required (no block needed), but many programmers include them for clarity.</p>
+        <p>
+        If you want to iterate over indices instead of values, you can do so:
+        </p>
+        <textarea data-lang="js">
+let data = [9, 23, 22, 11, 7];
+for (let index in data)
+	console.log(index, "-->", data[index]);
+        </textarea>
+        <p>
+        Here, <code>index</code> is a variable name, anything can be used, often just <code>i</code>. Also, no code block (curly braces) is used here because only one instruction is repeated.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.3. while Loop</h3>
+        <p>
+          The <code>while</code> loop is used when we do not know in advance how many times to repeat, only that we should do "until some condition is met".
+        </p>
+
+        <textarea data-lang="js">
+let count = 3;
+
+while (count > 0) {
+  console.log("Countdown:", count);
+  count--;
+}
+console.log("Start!");
+        </textarea>
+
+        <p>
+          For <code>while</code>, it is especially important that the loop body contains a step that eventually makes the condition false. 
+          If this is missing, an <strong>infinite loop</strong> occurs, and the program "hangs". In a browser, this looks like the page becomes unresponsive, and after some time, the browser may warn that JavaScript is not responding and ask whether to stop it.
+        </p>
+
+        <p>
+        If you're curious, you can try what happens in such a case. In the above code, remove the <code>count--</code> line (the decrement), because then the count will never decrease, and it will never reach 0, so it will run forever. Your browser window (this one) will become unresponsive, and you won't be able to click anywhere. After a few seconds (or up to a minute), the browser detects the problem and offers to stop it (giving you back control). In the worst case, close the tab and reopen it. You can't really break anything with this.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Summary</h2>
+      <p>
+        In this lesson, we built three key areas:
+      </p>
+      <ul>
+        <li>
+          <strong>Operators</strong>: calculations, assignment, comparison, logical connection.
+        </li>
+        <li>
+          <strong>Type Conversion</strong>: how a value becomes another type, when it happens automatically, and when it is better to do it explicitly.
+        </li>
+        <li>
+          <strong>Control</strong>: how the program makes decisions and repeats (<code>if</code>, <code>for</code>, <code>while</code>).
+        </li>
+      </ul>
+
+      <p>
+        If you understand these three areas well, you can build simple program logic: write checks, produce different outputs based on conditions, and process input data in loops.
+      </p>
+    </section>
+  </main>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

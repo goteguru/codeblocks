@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>7.2 What Can Your Browser Do?</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+<body>
+  <main style="height: 90vh; overflow: scroll">
+    <header>
+      <h1>7.2 What Can Your Browser Do?</h1>
+      <p>
+        When you write JavaScript in a browser, you use two things at once:
+        the JavaScript language (ECMAScript), and the Web Platform APIs provided by the browser.
+        These APIs give the "capabilities" to build web applications within the browser sandbox (jail).
+      </p>
+      <p>
+        Your browser is almost like a mini operating system. You can do many things, but generally <strong>origin</strong> (domain/protocol/port),
+        <strong>user permissions</strong>, and <strong>security rules</strong> (like CORS, HTTPS, user gesture) restrict what you can do.
+      </p>
+    </header>
+
+    <section>
+      <h2>1. DOM, UI, and Events</h2>
+      <p>
+        With the DOM API, you can manage the structure and content of the webpage (creating, modifying, deleting elements).
+        The event system (events) allows you to respond to user actions (click, keyboard, touch, scroll). These form the basis of an "interactive webpage."
+      </p>
+
+      <article>
+        <h3>1.1. DOM modification in a few lines</h3>
+        <p>
+          This allows you to quickly update the interface: for example, change text on button press, extend a list,
+          or give feedback to the user.
+        </p>
+
+        <textarea data-lang="js">
+const box = document.createElement("div")
+box.textContent = "Hello, DOM"
+document.querySelector("footer").appendChild(box)
+
+box.addEventListener("click", () => {
+  box.textContent = "Clicked"
+})
+        </textarea>
+        <textarea data-lang="js">
+function show(...args) {
+  console.log(...args)
+  const ftr = document.querySelector("footer")
+  ftr.textContent = args.map(s => JSON.stringify(s)).join("\n")
+}
+        </textarea>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Network and Communication</h2>
+      <p>
+        The browser can initiate network requests (download/upload data) and maintain real-time connections.
+        Typical uses: API calls, chat, live updates, file uploads, login, data sending.
+      </p>
+
+      <article>
+        <h3>2.1. HTTP request with fetch()</h3>
+        <p>
+          <code>fetch</code> is the modern basic tool for HTTP requests.
+          Important: cross-origin requests often require CORS permission on the server side.
+        </p>
+
+        <textarea data-lang="js">
+async function loadTodo() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/todos/1")
+  const data = await res.json()
+  show(data)
+}
+
+loadTodo()
+        </textarea>
+      </article>
+
+      <article>
+        <h3>2.2. Real-time channels (overview)</h3>
+        <ul>
+          <li><strong>WebSocket</strong>: bidirectional, persistent connection with server (chat, live dashboard).</li>
+          <li><strong>EventSource (SSE)</strong>: unidirectional stream from server to client (notifications, live feed).</li>
+          <li><strong>WebRTC</strong>: P2P audio/video/data (video call, P2P data channel), typically with signaling server.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Persistent Storage in the Browser</h2>
+      <p>
+        There are several storage solutions in the browser. They allow you to preserve state after page reload:
+        settings, cached data, simple "mini database" on the client.
+      </p>
+
+      <article>
+        <h3>3.1. localStorage (simple key-value store)</h3>
+        <p>
+          Fast and easy for settings (like theme, language, user preferences).
+          Its disadvantage is that it is synchronous and not a database, only simple string key-value pairs.
+        </p>
+
+        <textarea data-lang="js">
+localStorage.setItem("theme", "dark")
+        </textarea>
+        <p>You can retrieve it later:</p>
+        <textarea data-lang="js">
+const theme = localStorage.getItem("theme")
+console.log(theme)
+        </textarea>
+        <p>If you reload the page, or even close and stop running the setItem code, it remains and remembers your theme (or whatever you set).</p>
+      </article>
+
+      <article>
+        <h3>3.2. IndexedDB (client-side database)</h3>
+        <p>
+          For larger, structured data (like offline content, more complex records).
+          This is a "real" database-like API: tables (object stores), indexes, transactions.
+          (I won't give an example here as it is quite complex, but it's good to know it exists.)
+        </p>
+      </article>
+
+      <article>
+        <h3>3.3. Cache Storage and Service Worker (offline operation)</h3>
+        <p>
+          With Service Worker, you can cache network responses and serve them offline.
+          Or create "background" running solutions.
+          This is a core part of PWAs: faster loading and offline experience.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Graphics: 2D, 3D, and Performance</h2>
+      <p>
+        In the browser, you can display more than just "HTML text."
+        There is 2D canvas, vector graphics (SVG), and GPU-accelerated 3D (WebGL, and more modern WebGPU).
+        Typical uses: games, data visualization, interactive animations, image processing.
+      </p>
+
+      <article>
+        <h3>4.1. Canvas 2D</h3>
+        <p>
+          Canvas 2D is fast, suitable for simple drawing and animation. For example, minimal games or visualizations.
+          Let's draw a rectangle!
+        </p>
+
+        <textarea data-lang="js">
+const canvas = document.createElement("canvas")
+// this is our "paper":
+canvas.width = 240
+canvas.height = 120
+// put the paper into the footer:
+document.querySelector("footer").appendChild(canvas)
+
+// now we can draw whatever we want
+const ctx = canvas.getContext("2d")
+ctx.fillRect(20, 20, 80, 50)
+ctx.lineWidth = 5
+ctx.strokeStyle = "red"
+ctx.strokeRect(10, 10, 80, 50)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>4.2. WebGL / WebGPU (overview)</h3>
+        <p>
+          <strong>WebGL</strong> is an OpenGL ES-like API in the browser for GPU-accelerated 3D.
+          <strong>WebGPU</strong> is a newer, lower-level, high-performance GPU API, but support varies across browsers.
+          Typical uses: 3D scenes, advanced visualizations, shader programs.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.3. WebAssembly (Wasm) and Workers (overview)</h3>
+        <ul>
+          <li><strong>WebAssembly</strong>: running high-performance modules in the browser (e.g., coding, physics, image processing).</li>
+          <li><strong>Web Workers</strong>: background JavaScript execution to prevent UI blocking (e.g., heavy calculations, parsing, compression).</li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Files, Clipboard, Drag & Drop</h2>
+      <p>
+        The browser strongly protects user files, so file access usually requires user interaction (file selection, drag & drop).
+        Reading/writing to clipboard also requires permission and user activity (user gesture).
+      </p>
+
+      <article>
+        <h3>5.1. File selection and reading (File API)</h3>
+        <p>
+          This capability can be used for CSV/JSON import, image upload, document management.
+        </p>
+
+        <textarea data-lang="js">
+const input = document.createElement("input")
+input.type = "file"
+const footer = document.querySelector("footer")
+footer.innerHTML = ""
+footer.appendChild(input)
+
+input.addEventListener("change", async () => {
+  const file = input.files[0]
+  if (!file) return
+
+  const text = await file.text()
+  show("First 200 characters:", text.slice(0, 200))
+})
+        </textarea>
+      </article>
+
+      <article>
+        <h3>5.2. Clipboard API</h3>
+        <p>
+          Useful for "Copy" buttons, copying code snippets, quick content retrieval.
+          Its operation (read/write) depends on browser and permissions.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>6. Devices and Sensors (permission required)</h2>
+      <p>
+        Most hardware-related APIs (programming interfaces) are only available if the user explicitly grants permission.
+        Typical API examples: location, camera, microphone, screen sharing, Bluetooth devices.
+      </p>
+
+      <article>
+        <h3>6.1. Geolocation: getting location data</h3>
+        <p>
+          For example, map applications, location-based features (nearby points, region-based settings).
+        </p>
+
+        <textarea data-lang="js">
+navigator.geolocation.getCurrentPosition(
+  pos => show("lat/lng:", pos.coords.latitude, pos.coords.longitude),
+  err => show("Error:", err.message)
+)
+        </textarea>
+      </article>
+
+      <article>
+        <h3>6.2. Camera and Microphone</h3>
+        <p>
+          Using <code>getUserMedia</code>, video and audio streams can be requested (video chat, recording, QR scanning).
+          Always permission-based, usually requires HTTPS.
+        </p>
+      </article>
+
+      <article>
+        <h3>6.3. Web Bluetooth / Web USB / Web Serial (overview)</h3>
+        <p>
+          For specialized web apps, special capabilities: e.g., IoT device configuration, external sensors, custom hardware control.
+          These are heavily restricted, browser- and platform-dependent, and always require user interaction/permission.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>7. PWA: "web page as an app" experience</h2>
+      <p>
+        With <strong>PWA (Progressive Web App)</strong> technology, a website can become much more "app-like":
+        installable, with an icon on the home screen, capable of offline operation, and faster startup.
+        This can be especially useful on mobile.
+      </p>
+
+      <article>
+        <h3>7.1. What makes a website PWA-like?</h3>
+        <ul>
+          <li><strong>Web App Manifest</strong>: name, icons, launch mode, colors.</li>
+          <li><strong>Service Worker</strong>: cache, offline, network strategy.</li>
+          <li><strong>HTTPS</strong>: secure environment (many APIs require this).</li>
+        </ul>
+        <p>
+          Example: if the manifest (a JSON file) and service worker are properly configured, the phone
+          can add it as a "installed app." Usually, it shows a message like "Add to home screen."
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>8. The sandbox (jail)</h2>
+      <p>
+        Many capabilities are available in the browser, but you do not get "full system access."
+        These restrictions are meant to protect the user.
+      </p>
+      <ul>
+        <li>
+          <strong>Same-origin policy and CORS</strong>:
+          access to resources from other domains is controlled.
+        </li>
+        <li>
+          <strong>Permission-based APIs</strong>:
+          camera, microphone, location, Bluetooth, etc., only with user approval.
+        </li>
+        <li>
+          <strong>No general TCP/UDP socket</strong>:
+          but WebSocket/WebRTC (persistent server-client connection, P2P data connection) are available.
+        </li>
+        <li>
+          <strong>Limited filesystem access</strong>:
+          file operations require user permission, and access is always restricted.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>9. Summary</h2>
+      <p>
+        In the browser, you can perform network operations, store data, draw graphics, access devices (with permission),
+        and implement offline functionality through JavaScript and Web Platform APIs.
+        The browser can do many things, but a security model determines when and how they can be used.
+      </p>
+    </section>
+  </main>
+  <footer id="footer" style="height: 10vh; background: var(--card-bg);font-size:2.2em; border-top: 1px solid var(--muted-fg); overflow: scroll">
+          Output: Output from the example codes!
+  </footer>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

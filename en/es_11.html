@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Automation - Chapter 11: Office Automation (Cloud)</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+
+<body>
+  <header>
+    <h1>Chapter 11 – Office Automation (Google Apps Script and Office Scripts)</h1>
+    <p>
+      In this chapter, we will briefly explore what cloud-based <strong>office (office) automation</strong> means, and
+      how we can programmatically handle spreadsheets, emails, and documents using <strong>JavaScript/TypeScript</strong>.
+      Of course, this is a quite complex topic that requires a lot of background knowledge (but that's what LLMs are for),
+      here the goal is roughly to understand:
+      <em>what problems this is good for</em>, <em>in what environment it runs</em>, and <em>what the code looks like</em>.
+    </p>
+  </header>
+
+  <main>
+
+    <section>
+      <h2>1. What is office automation?</h2>
+
+      <article>
+        <h3>1.1. Basic model: data + event + rule + automatic operation</h3>
+        <p>
+          Office automation refers to executing repetitive (or human-error-prone) tasks within spreadsheet/form/email/document environments
+          <strong>with programmed logic</strong>.
+        </p>
+
+        <p class="info">
+          So here, you don't tell it to do this or that explicitly; instead: <strong>some data changes</strong> (or a certain time passes) →
+          <strong>a rule (system) runs</strong> →
+          <strong>something happens in response</strong> (marking, calculation, email, report, file movement, etc.).
+        </p>
+      </article>
+
+      <article>
+        <h3>1.2. What is this good for?</h3>
+        <p>
+          Cloud-based office automation is quite widespread, and it will probably become even more so. In many cases, you can perform these tasks
+          through the existing UI, but it is slow, error-prone, and poorly scalable (okay once, but not 100 times).
+          Some common real-world examples:
+        </p>
+
+        <ul>
+          <li><strong>Validation</strong>: marking incorrect formats, missing fields, duplicates.</li>
+          <li><strong>Reporting</strong>: weekly/monthly summaries, dashboard updates.</li>
+          <li><strong>Notification</strong>: automatic email/Teams message when "something happened".</li>
+          <li><strong>Form→Processing→Archiving</strong>: validation upon submission, saving under Drive/SharePoint.</li>
+          <li><strong>Scheduled updates</strong>: reading data from API, updating spreadsheet daily.</li>
+        </ul>
+
+        <p>
+          Essentially, we can create a small but very useful "mini-application" from a spreadsheet.
+        </p>
+      </article>
+
+      <article>
+        <h3>1.3. Why "cloud"? What's the difference?</h3>
+        <p>
+          In the cloud, the code typically does not run on your own machine but in the provider's environment.
+          This entails several implications:
+        </p>
+
+        <ul>
+          <li>No need to install anything, no own server: the platform provides the runtime environment.</li>
+          <li>Instead of a "file system", there are <strong>services</strong> (Drive/SharePoint, Gmail/Outlook, etc.).</li>
+          <li>Access is tied to <strong>permissions</strong> and <strong>scopes</strong>.</li>
+          <li>Execution is usually triggered by <strong>triggers</strong> (time, event, workflow step).</li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Popular platforms: Google Apps Script and Microsoft Office Scripts</h2>
+
+      <article>
+        <h3>2.1. Common ground</h3>
+        <p>
+          Both solutions run in the cloud, are document-centric (Sheets/Excel), and are accessible via a
+          <strong>platform API</strong> for data and operations.
+        </p>
+
+        <p class="info">
+          Here, there is no DOM (like in the browser), and no file system either (or npm, as in Node.js).
+          The object model of the respective office platform is the whole world. Whatever is there, is there; whatever isn't, isn't.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.2. Google Apps Script (GAS)</h3>
+        <ul>
+          <li>JavaScript-based environment in Google Cloud</li>
+          <li>Native integration: Sheets, Drive, Gmail, Calendar</li>
+          <li>Start: time-based trigger, form/spreadsheet event, or manual execution</li>
+          <li>Main entry points (API objects): <code>SpreadsheetApp</code>, <code>GmailApp</code>, <code>DriveApp</code></li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>2.3. Microsoft Office Scripts</h3>
+        <ul>
+          <li>TypeScript/JavaScript-like environment in Excel Online</li>
+          <li>Workflow integration: Power Automate (Flows)</li>
+          <li>Main entry point: <code>workbook</code> object (and within it worksheet/range)</li>
+          <li>Stronger (or more) typing (TypeScript), which helps prevent errors</li>
+        </ul>
+        <p class="info">TypeScript is a "superset" of JavaScript where you can specify strict types for variables
+        and formal parameters. In other words, you can specify that your addition function accepts numbers (number),
+        and then it cannot be given anything else (like string).</p>
+      </article>
+
+      <article>
+        <h3>2.4. Summary of differences</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Aspect</th>
+              <th>Google Apps Script</th>
+              <th>Office Scripts</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Language</td>
+              <td>JavaScript</td>
+              <td>TypeScript (JS-like)</td>
+            </tr>
+            <tr>
+              <td>Trigger</td>
+              <td>Built-in triggers (time/event)</td>
+              <td>Typical with Power Automate workflows</td>
+            </tr>
+            <tr>
+              <td>Ecology</td>
+              <td>Native Gmail/Drive/Calendar</td>
+              <td>Native Teams/SharePoint/Office 365</td>
+            </tr>
+            <tr>
+              <td>Execution</td>
+              <td>Google server</td>
+              <td>Excel Online (cloud)</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Basic differences compared to Node.js and browsers</h2>
+
+      <article>
+        <h3>3.1. Node.js vs Office cloud runtime</h3>
+        <p>
+          We previously used Node.js for "local automation": files, folders, commands, system-level operations.
+          In office automation, the environment is completely different.
+        </p>
+
+        <ul>
+          <li><strong>NO</strong> (or heavily limited) file system access.</li>
+          <li><strong>NO</strong> (or limited) NPM package management – you don't extend it like in Node.</li>
+          <li>The entry point is the <strong>document API</strong>, not the system.</li>
+          <li>Start is typically <strong>trigger/workflow</strong>, not CLI command.</li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>3.2. Differences between browser JS and Office cloud</h3>
+        <p>
+          In browsers, the "world" is HTML/DOM (buttons, fields, elements). In office automation in the cloud, the "world" is the document:
+          worksheets, cells, tables, formatting.
+        </p>
+        <p>
+          In a cloud document:
+        </p>
+
+        <ul>
+          <li>No <code>document</code> object, no DOM.</li>
+          <li>No traditional UI: the interface itself is the spreadsheet.</li>
+          <li>Manipulations are applied not to DOM elements but to <strong>ranges</strong> and <strong>cells</strong>.</li>
+        </ul>
+        <p>
+          Briefly and concisely:
+        </p>
+        <ul>
+          <li><strong>Browser</strong>: UI-centric programming (DOM + events).</li>
+          <li><strong>Node.js</strong>: system-centric automation (files, processes, commands).</li>
+          <li><strong>Office cloud</strong>: document-centric automation (ranges, tables, triggers/workflows).</li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. So, how do you do this?</h2>
+      <p>
+      Well, first you need to learn many functions, objects, and read the documentation thoroughly... 😉
+      </p>
+      <p>
+      I mean, used to be that way. Fortunately, today there are large language models that know all this, so our job is just
+      to understand what we're doing and copy the code into the right place. Let's look at some samples!
+      </p>
+      <p>They won't be long, mostly just short examples to see what such automation looks like.</p>
+      <p>
+      You will need a spreadsheet application for the code snippets (here, on this HTML page, they won't do what we intended).
+      You can also try it in Google Sheets, for example.
+      Open a new spreadsheet. Enter some data.
+      Under the Extensions tab, you'll find an Apps Script menu (which opens a nice editor).
+      You can paste functions here (and run them with the run button). However, since we haven't dealt with permissions,
+      Google Workspace will complain that the code is "not safe" and only run it if you trust the author.
+      So, if you trust yourself, you'll need to click the small permission button, not the large "Back to security" button, because that won't allow execution.
+      </p>
+      <p>
+      Since we haven't set up
+      </p>
+
+      <article>
+        <h3>4.1. Google Apps Script - automatic email sending from spreadsheet</h3>
+        <p>
+          Suppose the last row contains an email address, and we want to automatically send a notification to it.
+        </p>
+        <textarea data-lang="js">
+function sendNotification() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const lastRow = sheet.getLastRow();
+
+  const email = sheet.getRange(lastRow, 2).getValue(); // e.g., column B: email
+
+  GmailApp.sendEmail(
+    email,
+    "Notification",
+    "Your data has been recorded."
+  );
+}
+        </textarea>
+        <p>You can see that in the script, we use several "global" objects (SpreadsheetApp, GmailApp). These global objects
+        have multiple properties and methods (the exact details are in the documentation). The function (method) names are quite descriptive.
+        </p>
+        <p>
+        From the active spreadsheet, we store the active sheet in a variable (usually used multiple times). We get the last row number,
+        then use it to extract the value from the second column. Finally, we send it with GmailApp.
+        </p>
+        <p>
+        It's not that complicated, right?
+        </p>
+      </article>
+
+      <article>
+        <h3>4.2. Default value (if the cell is empty)</h3>
+        <p>
+          If a cell is empty (falsy), assign it a default value.
+        </p>
+        <textarea data-lang="js">
+function ensureDefault() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const cell = sheet.getRange("B2");
+
+  const value = cell.getValue();
+  if (!value) {
+    cell.setValue(42);
+  }
+}
+        </textarea>
+      </article>
+
+      <article>
+        <h3>4.3. Office Scripts – coloring negative numbers (Excel Online)</h3>
+        <p>
+          Traverse the used range, and if a negative number is found, set a red background.
+        </p>
+        <textarea data-lang="js">
+function main(workbook: ExcelScript.Workbook) {
+  const sheet = workbook.getActiveWorksheet();
+  const range = sheet.getUsedRange();
+  const values = range.getValues();
+
+  for (let r = 0; r < values.length; r++) {
+    for (let c = 0; c < values[r].length; c++) {
+      if (typeof values[r][c] === "number" && values[r][c] < 0) {
+        range.getCell(r, c)
+          .getFormat()
+          .getFill()
+          .setColor("red");
+      }
+    }
+  }
+}
+        </textarea>
+
+        <p>
+          Here, the Microsoft approach is clearly visible: a strongly object-oriented API, with many chained calls
+          (format/fill/color), and in the main function, you can see that we specified the workbook type as well.
+        </p>
+        <p class="info">
+          TypeScript would deserve a separate course; for now, it's enough to note that with colon syntax
+          we can specify the type we consider correct for a variable/parameter.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.4. Office Scripts – generating a sum from a column</h3>
+        <p>
+          Calculate something. Sum the numbers in the range A1:A10, then write the result into cell B1.
+          I know, there's a function for that, the good old sum(), but this is just a super simple example.
+          You could imagine anything here that JavaScript can do. For example, iterative approximation, Maya calendar,
+          or whatever comes to mind.
+        </p>
+        <textarea data-lang="js" data-readonly>
+function main(workbook: ExcelScript.Workbook) {
+  const sheet = workbook.getActiveWorksheet();
+  const range = sheet.getRange("A1:A10");
+  const values = range.getValues();
+
+  let sum = 0;
+
+  for (let i = 0; i < values.length; i++) {
+    const v = values[i][0];
+    if (typeof v === "number") sum += v;
+  }
+
+  sheet.getRange("B1").setValue(sum);
+}
+        </textarea>
+        <p>
+        Could you read the code?
+        </p>
+      </article>
+
+      <article>
+        <p>
+          In the second part of the chapter, we will use these patterns in some form:
+          triggers, permissions, table structure, and typical "task pipelines".
+          For now, the goal was to clearly understand the mindset.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>Summary</h2>
+      <ul>
+        <li>Office automation in the cloud is <strong>document-centric</strong>.</li>
+        <li>Two common platforms: <strong>Google Apps Script</strong> and <strong>Microsoft Office Scripts</strong>.</li>
+        <li>Compared to Node.js, no file system + npm-like freedom; compared to browsers, no DOM.</li>
+        <li>The code is short, but the key is understanding the <strong>API object model</strong> and <strong>triggers/workflows</strong>.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="codeblocks.js"></script>
+</body>
+</html>

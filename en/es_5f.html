@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript Language Basics – Lesson 5 – Practice Tasks</title>
+  <script>"use strict";</script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+<body>
+  <header>
+    <h1>Lesson 5: Practice Tasks</h1>
+    <p>
+      The following tasks cover the topics of: error handling, strict mode, "module" approach, special object syntax,
+      prototype chain.
+    </p>
+    <p>
+      If you feel that the content of any block is not 100% clear, that's okay. It will still be like this for a while,
+      you won't always be able to understand everything immediately down to the last detail. But that's not necessary,
+      the goal is just to be able to roughly read the code (roughly what it does), and your task is only to achieve the goal set in the task: modify something or extend the code.
+    </p>
+    <p>If you're curious about the exact details, that's an advantage. Copy the code snippet into an LLM and ask it to explain
+    the part you didn't understand.</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1) Validation</h2>
+      <p>
+        Complete the <code>validateUser</code> function so that it throws an error in case of invalid input:
+        if it did not receive an object → <code>TypeError</code>, missing or empty <code>name</code> → <code>TypeError</code>,
+        if <code>age</code> is not a number or outside the range 0–120 → <code>RangeError</code>.
+      </p>
+      <p>
+      This way, when using the function, you'll always get a "talkative" error if something's wrong with the data!
+      </p>
+
+      <textarea data-lang="js">
+function validateUser(user) {
+  // ...TODO... type check (is it even an object?)
+  // ...TODO... check name (string, not empty)
+  // ...TODO... check age (number, within 0..120)
+
+  return true
+}
+
+const samples = [
+  { name: "Ada", age: 36 }, // ok
+  { name: "", age: 36 },  // missing name
+  { name: "Béla", age: 999 }, // invalid age
+  "this is not an object"    
+]
+
+for (const s of samples) {
+  try {
+    validateUser(s)
+    console.log("OK:", s)
+  } catch (err) {
+    console.log("ERROR:", err.name, "-", err.message, "| input:", s)
+  }
+}
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          <code>typeof user !== "object" || user === null</code> is a good base. For <code>name</code>: <code>typeof user.name !== "string" || user.name.trim() === ""</code>.
+          For <code>age</code>: <code>typeof user.age !== "number" || Number.isNaN(user.age)</code>
+          plus range check: <code>user.age &lt; 0 || user.age &gt; 120</code>.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>2) try/catch/finally</h2>
+      <p>
+        In the following example, based on a network command, we want to traverse an N*N board. The commands are a sequence of letters: U=up, D=down, L=left, R=right.
+      </p>
+      <ul>
+      <li>We log every step taken on the board so that later we can trace what we did.</li>
+      <li>We mark invalid commands with an exclamation mark.</li>
+      </ul>
+      <p>
+      The program is created and works, but for some reason it only records the invalid steps in the log!
+      We want all steps (both valid and invalid) to appear in the log, only invalid ones marked with an exclamation mark.
+      </p>
+      <p>
+      Read the code. Find the bug and fix it at the given place! (remember: finally always runs!)
+      </p>
+
+      <textarea data-lang="js">
+
+function changeBoard(board, x=0, y=0)  {
+  if (
+    0 <= x &&
+    x < board.size &&
+    0 <= y &&
+    y < board.size
+  ) return {...board,x,y}
+  throw new Error(`Fell off the board! (${x}, ${y})`)
+}
+
+function step(b,cmd) {
+  const {x,y} = b
+  try {
+    switch (cmd) {
+      case 'L': return changeBoard(b,x-1,y)
+      case 'R': return changeBoard(b,x+1,y) 
+      case 'U': return changeBoard(b,x,y-1)
+      case 'D': return changeBoard(b,x,y+1)
+      default: throw new RangeError('Unknown command: ' + cmd)
+    }
+  } catch (err) {
+    console.warn("ERROR:", err.message)
+    cmd = '!' + cmd // mark the command as invalid
+  } 
+
+  // ...TODO...
+
+  b.log.push(cmd) // save to log
+  return b // remain with the original board
+}
+
+// this is the system state:
+// board size, current position, and log
+board = { size: 10, x: 2, y: 2, log: [] } 
+
+for (command of readNetwork())   
+  board = step(board,command)
+
+//------------Simulated network----------------------
+
+function* readNetwork() {
+ const simulatedInput = "UXUUFDLRDLLLRDDRR"
+ for (const c of simulatedInput) yield c
+}
+board
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+        The problem is that in the switch, we return immediately (in multiple places),
+        so the function never reaches the part where we would update the log at the end!
+        </p>
+        <p>
+        Use the <code>finally</code> structure, which always executes!
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>3) Strict mode</h2>
+      <p>
+      We created a complex number adder, but for some reason it doesn't calculate correctly!
+        Find the bug and fix it!
+        The task is successful if it outputs the correct sum at the end.
+      </p>
+      <p>
+      Hint: We didn't use "strict mode" here, because it doesn't work in this code block,
+      so we're not protected from accidental global variable creation... Maybe that's where the problem is?
+      </p>
+
+      <textarea data-lang="js">
+
+function addComplex(a,b) {
+  r = a.r + b.r
+  i = a.i + b.i
+  return { r, i }
+}
+
+// r denotes the real part and i the imaginary part
+total = { r: 0, i: 0 } 
+
+const cnums = [{ r:-2, i: 4}, { r:2, i: -1}, { r:6, i: -2}]
+
+for (i=0; i<cnums.length; i++) 
+  total = addComplex(total, cnums[i])
+
+// correct result: { r: 6, i: 1 }
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+        In the for loop, we use <code>i</code> and also in the addComplex function.
+        This is not a problem by itself, but if you look closer, neither case uses <code>let</code> or <code>const</code>.
+        So these are global variables. Moreover, they are not even variables, but a variable,
+        because of this, these two are the same!
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>4) "Mini-module simulation" (IIFE)</h2>
+      <p>
+        Think through what the code does! Contrary to appearances, the CounterModule
+        is not a function definition!
+      </p><p>
+        Define the missing parts so that <code>CounterModule</code> hides the internal state.
+        The module should be usable with the following API: <code>inc()</code>, <code>dec()</code>, <code>get()</code>, <code>reset()</code>.
+      </p>
+
+      <textarea data-lang="js">
+const CounterModule = (() => {
+  let value = 0
+
+  function inc() {
+    // ...TODO... increase value and return the new value
+  }
+
+  function dec() {
+    // ...TODO... decrease value and return the new value
+  }
+
+  function get() {
+    // ...TODO... return the current value
+  }
+
+  function reset() {
+    // ...TODO... reset value to 0 and return 0
+  }
+
+  // return the "API" (object containing methods)
+  return { inc, dec, get, reset }
+})()
+
+
+// this should work:
+console.log(CounterModule.get()) // output
+console.log(CounterModule.inc()) // increment
+console.log(CounterModule.inc()) // increment
+console.log(CounterModule.dec()) // decrement
+console.log(CounterModule.reset()) // reset
+console.log(CounterModule.get()) // output
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          The key is that <code>value</code> should not be accessible from outside.
+          In the functions, just do: <code>value = value + 1</code>, <code>value = value - 1</code>, etc.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>5) Computed property and destructuring</h2>
+      <p>
+        Complete the <code>buildRecord</code> function: the returned object should have a dynamic key
+        (<code>type + "_" + id</code>), whose value is an object <code>{ name, score }</code>.
+        Use destructuring from the parameter object.
+      </p>
+      <p>
+      Destructuring pattern: <code>const { x, y } = {x:6, y:11}</code>.
+      </p>
+      <textarea data-lang="js">
+function buildRecord(input) {
+  // ...TODO... destructuring: extract type, id, name, score
+  // ...TODO... create object with computed property
+
+  return result
+}
+
+console.log([
+  buildRecord({ type: "user", id: 7, name: "Mira", score: 98 }),
+  buildRecord({ type: "team", id: 3, name: "Blue", score: 41 }),
+])
+// should produce something like:
+// [
+//  { "user_7": { "name": "Mira", "score": 98 } },
+//  { "team_3": { "name": "Blue", "score": 41 } }
+// ]
+      </textarea>
+
+      <details>
+        <summary>Hint</summary>
+        <p>
+          Computed property: <code>const key = type + "_" + id</code>, then <code>const result = { [key]: { name, score } }</code>.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>Extra</h2>
+      <p>
+        If you think the tasks were too simple, check what would happen with other inputs!
+        What happens if it receives strange input? (For example, NaN instead of a specific number)
+        Maybe write better error messages!
+      </p>
+    </section>
+  </main>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+<script src="codeblocks.js"></script>
+</html>

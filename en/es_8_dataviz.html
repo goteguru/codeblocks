@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>8.1 Simple Data Visualization with JavaScript</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css" />
+  <link rel="stylesheet" href="codeblocks.css" />
+</head>
+
+<body>
+  <header>
+    <h1>Lesson 8.1 – Simple Data Visualization</h1>
+    <p>
+      In this lesson, we will look at how to quickly and clearly create a chart from data using JavaScript.
+      First, we will create a super simple console bar chart, then examine three popular libraries:
+      <strong>Chart.js</strong>, <strong>Google Charts</strong>, and <strong>D3.js</strong>.
+    </p>
+    <p>
+      The goal is not really to "learn" a library (that would be a separate course), but to get a sense of the thinking pattern,
+      and to know when it is worth using a library.
+      Of course, if you like the libraries, it is worth exploring them more deeply!
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Warm-up: "graph" in the console</h2>
+      <p>
+        First, let's create a minimal bar chart solely in the console.
+        The didactic point is to see that the diagram is not magic, but a <strong>representation</strong>.
+        Here, the bar is a repeated character.
+      </p>
+
+      <article>
+        <h3>1.1. Simple bars (ASCII / Unicode)</h3>
+        <textarea data-lang="js">
+const data = [3, 7, 2, 5, 9, 4, 6, 1, 8, 3, 5, 2]
+
+// a simple "bar" character
+const block = "█"
+
+for (let value of data) {
+  console.log(block.repeat(value))
+}
+        </textarea>
+        <p>
+          See, you can make a chart this simple :) 
+          This is a useful pattern because it immediately shows the connection:
+          the code maps the data to something else (a graphic),
+          which is essentially a transformation.
+          Larger value → longer bar.
+        </p>
+        <p>
+        If you rerun it, the diagram updates. (change the data
+        and run again).
+        </p>
+      </article>
+
+      <article>
+        <h3>1.2. Scaling: when data is too large</h3>
+        <p>
+          Real data often doesn't fit in "characters" because the bar would be too long.
+          In such cases, we scale:
+          the maximum value gets the maximum bar width, and others are proportionally shorter.
+        </p>
+
+        <textarea data-lang="js">
+const data = [120, 35, 90, 12, 200, 160, 55, 18, 75, 40, 10, 145]
+
+const maxBar = 30
+const maxValue = Math.max(...data)
+
+for (let value of data) {
+  const scaled = Math.round(value / maxValue * maxBar)
+  const bar = "█".repeat(scaled)
+  console.log(String(value).padStart(4, " "), bar)
+}
+        </textarea>
+
+        <p>
+          Here, a typical visualization concept appears: <strong>mapping</strong>.
+          We "convert" the data value into a display unit (number of characters).
+        </p>
+      </article>
+
+      <article>
+        <h3>1.3. Why don't we do everything "by hand"?</h3>
+        <ul>
+          <li>If <strong>axes</strong>, <strong>scale</strong>, <strong>labels</strong> are needed, our short code quickly becomes complicated</li>
+          <li>If <strong>interactivity</strong> (hover, tooltip) is needed, that requires even more code</li>
+          <li>If <strong>customization</strong> or <strong>responsive</strong> behavior is required, the code will grow many pages long.</li>
+        </ul>
+        <p>
+          This is where libraries come into play: they handle the routine tasks (axes, scale, tooltip),
+          so you only need to focus on the data and the style of the chart.
+        </p>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. Chart.js</h2>
+      <p>
+        Chart.js is a popular, easy-to-use library that provides quick solutions for most basic chart types (bar, line, pie).
+        The typical workflow: load data, define labels, create a configuration object.
+      </p>
+
+      <article>
+        <h3>2.1. Advantages</h3>
+        <ul>
+          <li>quick success, minimal code</li>
+          <li>good defaults (axes, labels, tooltip)</li>
+          <li>Canvas-based (though not necessarily an advantage)</li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>2.2. Minimal example: bar chart with 12 data points</h3>
+        <p>
+          After running the code, it draws on the above <code>&lt;canvas&gt;</code>. We clear it before rerunning.
+          The <code>canvas</code> is an HTML DOM element specifically for drawing.
+        </p>
+
+      <figure>
+        <figcaption>Chart.js target surface (Canvas)</figcaption>
+        <canvas id="chartjsCanvas" width="700" height="320" aria-label="Chart.js chart canvas" role="img"></canvas>
+      </figure>
+
+        <textarea data-lang="js">
+// this is the canvas (above)
+const canvas = document.getElementById("chartjsCanvas")
+const ctx = canvas.getContext("2d")
+
+// quickly clear the canvas if something is already there:
+ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+// these will be our data
+const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const values = [12, 19, 7, 15, 22, 9, 14, 18, 10, 16, 13, 8]
+
+// if previously run, destroy the previous chart instance
+if (window.__chartjsInstance) {
+  window.__chartjsInstance.destroy()
+}
+
+window.__chartjsInstance = new Chart(ctx, {
+  type: "bar",
+  data: {
+    labels,
+    datasets: [
+      {
+        label: "Sample data",
+        data: values
+      }
+    ]
+  },
+  options: {
+    responsive: false,
+    plugins: {
+      title: {
+        display: true,
+        text: "Chart.js – simple bar chart"
+      }
+    }
+  }
+})
+
+undefined
+        </textarea>
+        <p>
+          We only added an <code>undefined</code> at the end of the code because
+          our code blocks display the last value, which would be the huge Chart object.
+          If you're curious what it looks like, remove the last <code>sort</code>, run again, and you can see it. It will be quite large.
+        </p>
+
+        <p>
+          The main point to notice is that the library takes over the "dirty work" (axes, scale, labels),
+          and we only need to handle the <code>labels</code> and <code>data</code> structures.
+          If the default settings are good, that's fine; if not, many options are available for customization.
+        </p>
+      </article>
+
+      <article>
+        <h3>2.3. More demos</h3>
+        <p>
+          Of course, this library can draw more than bar charts. It contains many built-in types,
+          enough to fill an entire website for demonstration. Here are some examples:
+        </p>
+        <ul>
+          <li><a href="https://www.chartjs.org/docs/latest/samples/" target="_blank" rel="noreferrer">Chart.js Samples</a></li>
+          <li><a href="https://www.chartjs.org/docs/latest/" target="_blank" rel="noreferrer">Chart.js Documentation</a></li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. Google Charts</h2>
+      <p>
+        Google Charts' strength is that it offers many "ready-made" chart types, and some special visualizations
+        that would require more work with other libraries. For example, the <strong>GeoChart</strong> (map-based chart).
+      </p>
+
+      <article>
+        <h3>3.1. Advantages</h3>
+        <ul>
+          <li>many ready-made chart types</li>
+          <li>good "dashboard" style solutions (tooltip, labels)</li>
+          <li>GeoChart: data for countries/regions on a map</li>
+        </ul>
+      </article>
+      
+      <figure>
+        <figcaption>Google Charts target surface</figcaption>
+        <div id="googleChart" role="img" aria-label="Google Charts diagram" style="width: 700px; height: 360px"></div>
+      </figure>
+
+      <article>
+        <h3>3.2. Minimal example: bar chart</h3>
+        <p>
+          Loading Google Charts is asynchronous: first, load the package, then draw in a callback.
+        </p>
+
+        <textarea data-lang="js">
+// insert the diagram here (if something is there, delete it)
+const gchart = document.getElementById("googleChart")
+gchart.innerHTML = ""
+
+google.charts.load("current", { packages: ["corechart"] })
+
+google.charts.setOnLoadCallback(() => {
+  const data = google.visualization.arrayToDataTable([
+    ["Month", "Value"],
+    ["Jan", 12],
+    ["Feb", 19],
+    ["Mar", 7],
+    ["Apr", 15],
+    ["May", 22],
+    ["Jun", 9],
+    ["Jul", 14],
+    ["Aug", 18],
+    ["Sep", 10],
+    ["Oct", 16],
+    ["Nov", 13],
+    ["Dec", 8]
+  ])
+
+  const options = {
+    title: "Google Charts - simple bar chart",
+    legend: { position: "none" }
+  }
+
+  const chart = new google.visualization.ColumnChart(gchart)
+  chart.draw(data, options)
+})
+        </textarea>
+        <p>
+          Here, the "markup" is really minimal: a single <code>&lt;div&gt;</code> as the target surface, and everything else is configuration.
+        </p>
+      </article>
+
+      <article>
+        <h3>3.3. More demos</h3>
+        <ul>
+          <li><a href="https://developers.google.com/chart/interactive/docs/gallery" target="_blank" rel="noreferrer">Google Charts Gallery</a></li>
+          <li><a href="https://developers.google.com/chart/interactive/docs" target="_blank" rel="noreferrer">Google Charts Documentation</a></li>
+          <li><a href="https://developers.google.com/chart/interactive/docs/gallery/geochart" target="_blank" rel="noreferrer">GeoChart</a></li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. D3.js</h2>
+      <p>
+        D3.js does not just provide "ready-made" charts but is a lower-level toolkit:
+        you create and configure DOM/SVG elements based on data. This is much more flexible but requires more thinking.
+      </p>
+
+      <article>
+        <h3>4.1. Advantages</h3>
+        <ul>
+          <li>very flexible (custom visualizations)</li>
+          <li>powerful scale and data mapping tools</li>
+          <li>interactivity and animation are manageable</li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>4.2. Minimal example: "bare" bar chart in SVG</h3>
+        <p>
+          This example is intentionally simple: no axes, no labels.
+          The goal is to see the core idea of D3: <strong>data → elements</strong>.
+        </p>
+
+      <figure>
+        <figcaption>D3 target surface (SVG)</figcaption>
+        <div id="d3Chart" aria-label="D3 diagram container"></div>
+      </figure>
+
+        <textarea data-lang="js">
+// insert the image here. Clear it if something is there
+const d3chart = document.getElementById("d3Chart")
+d3chart.innerHTML = ""
+
+const values = [12, 19, 7, 15, 22, 9, 14, 18, 10, 16, 13, 8]
+const padding = 20
+const width = 700 // make the diagram this wide
+const height = 320 // and this tall
+
+const maxValue = d3.max(values)
+
+// scale: data value -> pixel height
+const y = d3.scaleLinear()
+  .domain([0, maxValue])
+  .range([0, height - 2 * padding])
+
+const barWidth = (width - 2 * padding) / values.length
+
+const svg = d3.select("#d3Chart")
+  .append("svg")
+  .attr("width", width) 
+  .attr("height", height) 
+
+svg.selectAll("rect")
+  .data(values)
+  .enter()
+  .append("rect")
+  .attr("x", (d, i) => padding + i * barWidth)
+  .attr("y", d => height - padding - y(d))
+  .attr("width", Math.max(1, barWidth - 4))
+  .attr("height", d => y(d))
+  .attr("fill", "steelblue")
+
+// label (just text for context)
+svg.append("text")
+  .attr("x", padding)
+  .attr("y", padding)
+  .text("D3.js - simple bar chart")
+
+undefined
+        </textarea>
+        <p>
+        Maybe this shows enough that D3 does not give us ready-made graphs. It is more of a tool for handling the underlying technology (SVG),
+        which allows us to map data into SVG elements in a consistent (and data-driven) way.
+        </p>
+
+        <p>
+          If you add some features now—axes, labels, ticks, tooltips, responsive behavior—the code would grow significantly.
+          Therefore, use D3 when customization is important or when you want to implement something unique that other libraries cannot do.
+        </p>
+      </article>
+
+      <article>
+        <h3>4.3. More demos</h3>
+        <ul>
+          <li><a href="https://d3js.org/" target="_blank" rel="noreferrer">Official D3 site</a></li>
+          <li><a href="https://observablehq.com/@d3/gallery" target="_blank" rel="noreferrer">D3 Gallery (Observable)</a></li>
+          <li><a href="https://github.com/d3/d3/wiki" target="_blank" rel="noreferrer">D3 Wiki / Documentation</a></li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <h2>5. Using LLMs</h2>
+      <p>
+        Setting up a large library can seem intimidating at first because (sometimes too) many options are available. But nowadays, working with them is very easy because:
+      </p>
+      <ul>
+        <li>these libraries are widespread, with many examples and ready-made solutions;</li>
+        <li>rarely do we want to rewrite everything from scratch; usually, we customize a pattern (aka copy-paste 😉);</li>
+        <li>large language models (LLMs) can generate code from free text very well!</li>
+      </ul>
+
+      <p>
+        Of course, it helps a lot if you roughly know the possibilities (the right keywords) and include them in the prompt:
+        "Create a Chart.js bar chart with 12 data points, add tooltip and title,
+        and make a button that loads new random data."
+        This way, you don't have to keep all options in your head: just know what you want.
+      </p>
+    </section>
+
+    <section>
+      <h2>6. Summary</h2>
+      <ul>
+        <li>Creating a simple chart is not difficult! Data representation can even work in the console.</li>
+        <li>The "manual" solution doesn't seem too bad, but the devil is in the details. When more features are needed: use a library.</li>
+        <li>Libraries handle the tedious parts for you: axes, tooltips, scaling, responsiveness.</li>
+        <li>Chart.js: fast and convenient "general purpose".</li>
+        <li>Google Charts: many ready-made types, special features (e.g., GeoChart).</li>
+        <li>D3: flexible but more work—best when you want something custom.</li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- CDNs: these are used in code examples -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="codeblocks.js"></script>
+</body>
+</html>
