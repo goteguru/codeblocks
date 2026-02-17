@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JavaScript automatizálás – 11. fejezet (2. rész): Google Workspace tutorial</title>
+  <title>JavaScript automatizálás - 11. fejezet (2. rész): Google Workspace tutorial</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.css">
@@ -12,7 +12,7 @@
 
 <body>
   <header>
-    <h1>11. fejezet – 2. rész: Google Workspace automatizálás (tutorial)</h1>
+    <h1>11. fejezet - 2. rész: Google Workspace automatizálás (tutorial)</h1>
     <p>
       Ebben a fejezetben egy konkrét példán keresztül, <strong>lépésről lépésre</strong> végigcsinálunk egy
       automatizálási feladatot a teljes <strong>Google Forms → Google Sheets → Apps Script → Gmail/Drive</strong> láncon.
@@ -48,8 +48,8 @@
 
       <p class="info">
         Nem annyira a "programozási feladvány" a lényeg, úgyis LLM-el íratod meg eleinte. 
-	Ha el tudod olvasni a kódot az már bőven jó. A cél az, hogy a Google Workspace környezetben
-        megértsd a teljes folyamatot: létrehozás → jogosítás → futtatás → trigger.
+	Ha el tudod olvasni a kódot az már bőven jó. A cél igazából annyi, hogy a Google Workspace környezetben
+        megértsd a teljes folyamatot: létrehozás → feljogosítás → futtatás → trigger.
       </p>
 
     </section>
@@ -85,7 +85,7 @@
           <li>Az űrlap tetején nyisd meg a <strong>Válaszok</strong> fület.</li>
           <li>Kattints a zöld Sheets ikonra (táblázat létrehozása).</li>
           <li>Válaszd: <strong>Új táblázat létrehozása</strong>.</li>
-          <li>Adj neki nevet, pl. <strong>"Igénybejelentések – válaszok"</strong>.</li>
+          <li>Adj neki nevet, pl. <strong>"Igénybejelentések - válaszok"</strong>.</li>
           <li>Kattints: <strong>Létrehozás</strong>.</li>
         </ol>
         <p >
@@ -333,7 +333,7 @@ function archiveRecord_(record, status) {
 
 function sendConfirmation_(record) {
   const to = String(record.Email).trim();
-  const subject = `Visszaigazolás – igény rögzítve (${record.ID})`;
+  const subject = `Visszaigazolás - igény rögzítve (${record.ID})`;
 
   const body =
 `Szia ${record["Név"] || ""}!
@@ -384,7 +384,7 @@ function sendDailyDigest() {
   const colTs = headerMap["Timestamp"];
 
   if (!colStatus || !colId) {
-    MailApp.sendEmail(DAILY_DIGEST_TO, "Napi összesítő – nincs még feldolgozott adat", "Még nincs Status/ID oszlop.");
+    MailApp.sendEmail(DAILY_DIGEST_TO, "Napi összesítő - nincs még feldolgozott adat", "Még nincs Status/ID oszlop.");
     return;
   }
 
@@ -411,7 +411,7 @@ function sendDailyDigest() {
     });
   }
 
-  const subject = `Napi összesítő – NEW igények: ${items.length}`;
+  const subject = `Napi összesítő - NEW igények: ${items.length}`;
   const body = items.length === 0
     ? "Ma nem érkezett NEW igény."
     : items.map(it => `- ${it.id}: ${it.topic} (${it.email})`).join("\n");
@@ -493,7 +493,7 @@ function sendDailyDigest() {
           <li>Triggers → <strong>Add Trigger</strong></li>
           <li>Function: <code>sendDailyDigest</code></li>
           <li>Event source: <strong>Time-driven</strong> → pl. <strong>Day timer</strong></li>
-          <li>Válassz időablakot (pl. 18:00–19:00).</li>
+          <li>Válassz időablakot (pl. 18:00-19:00).</li>
           <li><strong>Save</strong></li>
         </ol>
       </article>
