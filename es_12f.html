@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mini projekt: AutoCAD 2024 + Google Sheets (Apps Script Web App) - Rajzolás felhőből</title>
+
+  <!-- (Opcionális) Ha a korábbi leckékben használtátok -->
+  <!-- <link rel="stylesheet" href="codeblock.css"> -->
+
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --panel:#111824;
+      --text:#e6edf3;
+      --muted:#9fb0c0;
+      --border:#213042;
+      --accent:#7dd3fc;
+      --accent2:#a7f3d0;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --ok:#34d399;
+      --codebg:#0a1220;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg:#f7fafc;
+        --panel:#ffffff;
+        --text:#0b1220;
+        --muted:#4b5563;
+        --border:#e5e7eb;
+        --accent:#0284c7;
+        --accent2:#059669;
+        --warn:#b45309;
+        --bad:#be123c;
+        --ok:#047857;
+        --codebg:#0b1220;
+      }
+    }
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.6;
+    }
+    header{
+      padding:28px 18px;
+      border-bottom:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(125,211,252,0.08), transparent);
+    }
+    .wrap{ max-width: 980px; margin: 0 auto; padding: 0 18px 48px; }
+    h1{ margin:0 0 10px; font-size: 28px; line-height: 1.2; }
+    .sub{ color:var(--muted); margin:0; }
+    nav{
+      margin:18px 0 0;
+      display:flex; flex-wrap:wrap; gap:10px;
+    }
+    nav a{
+      color:var(--text);
+      text-decoration:none;
+      border:1px solid var(--border);
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.02);
+    }
+    nav a:hover{ border-color: var(--accent); }
+    section{
+      margin-top: 26px;
+      background: var(--panel);
+      border:1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 18px 16px;
+    }
+    h2{ margin: 0 0 10px; font-size: 20px; }
+    h3{ margin: 16px 0 8px; font-size: 16px; }
+    p{ margin: 10px 0; }
+    ul,ol{ margin: 10px 0 10px 22px; }
+    .badge{
+      display:inline-block; font-size:12px; padding:2px 8px;
+      border:1px solid var(--border); border-radius: 999px; color: var(--muted);
+      margin-left: 8px;
+    }
+    .callout{
+      border-left: 4px solid var(--accent);
+      padding: 10px 12px;
+      background: rgba(125,211,252,0.06);
+      border-radius: 10px;
+      margin: 12px 0;
+    }
+    .warn{
+      border-left-color: var(--warn);
+      background: rgba(251,191,36,0.08);
+    }
+    .ok{
+      border-left-color: var(--ok);
+      background: rgba(52,211,153,0.08);
+    }
+    .bad{
+      border-left-color: var(--bad);
+      background: rgba(251,113,133,0.08);
+    }
+    code, pre{
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+    pre{
+      background: var(--codebg);
+      color: #e6edf3;
+      padding: 12px;
+      border-radius: 12px;
+      overflow: auto;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+    .k{
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 860px){
+      .grid2{ grid-template-columns: 1fr; }
+    }
+    details{
+      margin: 10px 0;
+      border:1px dashed rgba(159,176,192,0.35);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.02);
+    }
+    summary{
+      cursor:pointer;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .todo{
+      display:inline-block;
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--accent2);
+      margin-left: 8px;
+    }
+    table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 12px;
+      border:1px solid var(--border);
+      margin: 10px 0;
+    }
+    th,td{
+      text-align:left;
+      padding:10px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th{ color: var(--muted); font-weight: 600; }
+    tr:last-child td{ border-bottom:0; }
+    footer{
+      color: var(--muted);
+      padding: 18px;
+      text-align:center;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Mini projekt: AutoCAD 2024 + Google Sheets: rajzolás felhőből</h1>
+	<p>
+	A tanfolyam végére nézzünk valami komolyabbat, egy igazi integrációs projektet! 
+	Kössük össze az AutoCad-et a Google Sheets-el,
+	és készítsünk egy autocad parancsot, amit a felhőben lévő
+	táblázat alapján tud rajzolni valamit (mondjuk téglalapokat, de persze az ég világon bármit rajzolhatna).
+	Úgy szeretnénk megvalósítani, hogy ha táblázat változik, akkor azt rajzolja meg. 
+	</p>
+	<p>
+	Ha nem sikerül ezt a projektet végigcsinálni (vagy nem szeretnél AutoCAD-et telepíteni)
+	akkor ne keseredj el, ez azért tényleg egy komplexebb rendszer, 
+	sok mindent felhasznál. Akkor csak olvasd végig és próbáld megérteni a kódot.
+	(Természetesen - mint mindig - most is kérdezgetsz egy LLM-et is, hogy segítsen átlendülni 
+	azon a ponton ahol elakadtál).
+	</p>
+
+      <nav>
+        <a href="#celt">Cél és áttekintés</a>
+        <a href="#terv">Technológiai terv</a>
+        <a href="#sheets">Sheets beállítása</a>
+        <a href="#appsscript">Apps Script + Deploy</a>
+        <a href="#teszt">Endpoint teszt</a>
+        <a href="#autocad">AutoCAD JS + WEBLOAD</a>
+        <a href="#hibak">Hibakeresés</a>
+        <a href="#feladatok">Extra feladatok</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <section id="celt">
+      <h2>Célok <span class="badge">AutoCAD 2024 • 2D</span></h2>
+
+      <p>
+        Ebben a projektben azt szeretnénk bemutatni, milyen rugalmasan (és sok helyen) használhatjuk a 
+	JavaScript-et (ECMAScript-et) amikor <strong>rendszerek összekötéséről</strong> van szó.
+	Itt most éppen AutoCAD-et fogunk Google Sheets-hez kötni, de nagyon sok más rendszert
+	hozzá tudnál illeszteni nagyon sok más szolgáltatáshoz. Nézzük mit is szeretnénk:
+      </p>
+
+      <ul>
+        <li>a <strong>Google Sheets</strong> tárolja a rajzolási paramétereket,</li>
+        <li>egy <strong>Apps Script Web App</strong> JSON-ként kiolvassa és visszaadja az adatokat,</li>
+        <li>az <strong>AutoCAD 2024</strong> betölt egy JavaScript kiegészítést, ami letölti az adatokat és <strong>téglalapokat rajzol</strong> (nyilván rajzolhat mást is, ha neked az jobban tetszik).</li>
+      </ul>
+
+      <div class="callout ok">
+        <strong>Az Authentikációt itt most jelentősen egyszerűsíteni fogjuk:</strong> a Web App "Anyone with the link" módban fog futni, tehát bárki elérheti.
+	Azért, hogy mégse férjen hozzá bárki az adatainkhoz (az értékes dobozokhoz :)), 
+        bevezetünk egy <strong>shared secret</strong>-et (tehát tulajdonképpen egy nagy véletlenszerű kódot <code>?key=VALAMI</code>), amit a kliensnek kötelező elküldeni.
+	Ha nem küldi, nem kap adatot.
+      </div>
+
+      <h3>Ehhez el kell készítenünk:</h3>
+      <ul>
+        <li>egy Google Sheet mintát adatokkal,</li>
+        <li>egy Apps Script endpointot ami hozzá fér a táblázathoz: <code>GET /exec?key=...</code> → <code>{ items: [...] }</code>,</li>
+        <li>egy AutoCAD parancsot: <strong>drawFromCloud</strong>, ami használja a végpontot és megrajzolja a téglalapokat.</li>
+      </ul>
+    </section>
+
+    <section id="terv">
+      <h2>Technológiai terv</h2>
+
+      <div class="grid2">
+        <div>
+          <h3>Adatfolyam</h3>
+          <pre>
+AutoCAD 2024 (JavaScript)
+   |
+   |  HTTPS GET  /exec?key=SECRET
+   v
+Apps Script Web App
+   |
+   |  SpreadsheetApp → Google Sheets
+   v
+JSON válasz: { items: [ {x,y,width,height}, ... ] }
+   |
+   v
+AutoCAD: RECTANG parancsok futtatása
+          </pre>
+        </div>
+
+        <div>
+          <h3>Miért így csináljuk?</h3>
+	  <p>Nem lehetne másként? De. Ezerféleképpen. Csinálhatnánk komoly OAuth2 authentikációt,
+	  refresh tokent (jóval nehezebb), vagy éppen dolgozhatnánk helyi fájlokkal (egyszerűbb). 
+	  Azért választottuk ezt a mintát, mert viszonylag egyszerű, mégis modern 
+	  és hatékony.
+	  </p>
+          <ul>
+            <li><strong>Kicsi</strong>: nincs OAuth2 setup, nincs token refresh.</li>
+            <li><strong>Professzionális</strong>: web API → JSON → feldolgozás → automatizált rajzolás. (Így csinálják a "nagyok")</li>
+            <li><strong>Kiterjeszthető</strong>: később lehet belőle 3D, blokkelhelyezés, attribútumok, rétegek stb.</li>
+          </ul>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="sheets">
+      <h2>1. lépés - Google Sheets előkészítése <span class="todo">TODO</span></h2>
+
+      <h3>1.1 Táblázat létrehozása</h3>
+      <ol>
+        <li>Hozz létre egy új Google Sheets dokumentumot (pl. <strong>CloudRects</strong> néven).</li>
+        <li>Nevezd át az első sheetet: <strong>Rects</strong> (itt fogjuk keresni az adatot).</li>
+      </ol>
+
+      <h3>1.2 Oszlopok (fejléc)</h3>
+      <p>A <strong>Rects</strong> sheet első sorába írd be:</p>
+
+      <pre>x	y	width	height</pre>
+      <p class="ok">Ha kijelölöd az egészet és nem sima ctrl+v hanem ctrl+shift+v kombinációval illeszted a lapba, akkor nem egy cellába teszi hanem külön, ahogy kell!</p>
+
+      <h3>1.3 Minta adatok</h3>
+      <p>Másold be a következő sorokat (a fejléc alá):</p>
+
+      <pre>
+0	0	100	50
+120	0	60	60
+0	80	200	30
+220	80	40	120
+      </pre>
+
+      <details>
+        <summary>Hint: mit jelentenek ezek?</summary>
+        <ul>
+          <li><code>x, y</code>: bal-alsó sarok koordinátája</li>
+          <li><code>width, height</code>: téglalap méretei</li>
+          <li>A koordináták az AutoCAD aktuális egységeiben értendők.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section id="appsscript">
+      <h2>2-3. lépés - Apps Script endpoint + deploy <span class="todo">TODO</span></h2>
+
+      <h3>2.1 Apps Script projekt létrehozása</h3>
+      <ol>
+        <li>Sheets-ben: <strong>Extensions</strong> → <strong>Apps Script</strong>.</li>
+        <li>Nevezd el a projektet pl. <strong>cloud-rects-api</strong>.</li>
+      </ol>
+
+      <h3>2.2 Shared secret beállítás</h3>
+      <p>
+        Ebben a példában egy egyszerű közös titkot, azaz "shared secret"-et fogunk használni.
+        Válassz egy tetszőlegese értéket, pl.:
+      </p>
+      <pre>AZ_EN_szuperTitk0s-kood0m-998834</pre>
+      <p>
+      Az AutoCAD scriptünk is tudni fogja, hogy ez a kód (nyilván ugyanezt írod majd bele)
+      és elküldi az Apps Scriptnek. Ha valaki nem tudja ezt a kódot, akkor az Apps Script
+      nem áll vele szóba. Így (többé-kevésbé) megoldottuk, hogy ne férjen hozzá bárki
+      a szuper értékes téglalap adatainkhoz!
+      </p>
+
+      <div class="callout warn">
+        <strong>Fontos:</strong> azért egy valódi ipari rendszerben ez nem valami erős védelem.
+        Ha komolyan értékes adataid vannak, akkor meg kell csinálni rendesen, OAuth2 authentikációval.
+	Itt ez túl bonyolult lenne, maradjunk az egyszerűnél. Ha szükséged lesz rá, majd utánanézel. 
+      </div>
+
+      <h3>2.3 Apps Script kód (doGet → JSON)</h3>
+      <p>
+        Másold be az alábbi kódot a <code>Code.gs</code>-be. 
+	A szerkesztőt ugyanúgy kell megnyitni, mint az előző projektben: Bővítmények → AppScript
+	Ezt a két mezőt mindenképp írd át:
+        <strong>SPREADSHEET_ID</strong> és <strong>SHARED_SECRET</strong>.
+      </p>
+      <details>
+        <summary>Hint: Honnan tudjam mi a SPREADSHEET_ID-m?</summary>
+	<p>Minden google dokumentumnak van egy azonosító kódja (látszólag egy krisz-kraksz).
+	Ha megnyitottad a táblázatot, fent az URL mezőben láthatod is: ez lesz a /d és a /edit közötti rész.
+	Ez a kód azonosítja egyértelműen a dokumentumodat, a script pedig innen tudja majd, hogy a sok
+	dokumentumod közül melyiket kell néznie!
+	</p>
+	<p>
+	Tehát, ha például ezt látod fent: 
+	</p>
+<pre>
+https://docs.google.com/spreadsheets/d/1AbCDefGhIJkLMnopQRstuVWxyz1234567890abcdEFg/edit#gid=0
+</pre>
+Akkor a dokumentumod azonosítója: 1AbCDefGhIJkLMnopQRstuVWxyz1234567890abcdEFg
+      </details>
+
+      <pre><code>
+const SPREADSHEET_ID = "IDE_JÖN_A_SHEETS_ID";
+const SHEET_NAME = "Rects"; // ez a munkafüzetlap neve
+const SHARED_SECRET = "MY_SHARED_SECRET";
+
+function doGet(e) {
+  // titkos kulcs ellenőrzés
+  const key = (e && e.parameter && e.parameter.key) ? String(e.parameter.key) : "";
+  if (key !== SHARED_SECRET) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ error: "Unauthorized" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // táblázat beolvasás
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sh = ss.getSheetByName(SHEET_NAME);
+  // ha nincs meg a munkafüzet: hiba
+  if (!sh) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ error: "Sheet not found: " + SHEET_NAME }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const values = sh.getDataRange().getValues(); // header + rows
+  if (!values || values.length &lt; 2) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ items: [] }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const header = values[0].map(h =&gt; String(h).trim());
+  const rows = values
+    .slice(1)
+    .filter(r =&gt; r.some(cell =&gt; cell !== "" &amp;&amp; cell != null));
+
+  // sorok objektummá alakítása
+  const items = rows.map(r =&gt; {
+    const obj = {};
+    header.forEach((h, i) =&gt; obj[h] = r[i]);
+    return obj;
+  });
+
+  // válasz kiküldése:
+  return ContentService
+    .createTextOutput(JSON.stringify({ items }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+      </code></pre>
+
+      <h3>3. lépés - Deploy web appként</h3>
+      <ol>
+        <li>Apps Script: <strong>Deploy (bevezetés)</strong> jobb felül találod</li>
+        <li>Select type (válasszon típust): <strong>Web app (internetes alkalmazás)</strong></li>
+        <li>Description (leírás): Amit szeretnél, pl AutoCAD integráció</li>
+        <li>Execute as (végrehajtás mint): <strong>Me (én)</strong></li>
+        <li>Who has access (hozzáférés): <strong>Anyone with the link (bárki)</strong></li>
+        <li>Deploy (Bevezetés)→ engedélyezések elfogadása</li>
+      </ol>
+
+      <div class="callout ok">
+        A deploy végén kapsz egy URL-t, pl.:<br/>
+        <code>https://script.google.com/macros/s/AKfycb.../exec</code>
+	<p>Ezt mentsd el valahová, mert ezt fogja használni az AutoCAD script</p>
+      </div>
+    </section>
+
+    <section id="teszt">
+      <h2>4. lépés - Endpoint teszt böngészőből <span class="todo">TODO</span></h2>
+
+      <h3>4.1 Hívás </h3>
+      <p>
+        Másold be a kapott URL címet a böngésző fejlécébe és üss entert. 
+	Azt kéne látnod, hogy {"error":"Unauthorized"} (hiszen nem adtuk meg a kulcsot).
+	Ezt már a mi programunk írja ki.
+      </p>
+      <h3>4.2 Hívás kulccsal</h3>
+      <p>
+      Az URL végére (az exec után) másold oda, hogy <code>?key=MY_SHARED_SECRET</code>. 
+      Persze a saját kulcsodat használd ne a MY_SHARED_SECRET-et.
+      </p>
+      <pre>.../exec?key=MY_SHARED_SECRET</pre>
+
+      <p>Ha jól csináltad, valami ilyesmit kéne látnod:</p>
+      <pre>{
+  "items": [
+    {"x":0,"y":0,"width":100,"height":50},
+    {"x":120,"y":0,"width":60,"height":60},
+    ...
+  ]
+}</pre>
+
+      <details>
+        <summary>Gyakori problémák</summary>
+        <ul>
+          <li><strong>Rosszul másolt URL:</strong> nem az <code>/exec</code> végpontot hívod.</li>
+          <li><strong>SPREADSHEET_ID hiba:</strong> nem található a táblázat. Rosszul másoltad be a táblázat azonosítóját.</li>
+          <li><strong>Sheet név hiba:</strong> nem "Rects" a munkalap neve.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section id="autocad">
+      <h2>5-6. lépés - AutoCAD 2024 script + WEBLOAD <span class="todo">TODO</span></h2>
+
+      <h3>5.1 AutoCAD JS fájl létrehozása</h3>
+      <p>
+        Hozz létre egy fájlt a gépeden, pl.: <code>C:\autocad-cloud\drawFromCloud.js</code>
+      </p>
+
+      <p>
+        Másold bele az alábbi kódot, és írd át benne:
+        <strong>WEB_APP_URL</strong> és <strong>SECRET</strong>.
+      </p>
+
+      <pre><code>
+(function () {
+  // 1) Konfiguráció
+  const WEB_APP_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+  const SECRET = "MY_SHARED_SECRET_2026";
+
+  function toNumber(v, def = 0) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : def;
+  }
+
+  async function fetchItems() {
+    const url = WEB_APP_URL + "?key=" + encodeURIComponent(SECRET);
+
+    // AutoCAD beágyazott web runtime környezetben a fetch általában elérhető.
+    // Ha valamiért nem, akkor XHR-rel is megoldható (lásd a Hint-ben).
+    const res = await fetch(url, { method: "GET" });
+
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+
+    if (json.error) throw new Error(json.error);
+    if (!Array.isArray(json.items)) return [];
+
+    return json.items.map(it => ({
+      x: toNumber(it.x),
+      y: toNumber(it.y),
+      w: toNumber(it.width),
+      h: toNumber(it.height),
+    }));
+  }
+
+  function drawRect(x, y, w, h) {
+    // AutoCAD parancs: RECTANG
+    const p1 = `${x},${y}`;
+    const p2 = `${x + w},${y + h}`;
+    Acad.Editor.executeCommand("_.RECTANG", p1, p2);
+  }
+
+  async function drawFromCloud() {
+    try {
+      const items = await fetchItems();
+
+      if (!items.length) {
+        Acad.Editor.executeCommand("_.PROMPT", "\"No items.\"");
+        return;
+      }
+
+      for (const r of items) {
+        if (r.w &lt;= 0 || r.h &lt;= 0) continue;
+        drawRect(r.x, r.y, r.w, r.h);
+      }
+
+      Acad.Editor.executeCommand("_.PROMPT", `"OK: drew ${items.length} rectangles."`);
+    } catch (err) {
+      Acad.Editor.executeCommand("_.PROMPT", `"Error: ${String(err.message || err)}"`);
+    }
+  }
+
+  // 2) Parancs regisztrálása AutoCAD-ben
+  Acad.Editor.addCommand(
+    "CLOUDTOOLS",        // group
+    "drawFromCloud",     // global name
+    "drawFromCloud",     // local name (amit beírsz parancssorba)
+    Acad.CommandFlag.TRANSPARENT,
+    drawFromCloud
+  );
+})();
+      </code></pre>
+
+      <details>
+        <summary>Hint: mi van, ha a fetch nem működik?</summary>
+        <p>Használhatsz XHR-t is (régebbi környezetekben stabilabb):</p>
+        <pre><code>
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url);
+    xhr.onload = () => {
+      if (xhr.status &lt; 200 || xhr.status &gt;= 300) return reject(new Error("HTTP " + xhr.status));
+      try { resolve(JSON.parse(xhr.responseText)); }
+      catch (e) { reject(e); }
+    };
+    xhr.onerror = () => reject(new Error("Network error"));
+    xhr.send();
+  });
+}
+        </code></pre>
+      </details>
+
+      <h3>6.1 Betöltés AutoCAD-be</h3>
+      <ol>
+        <li>Nyisd meg az AutoCAD 2024-et, nyiss egy üres rajzot.</li>
+        <li>Parancssor: <strong>WEBLOAD</strong></li>
+        <li>Válaszd ki a <code>drawFromCloud.js</code> fájlt.</li>
+      </ol>
+
+      <h3>6.2 Futatás</h3>
+      <p>Parancssorba írd:</p>
+      <pre>drawFromCloud</pre>
+
+      <div class="callout ok">
+        Ha minden jól ment, a Sheets-ből beolvasott téglalapok megjelennek a rajzon.
+      </div>
+    </section>
+
+    <section id="hibak">
+      <h2>Hibakeresés (gyors diagnosztika)</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Jelenség</th>
+            <th>Valószínű ok</th>
+            <th>Gyors fix</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>AutoCAD-ben: <code>Error: Unauthorized</code></td>
+            <td>rossz <code>SECRET</code> vagy kimaradt a <code>key</code></td>
+            <td>Ellenőrizd a JS-ben a SECRET-et és a Web App URL-t; teszteld böngészőből is.</td>
+          </tr>
+          <tr>
+            <td>Semmi nem rajzolódik, "No items."</td>
+            <td>üres/rossz sheet, header hibás</td>
+            <td>Header pontosan: <code>x y width height</code>; legyen legalább 1 adatsor.</td>
+          </tr>
+          <tr>
+            <td>HTTP 404 / 500</td>
+            <td>rossz deploy URL, nincs engedélyezve</td>
+            <td>Deploy → web app → új URL; jogosultságok jóváhagyása.</td>
+          </tr>
+          <tr>
+            <td><code>fetch is not defined</code></td>
+            <td>runtime korlát</td>
+            <td>Válts XHR-es megoldásra (lásd hint).</td>
+          </tr>
+          <tr>
+            <td>Rajzol, de rossz méret / hely</td>
+            <td>egységek/koordináta-rendszer</td>
+            <td>Egyeztesd a Sheets adatok mértékegységét az AutoCAD rajzéval.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <details>
+        <summary>Hint: gyors "debug" üzenetek AutoCAD-ben</summary>
+        <p>
+          Használj <code>Acad.Editor.executeCommand("_.PROMPT", "...")</code> üzeneteket kritikus pontokon:
+          URL kiírás, items szám, első rekord, stb.
+        </p>
+      </details>
+    </section>
+
+    <section id="feladatok">
+      <h2>Extra feladatok (opcionális)</h2>
+
+      <ol>
+        <li>
+          <strong>Rétegezés:</strong> a Sheets-ben legyen <code>layer</code> oszlop, és rajzolás előtt állíts réteget.
+        </li>
+        <li>
+          <strong>Validáció:</strong> a Web App szűrje ki a hibás sorokat (negatív width/height), és adjon vissza <code>warnings</code> listát.
+        </li>
+        <li>
+          <strong>Táblázat frissítés:</strong> AutoCAD rajzolás után a Web App írja vissza a "drawnAt" időbélyeget.
+        </li>
+        <li>
+          <strong>Forma bővítés:</strong> téglalap helyett <code>POLYLINE</code> vagy kör (x,y,r) paraméterezés.
+        </li>
+        <li>
+          <strong>Shared secret erősítése:</strong> időalapú (timestamp) + HMAC-szerű aláírás (haladó).
+        </li>
+      </ol>
+
+      <div class="callout">
+        <strong>Tanulság:</strong> itt a "nagy ötlet" nem a rajzolás, hanem az, hogy
+        a JavaScript képes <em>adatot</em> hozni a felhőből, és abból automatizáltan végrehajtani egy desktop műveletsort.
+      </div>
+    </section>
+
+    <footer>
+      © JavaScript automatizálás - Mini projekt (AutoCAD 2024 + Apps Script + Google Sheets)
+    </footer>
+  </div>
+
+  <!-- (Opcionális) Ha van nálatok kódblokk-kiemelő -->
+  <!-- <script src="codeblock.js"></script> -->
+</body>
+</html>
