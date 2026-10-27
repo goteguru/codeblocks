@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="JavaScript course – lessons and practice exercises" />
+  <title>JavaScript Course – Learning Materials</title>
+
+  <style>
+    :root{
+      /* Light */
+      --bg: #ffffff;
+      --surface: #f7f7fb;
+      --text: #1b1f24;
+      --muted: #4b5563;
+      --border: rgba(0,0,0,.10);
+      --shadow: 0 10px 30px rgba(0,0,0,.08);
+      --link: #2563eb;
+      --link-hover: #1d4ed8;
+      --badge-bg: rgba(37, 99, 235, .10);
+      --badge-text: #1d4ed8;
+      --focus: rgba(37, 99, 235, .35);
+      --radius: 16px;
+      --max: 960px;
+    }
+
+    @media (prefers-color-scheme: dark){
+      :root{
+        /* Dark (custom Darcula-inspired theme) */
+        --bg: #0f111a;
+        --surface: #151a26;
+        --text: #e7e9ee;
+        --muted: #a7b0c0;
+        --border: rgba(255,255,255,.10);
+        --shadow: 0 14px 38px rgba(0,0,0,.45);
+        --link: #7aa2ff;
+        --link-hover: #9bb8ff;
+        --badge-bg: rgba(122, 162, 255, .14);
+        --badge-text: #9bb8ff;
+        --focus: rgba(122, 162, 255, .35);
+      }
+    }
+
+    *{ box-sizing: border-box; }
+    html, body{ height: 100%; }
+    body{
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.6;
+      color: var(--text);
+      background: radial-gradient(1200px 700px at 20% -10%, rgba(37,99,235,.12), transparent 60%),
+                  radial-gradient(1000px 600px at 100% 0%, rgba(16,185,129,.10), transparent 55%),
+                  var(--bg);
+    }
+
+    a{
+      color: var(--link);
+      text-decoration: none;
+      text-underline-offset: 3px;
+    }
+    a:hover{ color: var(--link-hover); text-decoration: underline; }
+
+    .wrap{
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 28px 18px 56px;
+    }
+
+    header{
+      margin: 10px 0 18px;
+      padding: 22px 22px 18px;
+      background: color-mix(in oklab, var(--surface) 92%, transparent);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+
+    .language-switcher{
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .language-switcher a{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+
+    .language-switcher a[aria-current="page"]{
+      background: var(--badge-bg);
+      font-weight: 700;
+    }
+
+    .language-switcher a:focus-visible{
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    h1{
+      margin: 0 0 6px;
+      font-size: clamp(1.6rem, 2.2vw + 1rem, 2.2rem);
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle{
+      margin: 0;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    main{
+      margin-top: 16px;
+    }
+
+    main h2{
+      margin: 0 0 14px;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
+    }
+
+    .lessons{
+      display: grid;
+      gap: 14px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .lesson-pair{
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 6px;
+      padding: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    @media (min-width: 880px){
+      .lesson-pair{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+    }
+
+    .linkrow{
+      display: flex;
+      align-items: baseline;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      gap: 10px;
+      padding: 10px 10px;
+      border-radius: 12px;
+    }
+
+    .linkrow:hover{
+      background: color-mix(in oklab, var(--bg) 72%, transparent);
+    }
+
+    .badge{
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      font-size: .82rem;
+      font-weight: 600;
+      letter-spacing: .01em;
+      white-space: nowrap;
+    }
+
+    .title{
+      font-weight: 650;
+    }
+
+    .desc{
+      color: var(--muted);
+      font-size: .93rem;
+    }
+
+    .linkrow:focus,
+    .linkrow:focus-visible{
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    footer{
+      margin-top: 18px;
+      padding: 14px 4px 0;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    code{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: .95em;
+      padding: 0 .35em;
+      border-radius: 8px;
+      background: color-mix(in oklab, var(--surface) 80%, var(--bg));
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <nav class="language-switcher" aria-label="Language selection">
+        <a href="index.html" lang="en" hreflang="en" aria-label="English" aria-current="page"><span aria-hidden="true">🇬🇧</span> EN</a>
+        <span aria-hidden="true">|</span>
+        <a href="../index.html" lang="hu" hreflang="hu" aria-label="Magyar"><span aria-hidden="true">🇭🇺</span> HU</a>
+      </nav>
+      <h1>JavaScript Course</h1>
+      <p class="subtitle">
+        Lessons and practice exercises. The exercise pages help you practice your skills; the lesson pages provide explanations and examples.
+      </p>
+    </header>
+
+    <main aria-labelledby="materials-heading">
+      <h2 id="materials-heading">Lessons and Practice Exercises</h2>
+      <ol class="lessons" role="list">
+        <li class="lesson-pair">
+          <a class="linkrow" href="es_01.html">
+            <span class="badge">Lesson 1</span>
+            <span>
+              <span class="title">JavaScript Basic Model: Values, Types, Objects, Functions</span><br />
+              <span class="desc">Basic concepts, types, objects, and function calls.</span>
+            </span>
+          </a>
+          <a class="linkrow" href="es_01f.html">
+            <span class="badge">Exercises</span>
+            <span>
+              <span class="title">Lesson 1 – Practice</span><br />
+              <span class="desc">Values, types, objects, and functions.</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="lesson-pair">
+          <a class="linkrow" href="es_02.html">
+            <span class="badge">Lesson 2</span>
+            <span>
+              <span class="title">Operators, Type Conversion, and Control Structures</span><br />
+              <span class="desc">Expressions, comparisons, truthy/falsy, <code>if</code>, <code>for</code>, <code>while</code>.</span>
+            </span>
+          </a>
+          <a class="linkrow" href="es_02f.html">
+            <span class="badge">Exercises</span>
+            <span>
+              <span class="title">Lesson 2 – Practice</span><br />
+              <span class="desc">Operators, conversion, conditionals, and loops.</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="lesson-pair">
+          <a class="linkrow" href="es_03.html">
+            <span class="badge">Lesson 3</span>
+            <span>
+              <span class="title">Functions in Depth</span><br />
+              <span class="desc">Parameters, return values, function types, and callbacks.</span>
+            </span>
+          </a>
+          <a class="linkrow" href="es_03f.html">
+            <span class="badge">Exercises</span>
+            <span>
+              <span class="title">Lesson 3 – Practice</span><br />
+              <span class="desc">Functions, scope, and callbacks.</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="lesson-pair">
+          <a class="linkrow" href="es_04.html">
+            <span class="badge">Lesson 4</span>
+            <span>
+              <span class="title">Important Object Types</span><br />
+              <span class="desc">Arrays, objects, and useful built-in types.</span>
+            </span>
+          </a>
+          <a class="linkrow" href="es_04f.html">
+            <span class="badge">Exercises</span>
+            <span>
+              <span class="title">Lesson 4 – Practice</span><br />
+              <span class="desc">Array/Object operations and built-in types.</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="lesson-pair">
+          <a class="linkrow" href="es_05.html">
+            <span class="badge">Lesson 5</span>
+            <span>
+              <span class="title">Error Handling, Modules, Prototype</span><br />
+              <span class="desc">try/catch/finally, import/export, and the prototype chain.</span>
+            </span>
+          </a>
+          <a class="linkrow" href="es_05f.html">
+            <span class="badge">Exercises</span>
+            <span>
+              <span class="title">Lesson 5 – Practice</span><br />
+              <span class="desc">Error handling, modules, and prototypes.</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="lesson-pair">
+          <a class="linkrow" href="es_06.html">
+            <span class="badge">Lesson 6</span>
+            <span>
+              <span class="title">Asynchronous JavaScript and Events</span><br />
+              <span class="desc">Promise, async/await, event handling, and event loop basics.</span>
+            </span>
+          </a>
+          <a class="linkrow" href="es_06f.html">
+            <span class="badge">Exercises</span>
+            <span>
+              <span class="title">Lesson 6 – Practice</span><br />
+              <span class="desc">Asynchronous control flow and events.</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="lesson-pair">
+          <a class="linkrow" href="es_07_2.html">
+            <span class="badge">Lesson 7</span>
+            <span>
+              <span class="title">JavaScript as a System: Execution Model, Closure, Asynchronous Patterns</span><br />
+              <span class="desc">Call stack, tasks/microtasks, state management, copying and mutation.</span>
+            </span>
+          </a>
+          <a class="linkrow" href="es_07.html">
+            <span class="badge">Exercises</span>
+            <span>
+              <span class="title">Lesson 7 – Practice</span><br />
+              <span class="desc">Browser APIs: DOM, events, and web platform capabilities.</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="lesson-pair">
+          <a class="linkrow" href="es_08.html">
+            <span class="badge">Lesson 8</span>
+            <span>
+              <span class="title">Simple Data Visualization</span><br />
+              <span class="desc">Console charts, Chart.js, Google Charts, and D3.js.</span>
+            </span>
+          </a>
+          <a class="linkrow" href="es_08f.html">
+            <span class="badge">Exercises</span>
+            <span>
+              <span class="title">Lesson 8 – Practice</span><br />
+              <span class="desc">Data visualization with Chart.js and Google GeoChart.</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="lesson-pair">
+          <a class="linkrow" href="es_09.html">
+            <span class="badge">Lesson 9</span>
+            <span>
+              <span class="title">Locally Running JavaScript: Node.js</span><br />
+              <span class="desc">Modules, file handling, command-line programs, and configuration.</span>
+            </span>
+          </a>
+          <a class="linkrow" href="es_09f.html">
+            <span class="badge">Exercises</span>
+            <span>
+              <span class="title">Lesson 9 – Practice</span><br />
+              <span class="desc">Folder statistics generator using Node.js core modules.</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="lesson-pair">
+          <a class="linkrow" href="es_10_1.html">
+            <span class="badge">Lesson 10</span>
+            <span>
+              <span class="title">Node.js External Libraries</span><br />
+              <span class="desc">npm, commander, axios, CSV and Excel processing, and file watching.</span>
+            </span>
+          </a>
+          <a class="linkrow" href="es_10_2.html">
+            <span class="badge">Exercises</span>
+            <span>
+              <span class="title">Lesson 10 – Practice</span><br />
+              <span class="desc">Complete workflow: CSV processing, LLM integration, and XLSX reports.</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="lesson-pair">
+          <a class="linkrow" href="es_11.html">
+            <span class="badge">Lesson 11</span>
+            <span>
+              <span class="title">Office Automation in the Cloud</span><br />
+              <span class="desc">Google Apps Script and Microsoft Office Scripts basics.</span>
+            </span>
+          </a>
+          <a class="linkrow" href="es_11f.html">
+            <span class="badge">Exercises</span>
+            <span>
+              <span class="title">Lesson 11 – Practice</span><br />
+              <span class="desc">Automation with Google Forms, Sheets, and Apps Script.</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="lesson-pair">
+          <a class="linkrow" href="es_12.html">
+            <span class="badge">Lesson 12</span>
+            <span>
+              <span class="title">Serverless Basics</span><br />
+              <span class="desc">Cloud Functions, Lambda, triggers, and stateless execution.</span>
+            </span>
+          </a>
+          <a class="linkrow" href="es_12f.html">
+            <span class="badge">Exercises</span>
+            <span>
+              <span class="title">Lesson 12 – Practice</span><br />
+              <span class="desc">Mini project: AutoCAD and Google Sheets – drawing from the cloud.</span>
+            </span>
+          </a>
+        </li>
+      </ol>
+    </main>
+
+    <footer>
+      Tip: this page automatically uses dark mode when your system is set to a dark theme.
+    </footer>
+  </div>
+</body>
+</html>

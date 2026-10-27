@@ -77,6 +77,32 @@
       backdrop-filter: blur(6px);
     }
 
+    .language-switcher{
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .language-switcher a{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+
+    .language-switcher a[aria-current="page"]{
+      background: var(--badge-bg);
+      font-weight: 700;
+    }
+
+    .language-switcher a:focus-visible{
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
     h1{
       margin: 0 0 6px;
       font-size: clamp(1.6rem, 2.2vw + 1rem, 2.2rem);
@@ -190,6 +216,11 @@
 <body>
   <div class="wrap">
     <header>
+      <nav class="language-switcher" aria-label="Nyelvválasztás">
+        <a href="en/index.html" lang="en" hreflang="en" aria-label="English"><span aria-hidden="true">🇬🇧</span> EN</a>
+        <span aria-hidden="true">|</span>
+        <a href="index.html" lang="hu" hreflang="hu" aria-label="Magyar" aria-current="page"><span aria-hidden="true">🇭🇺</span> HU</a>
+      </nav>
       <h1>JavaScript tanfolyam</h1>
       <p class="subtitle">
         Tananyag és gyakorló feladatlapok. A feladatok oldalak gyakorlásra valók; a tananyag oldalak a magyarázatot és mintákat tartalmazzák.
